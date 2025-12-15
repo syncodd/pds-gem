@@ -65,7 +65,7 @@ export function isComponentInPanel(
 }
 
 /**
- * Check for overlaps between components
+ * Check for overlaps between components (only on the same panel)
  */
 export function checkOverlaps(
   components: CanvasComponent[],
@@ -82,6 +82,9 @@ export function checkOverlaps(
 
     for (let j = i + 1; j < components.length; j++) {
       const comp2 = components[j];
+      // Only check overlaps for components on the same panel
+      if (comp1.panelId !== comp2.panelId) continue;
+      
       const compDef2 = componentLibrary.find((c) => c.id === comp2.componentId);
       if (!compDef2) continue;
 
@@ -124,7 +127,7 @@ export function getMinDistance(rect1: Rectangle, rect2: Rectangle): number {
 }
 
 /**
- * Check if components meet minimum spacing requirement
+ * Check if components meet minimum spacing requirement (only on the same panel)
  */
 export function checkSpacing(
   components: CanvasComponent[],
@@ -142,6 +145,9 @@ export function checkSpacing(
 
     for (let j = i + 1; j < components.length; j++) {
       const comp2 = components[j];
+      // Only check spacing for components on the same panel
+      if (comp1.panelId !== comp2.panelId) continue;
+      
       const compDef2 = componentLibrary.find((c) => c.id === comp2.componentId);
       if (!compDef2) continue;
 
@@ -167,18 +173,30 @@ export function checkSpacing(
 }
 
 /**
- * Get all components that are outside panel bounds
+ * Get all components that are outside their panel bounds
  */
 export function getOutOfBoundsComponents(
   components: CanvasComponent[],
   componentLibrary: Component[],
-  panel: Panel
+  panels: Panel[]
 ): string[] {
   const outOfBounds: string[] = [];
+  
+  // Create a map of panel IDs to panels for quick lookup
+  const panelMap = new Map<string, Panel>();
+  panels.forEach(panel => panelMap.set(panel.id, panel));
 
   for (const canvasComp of components) {
     const compDef = componentLibrary.find((c) => c.id === canvasComp.componentId);
     if (!compDef) continue;
+
+    // Find the panel this component belongs to
+    const panel = panelMap.get(canvasComp.panelId);
+    if (!panel) {
+      // Component references a panel that doesn't exist
+      outOfBounds.push(canvasComp.id);
+      continue;
+    }
 
     if (!isComponentInPanel(canvasComp, compDef, panel)) {
       outOfBounds.push(canvasComp.id);
@@ -186,5 +204,89 @@ export function getOutOfBoundsComponents(
   }
 
   return outOfBounds;
+}
+
+/**
+ * Check if a component intersects with the bounding box of specified panels
+ * Returns components that intersect with any of the specified panels
+ */
+export function checkIntersectsWithPanelBounds(
+  components: CanvasComponent[],
+  componentLibrary: Component[],
+  panels: Panel[],
+  targetPanelIds: string[]
+): string[] {
+  const intersecting: string[] = [];
+  
+  // Create a map of panel IDs to panels for quick lookup
+  const panelMap = new Map<string, Panel>();
+  panels.forEach(panel => panelMap.set(panel.id, panel));
+  
+  // Get target panels
+  const targetPanels = targetPanelIds
+    .map(id => panelMap.get(id))
+    .filter((panel): panel is Panel => panel !== undefined);
+  
+  if (targetPanels.length === 0) return intersecting;
+
+  for (const canvasComp of components) {
+    const compDef = componentLibrary.find((c) => c.id === canvasComp.componentId);
+    if (!compDef) continue;
+
+    const compBounds = getComponentBounds(canvasComp, compDef);
+    
+    // Check if component intersects with any of the target panels
+    for (const targetPanel of targetPanels) {
+      // Skip if component is on the target panel itself
+      if (canvasComp.panelId === targetPanel.id) continue;
+      
+      // Calculate target panel's position in global coordinates
+      // Find the x offset of the target panel
+      let targetPanelXOffset = 0;
+      for (let i = 0; i < panels.length; i++) {
+        if (panels[i].id === targetPanel.id) {
+          break;
+        }
+        targetPanelXOffset += panels[i].width;
+      }
+      
+      // Calculate component's panel x offset
+      let compPanelXOffset = 0;
+      for (let i = 0; i < panels.length; i++) {
+        if (panels[i].id === canvasComp.panelId) {
+          break;
+        }
+        compPanelXOffset += panels[i].width;
+      }
+      
+      // Component's global position
+      const compGlobalX = compPanelXOffset + canvasComp.x;
+      const compGlobalY = canvasComp.y;
+      
+      // Target panel bounds in global coordinates
+      const targetPanelBounds: Rectangle = {
+        x: targetPanelXOffset,
+        y: 0,
+        width: targetPanel.width,
+        height: targetPanel.height,
+      };
+      
+      // Component bounds in global coordinates
+      const compGlobalBounds: Rectangle = {
+        x: compGlobalX,
+        y: compGlobalY,
+        width: compDef.width,
+        height: compDef.height,
+      };
+      
+      // Check if rectangles intersect
+      if (rectanglesOverlap(compGlobalBounds, targetPanelBounds)) {
+        intersecting.push(canvasComp.id);
+        break; // Only need to report once per component
+      }
+    }
+  }
+
+  return intersecting;
 }
 

@@ -6,473 +6,451 @@ import { Rule, Constraint, RuleCondition, Panel, Component } from '@/types';
 
 interface RuleNodeEditorProps {
   node: Node;
-  rule: Rule;
+  rule?: Rule;
   panels: Panel[];
   components: Component[];
-  onSave: (rule: Rule) => void;
+  onSave: (rule?: Rule) => void;
   onDelete: (ruleId: string) => void;
   onClose: () => void;
+  onUpdateNode?: (nodeId: string, data: any) => void;
 }
 
 export default function RuleNodeEditor({
+  node,
   rule: initialRule,
   panels,
   components,
   onSave,
   onDelete,
   onClose,
+  onUpdateNode,
 }: RuleNodeEditorProps) {
-  const [rule, setRule] = useState<Rule>(initialRule);
-  const [editingConstraint, setEditingConstraint] = useState<Constraint | null>(null);
-  const [editingCondition, setEditingCondition] = useState<RuleCondition | null>(null);
+  // Determine node type
+  const isPanelNode = !!node.data.panelId || !!node.data.panel;
+  const isConstraintNode = !!node.data.constraint;
+  const isConditionNode = !!node.data.condition;
+  const isRuleNode = !!initialRule;
+
+  // State for different node types
+  const [constraint, setConstraint] = useState<Constraint | null>(
+    isConstraintNode ? (node.data.constraint as Constraint) : null
+  );
+  const [condition, setCondition] = useState<RuleCondition | null>(
+    isConditionNode ? (node.data.condition as RuleCondition) : null
+  );
+  const [selectedPanelId, setSelectedPanelId] = useState<string>(
+    isPanelNode ? (node.data.panelId || '') : ''
+  );
 
   useEffect(() => {
-    setRule(initialRule);
-  }, [initialRule]);
+    if (isConstraintNode) {
+      setConstraint(node.data.constraint as Constraint);
+    }
+    if (isConditionNode) {
+      setCondition(node.data.condition as RuleCondition);
+    }
+    if (isPanelNode) {
+      setSelectedPanelId(node.data.panelId || '');
+    }
+  }, [node, isConstraintNode, isConditionNode, isPanelNode]);
 
-  const updateRule = (updates: Partial<Rule>) => {
-    setRule({ ...rule, ...updates });
-  };
-
-  const addConstraint = () => {
-    const newConstraint: Constraint = {
-      type: 'overlap',
-      message: '',
-    };
-    setRule({
-      ...rule,
-      constraints: [...rule.constraints, newConstraint],
-    });
-    setEditingConstraint(newConstraint);
-  };
-
-  const updateConstraint = (index: number, updates: Partial<Constraint>) => {
-    const updated = rule.constraints.map((c, i) =>
-      i === index ? { ...c, ...updates } : c
-    );
-    setRule({ ...rule, constraints: updated });
-  };
-
-  const deleteConstraint = (index: number) => {
-    setRule({
-      ...rule,
-      constraints: rule.constraints.filter((_, i) => i !== index),
-    });
-  };
-
-  const addCondition = () => {
-    const newCondition: RuleCondition = {
-      field: 'componentCount',
-      operator: 'greaterThan',
-      value: 0,
-    };
-    setRule({
-      ...rule,
-      conditions: [...rule.conditions, newCondition],
-    });
-    setEditingCondition(newCondition);
-  };
-
-  const updateCondition = (index: number, updates: Partial<RuleCondition>) => {
-    const updated = rule.conditions.map((c, i) =>
-      i === index ? { ...c, ...updates } : c
-    );
-    setRule({ ...rule, conditions: updated });
-  };
-
-  const deleteCondition = (index: number) => {
-    setRule({
-      ...rule,
-      conditions: rule.conditions.filter((_, i) => i !== index),
-    });
-  };
-
-  return (
-    <div className="h-full flex flex-col">
-      <div className="p-4 border-b border-gray-200">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Edit Rule</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
-          >
-            ✕
-          </button>
-        </div>
-
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Name
-            </label>
-            <input
-              type="text"
-              value={rule.name}
-              onChange={(e) => updateRule({ name: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-            />
+  // Panel Node Editor
+  if (isPanelNode) {
+    const selectedPanel = panels.find((p) => p.id === selectedPanelId);
+    
+    return (
+      <div className="h-full flex flex-col">
+        <div className="p-4 border-b border-gray-200">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold">Edit Panel Node</h2>
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+              ✕
+            </button>
           </div>
-
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Type
+              Panel
             </label>
             <select
-              value={rule.type}
+              value={selectedPanelId}
+              onChange={(e) => setSelectedPanelId(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+            >
+              <option value="global">Global Rules</option>
+              {panels.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+        <div className="flex-1 overflow-y-auto p-4">
+          {selectedPanel && (
+            <div className="space-y-2">
+              <div>
+                <span className="text-sm font-medium text-gray-700">Name: </span>
+                <span className="text-sm text-gray-600">{selectedPanel.name}</span>
+              </div>
+              <div>
+                <span className="text-sm font-medium text-gray-700">Dimensions: </span>
+                <span className="text-sm text-gray-600">
+                  {selectedPanel.width}mm × {selectedPanel.height}mm
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+        <div className="p-4 border-t border-gray-200 flex gap-2">
+          <button
+            onClick={() => {
+              const updatedData = {
+                ...node.data,
+                panelId: selectedPanelId,
+                panel: selectedPanel,
+                label: selectedPanelId === 'global' ? 'Global Rules' : selectedPanel?.name || 'Panel',
+              };
+              if (onUpdateNode) {
+                onUpdateNode(node.id, updatedData);
+              }
+              onSave();
+            }}
+            className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+          >
+            Save
+          </button>
+          <button
+            onClick={() => {
+              onDelete(node.id);
+            }}
+            className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Constraint Node Editor
+  if (isConstraintNode && constraint) {
+    const updateConstraint = (updates: Partial<Constraint>) => {
+      setConstraint({ ...constraint, ...updates });
+    };
+
+    return (
+      <div className="h-full flex flex-col">
+        <div className="p-4 border-b border-gray-200">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold">Edit Constraint</h2>
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+              ✕
+            </button>
+          </div>
+        </div>
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Constraint Type
+            </label>
+            <select
+              value={constraint.type}
               onChange={(e) =>
-                updateRule({ type: e.target.value as 'global' | 'panel' | 'component' })
+                updateConstraint({
+                  type: e.target.value as Constraint['type'],
+                })
               }
               className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
             >
-              <option value="global">Global</option>
-              <option value="panel">Panel</option>
-              <option value="component">Component</option>
+              <option value="overlap">No Overlaps</option>
+              <option value="bounds">Within Bounds</option>
+              <option value="spacing">Minimum Spacing</option>
+              <option value="count">Component Count</option>
+              <option value="dimension">Dimension</option>
+              <option value="co-usage">Co-usage</option>
+              <option value="noIntersectWithPanelBounds">Not Intersect with Panel Bounds</option>
             </select>
           </div>
 
-          {rule.type === 'panel' && (
+          {constraint.type === 'spacing' && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Panel
+                Minimum Spacing (mm)
               </label>
-              <select
-                value={rule.panelId || ''}
-                onChange={(e) => updateRule({ panelId: e.target.value || undefined })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-              >
-                <option value="">All Panels</option>
-                {panels.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          {rule.type === 'component' && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Component
-              </label>
-              <select
-                value={rule.componentId || ''}
+              <input
+                type="number"
+                value={constraint.spacing || 0}
                 onChange={(e) =>
-                  updateRule({ componentId: e.target.value || undefined })
+                  updateConstraint({
+                    spacing: parseFloat(e.target.value) || 0,
+                  })
                 }
                 className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-              >
-                <option value="">All Components</option>
-                {components.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
+              />
             </div>
           )}
 
-          <div className="flex items-center">
-            <input
-              type="checkbox"
-              checked={rule.enabled !== false}
-              onChange={(e) => updateRule({ enabled: e.target.checked })}
-              className="mr-2"
-            />
-            <label className="text-sm text-gray-700">Enabled</label>
-          </div>
-        </div>
-      </div>
+          {constraint.type === 'noIntersectWithPanelBounds' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Select Panels (at least 2 required)
+              </label>
+              <div className="space-y-2 max-h-32 overflow-y-auto border border-gray-200 rounded p-2">
+                {panels.map((panel) => {
+                  const isSelected = constraint.panelIds?.includes(panel.id) || false;
+                  return (
+                    <label
+                      key={panel.id}
+                      className="flex items-center gap-2 text-sm cursor-pointer hover:bg-gray-50 p-1 rounded"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={(e) => {
+                          const currentIds = constraint.panelIds || [];
+                          if (e.target.checked) {
+                            updateConstraint({
+                              panelIds: [...currentIds, panel.id],
+                            });
+                          } else {
+                            updateConstraint({
+                              panelIds: currentIds.filter((id) => id !== panel.id),
+                            });
+                          }
+                        }}
+                        className="rounded"
+                      />
+                      <span>{panel.name}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-6">
-        {/* Constraints */}
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-gray-700">Constraints</h3>
-            <button
-              onClick={addConstraint}
-              className="text-xs text-blue-600 hover:text-blue-800"
-            >
-              + Add
-            </button>
-          </div>
-          <div className="space-y-2">
-            {rule.constraints.map((constraint, index) => (
-              <div
-                key={index}
-                className="p-3 border border-gray-200 rounded-md bg-gray-50"
-              >
-                <div className="flex items-center justify-between mb-2">
+          {(constraint.type === 'count' || constraint.type === 'dimension') && (
+            <>
+              {constraint.type === 'dimension' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Property
+                  </label>
                   <select
-                    value={constraint.type}
+                    value={constraint.property || 'width'}
+                    onChange={(e) => updateConstraint({ property: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                  >
+                    <option value="width">Width</option>
+                    <option value="height">Height</option>
+                  </select>
+                </div>
+              )}
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Min</label>
+                  <input
+                    type="number"
+                    value={constraint.min || ''}
                     onChange={(e) =>
-                      updateConstraint(index, {
-                        type: e.target.value as Constraint['type'],
+                      updateConstraint({
+                        min: e.target.value ? parseFloat(e.target.value) : undefined,
                       })
                     }
-                    className="text-sm border border-gray-300 rounded px-2 py-1"
-                  >
-                    <option value="overlap">No Overlaps</option>
-                    <option value="bounds">Within Bounds</option>
-                    <option value="spacing">Minimum Spacing</option>
-                    <option value="count">Component Count</option>
-                    <option value="dimension">Dimension</option>
-                    <option value="co-usage">Co-usage</option>
-                  </select>
-                  <button
-                    onClick={() => deleteConstraint(index)}
-                    className="text-red-500 hover:text-red-700 text-sm"
-                  >
-                    Delete
-                  </button>
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                  />
                 </div>
-
-                {constraint.type === 'spacing' && (
-                  <div className="mt-2">
-                    <label className="block text-xs text-gray-600 mb-1">
-                      Minimum Spacing (mm)
-                    </label>
-                    <input
-                      type="number"
-                      value={constraint.spacing || 0}
-                      onChange={(e) =>
-                        updateConstraint(index, {
-                          spacing: parseFloat(e.target.value) || 0,
-                        })
-                      }
-                      className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
-                    />
-                  </div>
-                )}
-
-                {constraint.type === 'co-usage' && (
-                  <div className="mt-2 space-y-2">
-                    {rule.type === 'component' && rule.componentId && (
-                      <div className="p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700">
-                        <strong>
-                          {components.find((c) => c.id === rule.componentId)?.name ||
-                            rule.componentId}
-                        </strong>{' '}
-                        requires the following components:
-                      </div>
-                    )}
-                    {rule.type === 'panel' && (
-                      <div>
-                        <label className="block text-xs text-gray-600 mb-1">
-                          Required Components for this Panel
-                        </label>
-                        <p className="text-xs text-gray-500 mb-2">
-                          Select components that must be present when using this panel
-                        </p>
-                      </div>
-                    )}
-                    {rule.type === 'component' && !rule.componentId && (
-                      <div className="p-2 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-700">
-                        Please select a component in the rule settings above first
-                      </div>
-                    )}
-                    <div>
-                      <label className="block text-xs text-gray-600 mb-1">
-                        Required Components (must be used together)
-                      </label>
-                      <div className="space-y-2 max-h-32 overflow-y-auto border border-gray-200 rounded p-2">
-                        {components.map((comp) => {
-                          const isSelected =
-                            constraint.requiredComponentIds?.includes(comp.id) || false;
-                          return (
-                            <label
-                              key={comp.id}
-                              className="flex items-center gap-2 text-xs cursor-pointer hover:bg-gray-50 p-1 rounded"
-                            >
-                              <input
-                                type="checkbox"
-                                checked={isSelected}
-                                onChange={(e) => {
-                                  const currentIds =
-                                    constraint.requiredComponentIds || [];
-                                  if (e.target.checked) {
-                                    updateConstraint(index, {
-                                      requiredComponentIds: [...currentIds, comp.id],
-                                    });
-                                  } else {
-                                    updateConstraint(index, {
-                                      requiredComponentIds: currentIds.filter(
-                                        (id) => id !== comp.id
-                                      ),
-                                    });
-                                  }
-                                }}
-                                className="rounded"
-                              />
-                              <span className="flex items-center gap-2">
-                                <div
-                                  className="w-3 h-3 rounded"
-                                  style={{ backgroundColor: comp.color }}
-                                />
-                                {comp.name}
-                              </span>
-                            </label>
-                          );
-                        })}
-                      </div>
-                      {constraint.requiredComponentIds &&
-                        constraint.requiredComponentIds.length === 0 && (
-                          <p className="text-xs text-gray-400 mt-1">
-                            Select at least one required component
-                          </p>
-                        )}
-                    </div>
-                  </div>
-                )}
-
-                {(constraint.type === 'count' || constraint.type === 'dimension') && (
-                  <>
-                    {constraint.type === 'dimension' && (
-                      <div className="mt-2">
-                        <label className="block text-xs text-gray-600 mb-1">
-                          Property
-                        </label>
-                        <select
-                          value={constraint.property || 'width'}
-                          onChange={(e) =>
-                            updateConstraint(index, { property: e.target.value })
-                          }
-                          className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
-                        >
-                          <option value="width">Width</option>
-                          <option value="height">Height</option>
-                        </select>
-                      </div>
-                    )}
-                    <div className="mt-2 grid grid-cols-2 gap-2">
-                      <div>
-                        <label className="block text-xs text-gray-600 mb-1">Min</label>
-                        <input
-                          type="number"
-                          value={constraint.min || ''}
-                          onChange={(e) =>
-                            updateConstraint(index, {
-                              min: e.target.value ? parseFloat(e.target.value) : undefined,
-                            })
-                          }
-                          className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs text-gray-600 mb-1">Max</label>
-                        <input
-                          type="number"
-                          value={constraint.max || ''}
-                          onChange={(e) =>
-                            updateConstraint(index, {
-                              max: e.target.value ? parseFloat(e.target.value) : undefined,
-                            })
-                          }
-                          className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
-                        />
-                      </div>
-                    </div>
-                  </>
-                )}
-
-                <div className="mt-2">
-                  <label className="block text-xs text-gray-600 mb-1">Message</label>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Max</label>
                   <input
-                    type="text"
-                    value={constraint.message || ''}
+                    type="number"
+                    value={constraint.max || ''}
                     onChange={(e) =>
-                      updateConstraint(index, { message: e.target.value })
+                      updateConstraint({
+                        max: e.target.value ? parseFloat(e.target.value) : undefined,
+                      })
                     }
-                    placeholder="Violation message"
-                    className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
                   />
                 </div>
               </div>
-            ))}
+            </>
+          )}
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Message</label>
+            <input
+              type="text"
+              value={constraint.message || ''}
+              onChange={(e) => updateConstraint({ message: e.target.value })}
+              placeholder="Violation message"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+            />
           </div>
         </div>
+        <div className="p-4 border-t border-gray-200 flex gap-2">
+          <button
+            onClick={() => {
+              const updatedData = { ...node.data, constraint };
+              if (onUpdateNode) {
+                onUpdateNode(node.id, updatedData);
+              }
+              onSave();
+            }}
+            className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+          >
+            Save
+          </button>
+          <button
+            onClick={() => {
+              onDelete(node.id);
+            }}
+            className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    );
+  }
 
-        {/* Conditions */}
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-gray-700">Conditions</h3>
-            <button
-              onClick={addCondition}
-              className="text-xs text-blue-600 hover:text-blue-800"
-            >
-              + Add
+  // Condition Node Editor
+  if (isConditionNode && condition) {
+    const updateCondition = (updates: Partial<RuleCondition>) => {
+      setCondition({ ...condition, ...updates });
+    };
+
+    return (
+      <div className="h-full flex flex-col">
+        <div className="p-4 border-b border-gray-200">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold">Edit Condition</h2>
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+              ✕
             </button>
           </div>
-          <div className="space-y-2">
-            {rule.conditions.map((condition, index) => (
-              <div
-                key={index}
-                className="p-3 border border-gray-200 rounded-md bg-gray-50"
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex gap-2 flex-1">
-                    <select
-                      value={condition.field}
-                      onChange={(e) =>
-                        updateCondition(index, { field: e.target.value })
-                      }
-                      className="text-sm border border-gray-300 rounded px-2 py-1 flex-1"
-                    >
-                      <option value="componentCount">Component Count</option>
-                      <option value="panelWidth">Panel Width</option>
-                      <option value="panelHeight">Panel Height</option>
-                    </select>
-                    <select
-                      value={condition.operator}
-                      onChange={(e) =>
-                        updateCondition(index, {
-                          operator: e.target.value as RuleCondition['operator'],
-                        })
-                      }
-                      className="text-sm border border-gray-300 rounded px-2 py-1"
-                    >
-                      <option value="equals">Equals</option>
-                      <option value="greaterThan">Greater Than</option>
-                      <option value="lessThan">Less Than</option>
-                      <option value="notEquals">Not Equals</option>
-                    </select>
-                  </div>
-                  <button
-                    onClick={() => deleteCondition(index)}
-                    className="text-red-500 hover:text-red-700 text-sm ml-2"
-                  >
-                    Delete
-                  </button>
-                </div>
-                <input
-                  type="number"
-                  value={condition.value as number}
-                  onChange={(e) =>
-                    updateCondition(index, { value: parseFloat(e.target.value) || 0 })
-                  }
-                  className="w-full px-2 py-1 border border-gray-300 rounded text-sm mt-2"
-                />
-              </div>
-            ))}
+        </div>
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Field</label>
+            <select
+              value={condition.field}
+              onChange={(e) => updateCondition({ field: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+            >
+              <option value="componentCount">Component Count</option>
+              <option value="panelWidth">Panel Width</option>
+              <option value="panelHeight">Panel Height</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Operator</label>
+            <select
+              value={condition.operator}
+              onChange={(e) =>
+                updateCondition({
+                  operator: e.target.value as RuleCondition['operator'],
+                })
+              }
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+            >
+              <option value="equals">Equals</option>
+              <option value="greaterThan">Greater Than</option>
+              <option value="lessThan">Less Than</option>
+              <option value="notEquals">Not Equals</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Value</label>
+            <input
+              type="number"
+              value={condition.value as number}
+              onChange={(e) =>
+                updateCondition({ value: parseFloat(e.target.value) || 0 })
+              }
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+            />
           </div>
         </div>
+        <div className="p-4 border-t border-gray-200 flex gap-2">
+          <button
+            onClick={() => {
+              const updatedData = { ...node.data, condition };
+              if (onUpdateNode) {
+                onUpdateNode(node.id, updatedData);
+              }
+              onSave();
+            }}
+            className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+          >
+            Save
+          </button>
+          <button
+            onClick={() => {
+              onDelete(node.id);
+            }}
+            className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+          >
+            Delete
+          </button>
+        </div>
       </div>
+    );
+  }
 
-      <div className="p-4 border-t border-gray-200 flex gap-2">
-        <button
-          onClick={() => onSave(rule)}
-          className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
-        >
-          Save
-        </button>
-        <button
-          onClick={() => onDelete(rule.id)}
-          className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
-        >
-          Delete
+  // Legacy Rule Node Editor (for backward compatibility)
+  if (isRuleNode && initialRule) {
+    const [rule, setRule] = useState<Rule>(initialRule);
+
+    useEffect(() => {
+      setRule(initialRule);
+    }, [initialRule]);
+
+    const updateRule = (updates: Partial<Rule>) => {
+      setRule({ ...rule, ...updates });
+    };
+
+    // ... (keep the existing rule editor code)
+    return (
+      <div className="h-full flex flex-col">
+        <div className="p-4 border-b border-gray-200">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold">Edit Rule (Legacy)</h2>
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+              ✕
+            </button>
+          </div>
+          <p className="text-sm text-gray-500">
+            This is a legacy rule node. Consider using the new panel-based structure.
+          </p>
+        </div>
+        <div className="p-4 border-t border-gray-200 flex gap-2">
+          <button
+            onClick={() => onSave(rule)}
+            className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+          >
+            Save
+          </button>
+          <button
+            onClick={() => onDelete(rule.id)}
+            className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Fallback
+  return (
+    <div className="h-full flex flex-col p-4">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-semibold">Edit Node</h2>
+        <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+          ✕
         </button>
       </div>
+      <p className="text-sm text-gray-500">Unknown node type</p>
     </div>
   );
 }
-

@@ -19,29 +19,108 @@ export default function PanelCanvas({ width = 800, height = 600 }: PanelCanvasPr
   const [offset, setOffset] = useState({ x: 0, y: 0 });
 
     const {
-    panel,
+    panels,
     components,
     componentLibrary,
     selectedComponentType,
     selectedCanvasComponent,
     violations,
+    draggingComponent,
+    dragPosition,
+    dragPanelId,
+    activePanelId,
     addComponent,
     updateComponent,
     selectCanvasComponent,
     deleteComponent,
+    setDraggingComponent,
+    setDragPosition,
+    setActivePanel,
   } = usePanelStore();
 
   // Calculate scale factor (1mm = scale pixels)
   const mmToPixels = 0.5; // 1mm = 0.5 pixels
-  const panelWidthPx = panel.width * mmToPixels;
-  const panelHeightPx = panel.height * mmToPixels;
+  
+  // Calculate panel positions and total width
+  const panelPositions = panels.map((panel, index) => {
+    const xOffset = panels
+      .slice(0, index)
+      .reduce((sum, p) => sum + p.width, 0); // No spacing - panels are adjacent
+    return {
+      panel,
+      xOffset,
+      widthPx: panel.width * mmToPixels,
+      heightPx: panel.height * mmToPixels,
+    };
+  });
 
-  // Calculate grid size based on panel dimensions (10mm for small panels, 20mm for larger)
-  const gridSize = panel.width < 500 ? 10 : panel.width < 1000 ? 20 : 50; // in mm
+  const totalWidth = panels.reduce((sum, p) => sum + p.width, 0); // No spacing
+  const totalWidthPx = totalWidth * mmToPixels;
+  const maxHeight = Math.max(...panels.map((p) => p.height), 800);
+  const maxHeightPx = maxHeight * mmToPixels;
+
+  // Calculate grid size based on average panel dimensions
+  const avgWidth = panels.length > 0 ? panels.reduce((sum, p) => sum + p.width, 0) / panels.length : 600;
+  const gridSize = avgWidth < 500 ? 10 : avgWidth < 1000 ? 20 : 50; // in mm
 
   // Snap function to align coordinates to grid
   const snapToGrid = (value: number): number => {
     return Math.round(value / gridSize) * gridSize;
+  };
+
+  // Find which panel contains the given coordinates (in mm, relative to canvas start)
+  const findPanelAtPosition = (x: number, y: number): { panel: Panel; localX: number; localY: number } | null => {
+    let currentX = 0;
+    for (const panel of panels) {
+      if (x >= currentX && x < currentX + panel.width && y >= 0 && y < panel.height) {
+        return {
+          panel,
+          localX: x - currentX,
+          localY: y,
+        };
+      }
+      currentX += panel.width; // No spacing - panels are adjacent
+    }
+    return null;
+  };
+
+  // Check if position is valid (within bounds and no collision)
+  const isValidPosition = (x: number, y: number, panelId: string, componentId: string, excludeId?: string): boolean => {
+    const compDef = componentLibrary.find((c) => c.id === componentId);
+    if (!compDef) return false;
+
+    const panel = panels.find((p) => p.id === panelId);
+    if (!panel) return false;
+
+    // Check bounds
+    if (x < 0 || y < 0 || x + compDef.width > panel.width || y + compDef.height > panel.height) {
+      return false;
+    }
+
+    // Check collisions with existing components on the same panel
+    const testRect = { x, y, width: compDef.width, height: compDef.height };
+    const panelComponents = components.filter((c) => c.panelId === panelId);
+    for (const canvasComp of panelComponents) {
+      if (canvasComp.id === excludeId) continue;
+      const existingDef = componentLibrary.find((c) => c.id === canvasComp.componentId);
+      if (!existingDef) continue;
+      const existingRect = {
+        x: canvasComp.x,
+        y: canvasComp.y,
+        width: existingDef.width,
+        height: existingDef.height,
+      };
+      // Check overlap
+      if (
+        testRect.x < existingRect.x + existingRect.width &&
+        testRect.x + testRect.width > existingRect.x &&
+        testRect.y < existingRect.y + existingRect.height &&
+        testRect.y + testRect.height > existingRect.y
+      ) {
+        return false;
+      }
+    }
+    return true;
   };
 
   // Initialize Konva stage
@@ -52,16 +131,16 @@ export default function PanelCanvas({ width = 800, height = 600 }: PanelCanvasPr
     const containerWidth = container.clientWidth;
     const containerHeight = container.clientHeight;
 
-    // Calculate scale to fit panel with padding
+    // Calculate scale to fit all panels with padding
     const padding = 40;
-    const scaleX = (containerWidth - padding * 2) / panelWidthPx;
-    const scaleY = (containerHeight - padding * 2) / panelHeightPx;
+    const scaleX = (containerWidth - padding * 2) / totalWidthPx;
+    const scaleY = (containerHeight - padding * 2) / maxHeightPx;
     const newScale = Math.min(scaleX, scaleY, 2); // Max scale of 2
 
     setScale(newScale);
     setOffset({
-      x: (containerWidth - panelWidthPx * newScale) / 2,
-      y: (containerHeight - panelHeightPx * newScale) / 2,
+      x: (containerWidth - totalWidthPx * newScale) / 2,
+      y: (containerHeight - maxHeightPx * newScale) / 2,
     });
 
     setCanvasSize({
@@ -88,14 +167,14 @@ export default function PanelCanvas({ width = 800, height = 600 }: PanelCanvasPr
       const newWidth = container.clientWidth;
       const newHeight = container.clientHeight;
 
-      const newScaleX = (newWidth - padding * 2) / panelWidthPx;
-      const newScaleY = (newHeight - padding * 2) / panelHeightPx;
+      const newScaleX = (newWidth - padding * 2) / totalWidthPx;
+      const newScaleY = (newHeight - padding * 2) / maxHeightPx;
       const newScaleValue = Math.min(newScaleX, newScaleY, 2);
 
       setScale(newScaleValue);
       setOffset({
-        x: (newWidth - panelWidthPx * newScaleValue) / 2,
-        y: (newHeight - panelHeightPx * newScaleValue) / 2,
+        x: (newWidth - totalWidthPx * newScaleValue) / 2,
+        y: (newHeight - maxHeightPx * newScaleValue) / 2,
       });
 
       stage.width(newWidth);
@@ -109,11 +188,11 @@ export default function PanelCanvas({ width = 800, height = 600 }: PanelCanvasPr
       window.removeEventListener('resize', handleResize);
       stage.destroy();
     };
-  }, [panelWidthPx, panelHeightPx, panel.model2D]);
+  }, [totalWidthPx, maxHeightPx, panels.length]);
 
-  // Render panel and components
+  // Render panels and components
   useEffect(() => {
-    if (!stageRef.current || !layerRef.current) return;
+    if (!stageRef.current || !layerRef.current || panels.length === 0) return;
 
     const stage = stageRef.current;
     const layer = layerRef.current;
@@ -121,23 +200,23 @@ export default function PanelCanvas({ width = 800, height = 600 }: PanelCanvasPr
     // Clear layer
     layer.destroyChildren();
 
-    // Panel group
-    const panelGroup = new Konva.Group({
+    // Main canvas group
+    const canvasGroup = new Konva.Group({
       x: offset.x,
       y: offset.y,
       scaleX: scale,
       scaleY: scale,
     });
 
-    // Draw grid lines
+    // Draw grid lines across all panels
     const gridGroup = new Konva.Group();
     const gridColor = '#e5e7eb';
     const gridSizePx = gridSize * mmToPixels;
 
-    // Vertical grid lines
-    for (let x = 0; x <= panelWidthPx; x += gridSizePx) {
+    // Vertical grid lines across all panels
+    for (let x = 0; x <= totalWidthPx; x += gridSizePx) {
       const line = new Konva.Line({
-        points: [x, 0, x, panelHeightPx],
+        points: [x, 0, x, maxHeightPx],
         stroke: gridColor,
         strokeWidth: 0.5,
         listening: false,
@@ -146,156 +225,194 @@ export default function PanelCanvas({ width = 800, height = 600 }: PanelCanvasPr
     }
 
     // Horizontal grid lines
-    for (let y = 0; y <= panelHeightPx; y += gridSizePx) {
+    for (let y = 0; y <= maxHeightPx; y += gridSizePx) {
       const line = new Konva.Line({
-        points: [0, y, panelWidthPx, y],
+        points: [0, y, totalWidthPx, y],
         stroke: gridColor,
         strokeWidth: 0.5,
         listening: false,
       });
       gridGroup.add(line);
     }
-    panelGroup.add(gridGroup);
+    canvasGroup.add(gridGroup);
 
-    // Make panel clickable - define handler before using it
-    const handlePanelClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
-      e.cancelBubble = true;
-      
-      if (selectedComponentType) {
-        // Get pointer position relative to the panel group
-        const pointerPos = panelGroup.getRelativePointerPosition();
+    // Render each panel
+    panelPositions.forEach(({ panel, xOffset, widthPx, heightPx }) => {
+      const isActive = activePanelId === panel.id;
+      const panelGroup = new Konva.Group({
+        x: xOffset * mmToPixels,
+        y: 0,
+      });
+
+      // Panel click handler
+      const handlePanelClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
+        e.cancelBubble = true;
         
-        if (pointerPos) {
-          // Convert from group coordinates (pixels) to panel coordinates (mm)
-          const panelX = pointerPos.x / mmToPixels;
-          const panelY = pointerPos.y / mmToPixels;
+        // Set as active panel
+        setActivePanel(panel.id);
+        
+        if (selectedComponentType) {
+          // Get pointer position relative to the panel group
+          const pointerPos = panelGroup.getRelativePointerPosition();
+          
+          if (pointerPos) {
+            // Convert from group coordinates (pixels) to panel coordinates (mm)
+            const panelX = pointerPos.x / mmToPixels;
+            const panelY = pointerPos.y / mmToPixels;
 
-          // Snap to grid
-          const snappedX = snapToGrid(panelX);
-          const snappedY = snapToGrid(panelY);
+            // Snap to grid
+            const snappedX = snapToGrid(panelX);
+            const snappedY = snapToGrid(panelY);
 
-          // Check if click is within panel bounds
-          if (
-            snappedX >= 0 &&
-            snappedX <= panel.width &&
-            snappedY >= 0 &&
-            snappedY <= panel.height
-          ) {
-            addComponent(selectedComponentType, snappedX, snappedY);
+            // Check if click is within panel bounds
+            if (
+              snappedX >= 0 &&
+              snappedX <= panel.width &&
+              snappedY >= 0 &&
+              snappedY <= panel.height
+            ) {
+              addComponent(panel.id, selectedComponentType, snappedX, snappedY);
+            }
           }
         }
-      }
-    };
-
-    // Panel background/2D model or outline
-    if (panel.model2D && (panel.model2D.startsWith('http') || panel.model2D.startsWith('/'))) {
-      // Load and display 2D model image
-      const imageObj = new Image();
-      imageObj.crossOrigin = 'anonymous';
-      imageObj.onload = () => {
-        // Create image node
-        const panelImage = new Konva.Image({
-          x: 0,
-          y: 0,
-          image: imageObj,
-          width: panelWidthPx,
-          height: panelHeightPx,
-          listening: true,
-        });
-        
-        // Add border overlay
-        const borderRect = new Konva.Rect({
-          x: 0,
-          y: 0,
-          width: panelWidthPx,
-          height: panelHeightPx,
-          fill: 'transparent',
-          stroke: '#dc2626',
-          strokeWidth: 2,
-          listening: false,
-        });
-        
-        panelGroup.add(panelImage);
-        panelGroup.add(borderRect);
-        
-        // Re-add click handler
-        panelImage.on('tap click', handlePanelClick);
-        panelImage.cursor = selectedComponentType ? 'crosshair' : 'default';
-        
-        layer.draw();
       };
-      imageObj.onerror = () => {
-        // Fallback to rectangle if image fails to load
+
+      // Panel background/2D model or outline
+      if (panel.model2D && (panel.model2D.startsWith('http') || panel.model2D.startsWith('/'))) {
+        // Load and display 2D model image
+        const imageObj = new Image();
+        imageObj.crossOrigin = 'anonymous';
+        imageObj.onload = () => {
+          // Create image node
+          const panelImage = new Konva.Image({
+            x: 0,
+            y: 0,
+            image: imageObj,
+            width: widthPx,
+            height: heightPx,
+            listening: true,
+          });
+          
+          // Add border overlay (highlight if active)
+          const borderRect = new Konva.Rect({
+            x: 0,
+            y: 0,
+            width: widthPx,
+            height: heightPx,
+            fill: 'transparent',
+            stroke: isActive ? '#2563eb' : '#dc2626',
+            strokeWidth: isActive ? 3 : 2,
+            listening: false,
+          });
+          
+          panelGroup.add(panelImage);
+          panelGroup.add(borderRect);
+          
+          // Re-add click handler
+          panelImage.on('tap click', handlePanelClick);
+          panelImage.cursor = selectedComponentType ? 'crosshair' : 'pointer';
+          
+          layer.draw();
+        };
+        imageObj.onerror = () => {
+          // Fallback to rectangle if image fails to load
+          const panelRect = new Konva.Rect({
+            width: widthPx,
+            height: heightPx,
+            fill: '#ffffff',
+            stroke: isActive ? '#2563eb' : '#dc2626',
+            strokeWidth: isActive ? 3 : 2,
+            listening: true,
+          });
+          panelGroup.add(panelRect);
+          panelRect.on('tap click', handlePanelClick);
+          panelRect.cursor = selectedComponentType ? 'crosshair' : 'pointer';
+          layer.draw();
+        };
+        imageObj.src = panel.model2D;
+      } else {
+        // Panel outline (fallback when no 2D model)
         const panelRect = new Konva.Rect({
-          width: panelWidthPx,
-          height: panelHeightPx,
+          width: widthPx,
+          height: heightPx,
           fill: '#ffffff',
-          stroke: '#dc2626',
-          strokeWidth: 2,
+          stroke: isActive ? '#2563eb' : '#dc2626',
+          strokeWidth: isActive ? 3 : 2,
+          listening: true,
         });
         panelGroup.add(panelRect);
         panelRect.on('tap click', handlePanelClick);
-        panelRect.cursor = selectedComponentType ? 'crosshair' : 'default';
-        layer.draw();
-      };
-      imageObj.src = panel.model2D;
-    } else {
-      // Panel outline (fallback when no 2D model)
-      const panelRect = new Konva.Rect({
-        width: panelWidthPx,
-        height: panelHeightPx,
-        fill: '#ffffff',
-        stroke: '#dc2626',
-        strokeWidth: 2,
-        listening: true,
+        panelRect.cursor = selectedComponentType ? 'crosshair' : 'pointer';
+      }
+
+      // Panel name label
+      const nameText = new Konva.Text({
+        x: 5,
+        y: 5,
+        text: panel.name,
+        fontSize: 12,
+        fontStyle: 'bold',
+        fill: isActive ? '#2563eb' : '#666',
+        padding: 4,
+        backgroundColor: 'rgba(255, 255, 255, 0.8)',
+        cornerRadius: 2,
+        listening: false,
       });
-      panelGroup.add(panelRect);
-      panelRect.on('tap click', handlePanelClick);
-      panelRect.cursor = selectedComponentType ? 'crosshair' : 'default';
-    }
+      panelGroup.add(nameText);
 
-    // Panel dimensions text
-    const dimText = new Konva.Text({
-      x: panelWidthPx / 2 - 40,
-      y: panelHeightPx + 10,
-      text: `${panel.width} × ${panel.height}mm`,
-      fontSize: 12,
-      fill: '#666',
-      width: 80,
-      align: 'center',
+      // Panel dimensions text
+      const dimText = new Konva.Text({
+        x: widthPx / 2 - 40,
+        y: heightPx + 10,
+        text: `${panel.width} × ${panel.height}mm`,
+        fontSize: 12,
+        fill: '#666',
+        width: 80,
+        align: 'center',
+        listening: false,
+      });
+      panelGroup.add(dimText);
+
+      // Dimension lines
+      const dimLine = new Konva.Line({
+        points: [0, heightPx + 5, widthPx, heightPx + 5],
+        stroke: '#666',
+        strokeWidth: 1,
+        listening: false,
+      });
+      panelGroup.add(dimLine);
+
+      const leftDimLine = new Konva.Line({
+        points: [0, heightPx + 5, 0, heightPx + 10],
+        stroke: '#666',
+        strokeWidth: 1,
+        listening: false,
+      });
+      panelGroup.add(leftDimLine);
+
+      const rightDimLine = new Konva.Line({
+        points: [widthPx, heightPx + 5, widthPx, heightPx + 10],
+        stroke: '#666',
+        strokeWidth: 1,
+        listening: false,
+      });
+      panelGroup.add(rightDimLine);
+
+      canvasGroup.add(panelGroup);
     });
-    panelGroup.add(dimText);
 
-    // Dimension lines
-    const dimLine = new Konva.Line({
-      points: [0, panelHeightPx + 5, panelWidthPx, panelHeightPx + 5],
-      stroke: '#666',
-      strokeWidth: 1,
-    });
-    panelGroup.add(dimLine);
-
-    const leftDimLine = new Konva.Line({
-      points: [0, panelHeightPx + 5, 0, panelHeightPx + 10],
-      stroke: '#666',
-      strokeWidth: 1,
-    });
-    panelGroup.add(leftDimLine);
-
-    const rightDimLine = new Konva.Line({
-      points: [panelWidthPx, panelHeightPx + 5, panelWidthPx, panelHeightPx + 10],
-      stroke: '#666',
-      strokeWidth: 1,
-    });
-    panelGroup.add(rightDimLine);
-
-    layer.add(panelGroup);
+    layer.add(canvasGroup);
 
     // Render components
     components.forEach((canvasComp) => {
       const compDef = componentLibrary.find((c) => c.id === canvasComp.componentId);
       if (!compDef) return;
 
-      const compX = offset.x + canvasComp.x * mmToPixels * scale;
+      // Find the panel this component belongs to
+      const panelPos = panelPositions.find((p) => p.panel.id === canvasComp.panelId);
+      if (!panelPos) return;
+
+      const compX = offset.x + (panelPos.xOffset + canvasComp.x) * mmToPixels * scale;
       const compY = offset.y + canvasComp.y * mmToPixels * scale;
       const compWidth = compDef.width * mmToPixels;
       const compHeight = compDef.height * mmToPixels;
@@ -318,17 +435,34 @@ export default function PanelCanvas({ width = 800, height = 600 }: PanelCanvasPr
         scaleY: scale * (canvasComp.scale || 1),
         draggable: true,
         dragBoundFunc: (pos) => {
-          // Convert stage position to panel coordinates
-          const panelX = (pos.x - offset.x) / scale / mmToPixels;
-          const panelY = (pos.y - offset.y) / scale / mmToPixels;
+          // Convert stage position to canvas coordinates (mm)
+          const canvasX = (pos.x - offset.x) / scale / mmToPixels;
+          const canvasY = (pos.y - offset.y) / scale / mmToPixels;
 
-          // Snap to grid
-          const snappedX = snapToGrid(panelX);
-          const snappedY = snapToGrid(panelY);
+          // Find which panel this position is in
+          const panelInfo = findPanelAtPosition(canvasX, canvasY);
+          if (panelInfo) {
+            // Snap to grid within the panel
+            const snappedX = snapToGrid(panelInfo.localX);
+            const snappedY = snapToGrid(panelInfo.localY);
 
-          // Clamp to panel bounds
-          const clampedX = Math.max(0, Math.min(snappedX, panel.width));
-          const clampedY = Math.max(0, Math.min(snappedY, panel.height));
+            // Clamp to panel bounds
+            const clampedX = Math.max(0, Math.min(snappedX, panelInfo.panel.width));
+            const clampedY = Math.max(0, Math.min(snappedY, panelInfo.panel.height));
+
+            // Find panel position for conversion
+            const panelPos = panelPositions.find((p) => p.panel.id === panelInfo.panel.id);
+            if (panelPos) {
+              // Convert back to stage coordinates
+              return {
+                x: offset.x + (panelPos.xOffset + clampedX) * mmToPixels * scale,
+                y: offset.y + clampedY * mmToPixels * scale,
+              };
+            }
+          }
+
+          // Fallback: keep current position
+          return pos;
 
           // Convert back to stage coordinates
           return {
@@ -504,19 +638,23 @@ export default function PanelCanvas({ width = 800, height = 600 }: PanelCanvasPr
       // Handle drag end to update component position in store
       compGroup.on('dragend', () => {
         const pos = compGroup.position();
-        // Convert stage position to panel coordinates
-        const panelX = (pos.x - offset.x) / scale / mmToPixels;
-        const panelY = (pos.y - offset.y) / scale / mmToPixels;
+        // Convert stage position to canvas coordinates (mm)
+        const canvasX = (pos.x - offset.x) / scale / mmToPixels;
+        const canvasY = (pos.y - offset.y) / scale / mmToPixels;
 
-        // Snap to grid (already done by dragBoundFunc, but ensure it's saved)
-        const snappedX = snapToGrid(panelX);
-        const snappedY = snapToGrid(panelY);
+        // Find which panel this component is now in
+        const panelInfo = findPanelAtPosition(canvasX, canvasY);
+        if (panelInfo) {
+          const snappedX = snapToGrid(panelInfo.localX);
+          const snappedY = snapToGrid(panelInfo.localY);
 
-        // Update component position in store
-        updateComponent(canvasComp.id, {
-          x: Math.max(0, Math.min(snappedX, panel.width)),
-          y: Math.max(0, Math.min(snappedY, panel.height)),
-        });
+          // Update component position and panel
+          updateComponent(canvasComp.id, {
+            panelId: panelInfo.panel.id,
+            x: Math.max(0, Math.min(snappedX, panelInfo.panel.width)),
+            y: Math.max(0, Math.min(snappedY, panelInfo.panel.height)),
+          });
+        }
       });
 
       compGroup.cursor = 'move';
@@ -537,6 +675,51 @@ export default function PanelCanvas({ width = 800, height = 600 }: PanelCanvasPr
         cornerRadius: 4,
       });
       layer.add(instructionText);
+    }
+
+    // Render ghost preview when dragging
+    if (draggingComponent && dragPosition && dragPanelId) {
+      const compDef = componentLibrary.find((c) => c.id === draggingComponent);
+      const panelPos = panelPositions.find((p) => p.panel.id === dragPanelId);
+      if (compDef && panelPos) {
+        const snappedX = snapToGrid(dragPosition.x);
+        const snappedY = snapToGrid(dragPosition.y);
+        const isValid = isValidPosition(snappedX, snappedY, dragPanelId, draggingComponent);
+        
+        const ghostX = offset.x + (panelPos.xOffset + snappedX) * mmToPixels * scale;
+        const ghostY = offset.y + snappedY * mmToPixels * scale;
+        const ghostWidth = compDef.width * mmToPixels;
+        const ghostHeight = compDef.height * mmToPixels;
+
+        // Ghost preview rectangle
+        const ghostRect = new Konva.Rect({
+          x: ghostX,
+          y: ghostY,
+          width: ghostWidth * scale,
+          height: ghostHeight * scale,
+          fill: compDef.color,
+          opacity: 0.3,
+          stroke: isValid ? '#10b981' : '#dc2626', // Green if valid, red if invalid
+          strokeWidth: 2,
+          dash: [5, 5],
+          cornerRadius: 2,
+          listening: false,
+        });
+        layer.add(ghostRect);
+
+        // Label
+        const ghostLabel = new Konva.Text({
+          x: ghostX + (ghostWidth * scale) / 2 - 30,
+          y: ghostY + (ghostHeight * scale) / 2 - 8,
+          text: compDef.name,
+          fontSize: 10,
+          fill: isValid ? '#10b981' : '#dc2626',
+          width: 60,
+          align: 'center',
+          listening: false,
+        });
+        layer.add(ghostLabel);
+      }
     }
 
     // Stage click handler for deselecting when clicking outside
@@ -571,15 +754,17 @@ export default function PanelCanvas({ width = 800, height = 600 }: PanelCanvasPr
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [
-    panel,
+    panels,
     components,
     componentLibrary,
     selectedComponentType,
     selectedCanvasComponent,
     offset,
     scale,
-    panelWidthPx,
-    panelHeightPx,
+    totalWidthPx,
+    maxHeightPx,
+    panelPositions,
+    activePanelId,
     addComponent,
     updateComponent,
     selectCanvasComponent,
@@ -587,13 +772,81 @@ export default function PanelCanvas({ width = 800, height = 600 }: PanelCanvasPr
     violations,
     gridSize,
     snapToGrid,
+    draggingComponent,
+    dragPosition,
+    dragPanelId,
+    setDraggingComponent,
+    setDragPosition,
+    setActivePanel,
+    isValidPosition,
+    findPanelAtPosition,
   ]);
+
+  // Handle drag over
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+    
+    if (!draggingComponent || !containerRef.current) return;
+    
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    // Convert screen coordinates to canvas coordinates (mm)
+    const canvasX = (x - offset.x) / scale / mmToPixels;
+    const canvasY = (y - offset.y) / scale / mmToPixels;
+    
+    // Find which panel this position is in
+    const panelInfo = findPanelAtPosition(canvasX, canvasY);
+    if (panelInfo) {
+      setDragPosition({ x: panelInfo.localX, y: panelInfo.localY }, panelInfo.panel.id);
+    } else {
+      setDragPosition(null, null);
+    }
+  };
+
+  // Handle drop
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    
+    const componentId = e.dataTransfer.getData('componentId') || draggingComponent;
+    if (!componentId) return;
+    
+    if (dragPosition && dragPanelId) {
+      const snappedX = snapToGrid(dragPosition.x);
+      const snappedY = snapToGrid(dragPosition.y);
+      
+      if (isValidPosition(snappedX, snappedY, dragPanelId, componentId)) {
+        addComponent(dragPanelId, componentId, snappedX, snappedY);
+      }
+    } else if (activePanelId && dragPosition) {
+      // Fallback to active panel if dragPanelId not set
+      const snappedX = snapToGrid(dragPosition.x);
+      const snappedY = snapToGrid(dragPosition.y);
+      
+      if (isValidPosition(snappedX, snappedY, activePanelId, componentId)) {
+        addComponent(activePanelId, componentId, snappedX, snappedY);
+      }
+    }
+    
+    setDraggingComponent(null);
+    setDragPosition(null, null);
+  };
+
+  // Handle drag leave
+  const handleDragLeave = () => {
+    setDragPosition(null);
+  };
 
   return (
     <div
       ref={containerRef}
       className="w-full h-full bg-gray-100 relative overflow-hidden"
       tabIndex={0}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+      onDragLeave={handleDragLeave}
     />
   );
 }

@@ -31,8 +31,9 @@ export interface Component {
 export interface CanvasComponent {
   id: string;
   componentId: string; // reference to Component.id
-  x: number; // position on canvas
-  y: number; // position on canvas
+  panelId: string; // reference to Panel.id - which panel this component belongs to
+  x: number; // position on canvas (relative to panel)
+  y: number; // position on canvas (relative to panel)
   rotation?: number; // rotation in degrees
   scale?: number; // scale factor
   properties?: Record<string, any>; // additional properties
@@ -43,9 +44,16 @@ export interface PanelDesign {
   components: CanvasComponent[];
 }
 
+export interface MultiPanelDesign {
+  panels: Panel[];
+  components: CanvasComponent[];
+  activePanelId: string | null;
+  panelSpacing: number; // spacing between panels in mm
+}
+
 // Rule System Types
 export interface Constraint {
-  type: 'dimension' | 'count' | 'spacing' | 'co-usage' | 'overlap' | 'bounds';
+  type: 'dimension' | 'count' | 'spacing' | 'co-usage' | 'overlap' | 'bounds' | 'noIntersectWithPanelBounds';
   property?: string;
   min?: number;
   max?: number;
@@ -54,6 +62,7 @@ export interface Constraint {
   spacing?: number; // Minimum spacing in mm
   requiredComponentIds?: string[]; // For co-usage: component IDs that must be used together
   targetComponentId?: string; // For co-usage: the component that requires others
+  panelIds?: string[]; // For noIntersectWithPanelBounds: panel IDs to check intersection with
 }
 
 export interface Rule {
@@ -76,11 +85,13 @@ export interface RuleCondition {
 
 export interface RuleNode {
   id: string;
-  type: 'global' | 'panel' | 'component' | 'constraint';
+  type: 'global' | 'panel' | 'component' | 'constraint' | 'panelNode' | 'constraintNode' | 'conditionNode';
   data: {
     label: string;
     rule?: Rule;
     constraint?: Constraint;
+    condition?: RuleCondition;
+    panelId?: string; // For panelNode
   };
   position: { x: number; y: number };
 }

@@ -11,14 +11,15 @@ import {
   getOutOfBoundsComponents,
   checkSpacing,
   getComponentBounds,
+  checkIntersectsWithPanelBounds,
 } from './collisionDetection';
 
 /**
- * Evaluate all rules against the current design
+ * Evaluate all rules against the current design (multi-panel support)
  */
 export function evaluateRules(
   rules: Rule[],
-  panel: Panel,
+  panels: Panel[],
   canvasComponents: CanvasComponent[],
   componentLibrary: Component[]
 ): RuleViolation[] {
@@ -27,14 +28,52 @@ export function evaluateRules(
   // Only evaluate enabled rules
   const enabledRules = rules.filter((rule) => rule.enabled !== false);
 
-  for (const rule of enabledRules) {
-    const ruleViolations = evaluateRule(
-      rule,
-      panel,
-      canvasComponents,
-      componentLibrary
-    );
-    violations.push(...ruleViolations);
+  // Separate panel-specific and global rules
+  const panelRules = enabledRules.filter((rule) => rule.type === 'panel');
+  const globalRules = enabledRules.filter((rule) => rule.type === 'global');
+  const componentRules = enabledRules.filter((rule) => rule.type === 'component');
+
+  // Evaluate panel-specific rules for each panel
+  for (const panel of panels) {
+    for (const rule of panelRules) {
+      const ruleViolations = evaluateRule(
+        rule,
+        panel,
+        panels,
+        canvasComponents,
+        componentLibrary
+      );
+      violations.push(...ruleViolations);
+    }
+  }
+
+  // Evaluate global rules once (not per panel)
+  if (globalRules.length > 0 && panels.length > 0) {
+    // Use first panel as context for global rules (they don't depend on specific panel)
+    for (const rule of globalRules) {
+      const ruleViolations = evaluateRule(
+        rule,
+        panels[0],
+        panels,
+        canvasComponents,
+        componentLibrary
+      );
+      violations.push(...ruleViolations);
+    }
+  }
+
+  // Evaluate component rules for each panel (component rules can be panel-specific or global)
+  for (const panel of panels) {
+    for (const rule of componentRules) {
+      const ruleViolations = evaluateRule(
+        rule,
+        panel,
+        panels,
+        canvasComponents,
+        componentLibrary
+      );
+      violations.push(...ruleViolations);
+    }
   }
 
   return violations;
@@ -46,6 +85,7 @@ export function evaluateRules(
 export function evaluateRule(
   rule: Rule,
   panel: Panel,
+  panels: Panel[],
   canvasComponents: CanvasComponent[],
   componentLibrary: Component[]
 ): RuleViolation[] {
@@ -56,10 +96,15 @@ export function evaluateRule(
     return violations;
   }
 
+  // Filter components to only those on this panel for panel-specific rules
+  const panelComponents = rule.type === 'panel' && rule.panelId
+    ? canvasComponents.filter((cc) => cc.panelId === panel.id)
+    : canvasComponents;
+
   // Evaluate conditions
   let conditionsMet = true;
   for (const condition of rule.conditions) {
-    const met = evaluateCondition(condition, panel, canvasComponents, componentLibrary);
+    const met = evaluateCondition(condition, panel, panelComponents, componentLibrary);
     if (!met) {
       conditionsMet = false;
       break;
@@ -76,7 +121,8 @@ export function evaluateRule(
       constraint,
       rule,
       panel,
-      canvasComponents,
+      panels,
+      panelComponents,
       componentLibrary
     );
     violations.push(...constraintViolations);
@@ -120,6 +166,17 @@ function evaluateCondition(
         default:
           return true;
       }
+    case 'panelHeight':
+      switch (condition.operator) {
+        case 'greaterThan':
+          return panel.height > (condition.value as number);
+        case 'lessThan':
+          return panel.height < (condition.value as number);
+        case 'equals':
+          return panel.height === condition.value;
+        default:
+          return true;
+      }
     default:
       return true; // Default to true if condition not recognized
   }
@@ -132,6 +189,7 @@ function checkConstraint(
   constraint: Constraint,
   rule: Rule,
   panel: Panel,
+  panels: Panel[],
   canvasComponents: CanvasComponent[],
   componentLibrary: Component[]
 ): RuleViolation[] {
@@ -158,7 +216,7 @@ function checkConstraint(
       const outOfBounds = getOutOfBoundsComponents(
         canvasComponents,
         componentLibrary,
-        panel
+        panels
       );
       for (const compId of outOfBounds) {
         violations.push({
@@ -315,7 +373,7 @@ function checkConstraint(
       } else if (rule.type === 'panel' && constraint.requiredComponentIds) {
         // Panel rule: Check if all required components are present for this panel
         const presentComponentIds = new Set(
-          canvasComponents.map((cc) => cc.componentId)
+          canvasComponents.filter((cc) => cc.panelId === panel.id).map((cc) => cc.componentId)
         );
         const missingIds = constraint.requiredComponentIds.filter(
           (id) => !presentComponentIds.has(id)
@@ -405,6 +463,28 @@ function checkConstraint(
               }
             }
           }
+        }
+      }
+      break;
+
+    case 'noIntersectWithPanelBounds':
+      if (constraint.panelIds && constraint.panelIds.length >= 2) {
+        const intersecting = checkIntersectsWithPanelBounds(
+          canvasComponents,
+          componentLibrary,
+          panels,
+          constraint.panelIds
+        );
+        for (const compId of intersecting) {
+          violations.push({
+            id: `violation-${timestamp}-${compId}-panel-intersect`,
+            ruleId: rule.id,
+            ruleName: rule.name,
+            message: constraint.message || 'Component intersects with panel bounding box',
+            severity: 'error',
+            componentId: compId,
+            timestamp,
+          });
         }
       }
       break;

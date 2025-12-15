@@ -1,6 +1,7 @@
 'use client';
 
 import { Component } from '@/types';
+import { usePanelStore } from '@/lib/store';
 
 interface ComponentCardProps {
   component: Component;
@@ -9,13 +10,35 @@ interface ComponentCardProps {
 }
 
 export default function ComponentCard({ component, isSelected, onClick }: ComponentCardProps) {
+  const { setDraggingComponent } = usePanelStore();
   const has2DModel = component.model2D && (component.model2D.startsWith('http') || component.model2D.startsWith('/'));
+
+  const handleDragStart = (e: React.DragEvent) => {
+    setDraggingComponent(component.id);
+    e.dataTransfer.effectAllowed = 'copy';
+    e.dataTransfer.setData('componentId', component.id);
+    // Create a custom drag image
+    const dragImage = e.currentTarget.cloneNode(true) as HTMLElement;
+    dragImage.style.opacity = '0.5';
+    dragImage.style.position = 'absolute';
+    dragImage.style.top = '-1000px';
+    document.body.appendChild(dragImage);
+    e.dataTransfer.setDragImage(dragImage, e.clientX - e.currentTarget.getBoundingClientRect().left, e.clientY - e.currentTarget.getBoundingClientRect().top);
+    setTimeout(() => document.body.removeChild(dragImage), 0);
+  };
+
+  const handleDragEnd = () => {
+    setDraggingComponent(null);
+  };
 
   return (
     <div
+      draggable
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
       onClick={onClick}
       className={`
-        p-3 border-2 rounded-lg cursor-pointer transition-all
+        p-3 border-2 rounded-lg cursor-move transition-all
         ${isSelected 
           ? 'border-blue-500 bg-blue-50 shadow-md' 
           : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'

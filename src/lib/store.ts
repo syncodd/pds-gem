@@ -4,6 +4,7 @@ import {
   Component,
   CanvasComponent,
   PanelDesign,
+  MultiPanelDesign,
   Rule,
   RuleViolation,
 } from '@/types';
@@ -11,9 +12,14 @@ import { defaultComponents } from '@/data/components';
 import { storage } from './storage';
 
 interface PanelStore {
-  // Panel design state
-  panel: Panel;
+  // Panel design state (multi-panel support)
+  panels: Panel[];
   components: CanvasComponent[];
+  activePanelId: string | null;
+  panelSpacing: number; // spacing between panels in mm
+  
+  // Legacy single panel support (for backward compatibility)
+  panel: Panel;
   
   // Component library
   componentLibrary: Component[];
@@ -31,15 +37,27 @@ interface PanelStore {
   selectedComponentType: string | null; // Component ID from library
   selectedCanvasComponent: string | null; // CanvasComponent ID
   
+  // Drag state
+  draggingComponent: string | null; // Component ID being dragged
+  dragPosition: { x: number; y: number } | null; // Current drag position in mm
+  dragPanelId: string | null; // Panel ID where component is being dragged
+  
   // Actions - Panel Design
-  setPanel: (panel: Partial<Panel>) => void;
-  addComponent: (componentId: string, x: number, y: number) => void;
+  setPanel: (panel: Partial<Panel>) => void; // Legacy - updates first panel or creates one
+  addPanel: (panel: Panel) => void; // Add a panel to the design
+  removePanel: (panelId: string) => void; // Remove a panel from the design
+  setActivePanel: (panelId: string | null) => void; // Set the active panel
+  addComponent: (panelId: string, componentId: string, x: number, y: number) => void;
   updateComponent: (id: string, updates: Partial<CanvasComponent>) => void;
   deleteComponent: (id: string) => void;
   selectComponentType: (componentId: string | null) => void;
   selectCanvasComponent: (id: string | null) => void;
-  setDesign: (design: PanelDesign) => void;
+  setDesign: (design: PanelDesign | MultiPanelDesign) => void; // Support both formats
   clearDesign: () => void;
+  
+  // Drag actions
+  setDraggingComponent: (componentId: string | null) => void;
+  setDragPosition: (position: { x: number; y: number } | null, panelId?: string | null) => void;
   
   // Actions - Components Library
   addComponentToLibrary: (component: Component) => void;
@@ -53,6 +71,7 @@ interface PanelStore {
   loadPanelFromLibrary: (id: string) => void;
   
   // Actions - Rules
+  setRules: (rules: Rule[]) => void;
   addRule: (rule: Rule) => void;
   updateRule: (id: string, updates: Partial<Rule>) => void;
   deleteRule: (id: string) => void;
@@ -73,8 +92,17 @@ const defaultPanel: Panel = {
   model3D: '/models/panel-sample-3d.glb', // Placeholder - replace with actual 3D model file
 };
 
-// Load initial state from localStorage
+// Load initial state from localStorage (safe for SSR)
 const loadInitialState = () => {
+  // Check if we're in browser environment
+  if (typeof window === 'undefined') {
+    return {
+      rules: [],
+      panelsLibrary: [defaultPanel],
+      componentLibrary: defaultComponents,
+    };
+  }
+  
   const savedRules = storage.loadRules();
   const savedPanels = storage.loadPanelsLibrary();
   const savedComponents = storage.loadComponentsLibrary();
@@ -89,22 +117,75 @@ const loadInitialState = () => {
 const initialState = loadInitialState();
 
 export const usePanelStore = create<PanelStore>((set, get) => ({
-  panel: defaultPanel,
+  // Multi-panel state
+  panels: [],
   components: [],
+  activePanelId: null,
+  panelSpacing: 0, // No spacing between panels (panels are adjacent)
+  
+  // Legacy single panel (for backward compatibility)
+  panel: defaultPanel,
+  
   componentLibrary: initialState.componentLibrary,
   panelsLibrary: initialState.panelsLibrary,
   rules: initialState.rules,
   violations: [],
   selectedComponentType: null,
   selectedCanvasComponent: null,
+  dragPanelId: null,
 
   // Panel Design Actions
   setPanel: (updates) =>
-    set((state) => ({
-      panel: { ...state.panel, ...updates },
-    })),
+    set((state) => {
+      // Legacy support: update first panel or create one
+      if (state.panels.length === 0) {
+        const newPanel = { ...defaultPanel, ...updates };
+        return {
+          panel: newPanel,
+          panels: [newPanel],
+          activePanelId: newPanel.id,
+        };
+      } else {
+        const updatedPanel = { ...state.panels[0], ...updates };
+        return {
+          panel: updatedPanel,
+          panels: [updatedPanel, ...state.panels.slice(1)],
+        };
+      }
+    }),
 
-  addComponent: (componentId, x, y) =>
+  addPanel: (panel) =>
+    set((state) => {
+      const newPanel = { ...panel, id: panel.id || `panel-${Date.now()}` };
+      const newPanels = [...state.panels, newPanel];
+      return {
+        panels: newPanels,
+        activePanelId: state.activePanelId || newPanel.id,
+        // Update legacy panel to first panel
+        panel: newPanels[0] || defaultPanel,
+      };
+    }),
+
+  removePanel: (panelId) =>
+    set((state) => {
+      const newPanels = state.panels.filter((p) => p.id !== panelId);
+      const newComponents = state.components.filter((c) => c.panelId !== panelId);
+      return {
+        panels: newPanels,
+        components: newComponents,
+        activePanelId:
+          state.activePanelId === panelId
+            ? newPanels.length > 0
+              ? newPanels[0].id
+              : null
+            : state.activePanelId,
+        panel: newPanels[0] || defaultPanel,
+      };
+    }),
+
+  setActivePanel: (panelId) => set({ activePanelId: panelId }),
+
+  addComponent: (panelId, componentId, x, y) =>
     set((state) => {
       const component = state.componentLibrary.find((c) => c.id === componentId);
       if (!component) return state;
@@ -112,6 +193,7 @@ export const usePanelStore = create<PanelStore>((set, get) => ({
       const newComponent: CanvasComponent = {
         id: `canvas-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         componentId,
+        panelId,
         x,
         y,
         rotation: 0,
@@ -145,15 +227,39 @@ export const usePanelStore = create<PanelStore>((set, get) => ({
     set({ selectedCanvasComponent: id }),
 
   setDesign: (design) =>
-    set({
-      panel: design.panel,
-      components: design.components,
+    set((state) => {
+      // Support both old PanelDesign and new MultiPanelDesign formats
+      if ('panels' in design) {
+        // MultiPanelDesign format
+        const multiDesign = design as MultiPanelDesign;
+        return {
+          panels: multiDesign.panels,
+          components: multiDesign.components,
+          activePanelId: multiDesign.activePanelId,
+          panelSpacing: multiDesign.panelSpacing || 0,
+          panel: multiDesign.panels[0] || defaultPanel,
+        };
+      } else {
+        // Legacy PanelDesign format
+        const legacyDesign = design as PanelDesign;
+        return {
+          panels: [legacyDesign.panel],
+          components: legacyDesign.components.map((c) => ({
+            ...c,
+            panelId: c.panelId || legacyDesign.panel.id,
+          })),
+          activePanelId: legacyDesign.panel.id,
+          panel: legacyDesign.panel,
+        };
+      }
     }),
 
   clearDesign: () =>
     set({
-      panel: defaultPanel,
+      panels: [],
       components: [],
+      activePanelId: null,
+      panel: defaultPanel,
       selectedComponentType: null,
       selectedCanvasComponent: null,
     }),
@@ -217,6 +323,11 @@ export const usePanelStore = create<PanelStore>((set, get) => ({
     }),
 
   // Rules Actions
+  setRules: (rules) =>
+    set(() => {
+      storage.saveRules(rules);
+      return { rules };
+    }),
   addRule: (rule) =>
     set((state) => {
       const updated = [...state.rules, rule];
@@ -255,5 +366,11 @@ export const usePanelStore = create<PanelStore>((set, get) => ({
 
   clearViolations: () =>
     set({ violations: [] }),
+
+  // Drag actions
+  setDraggingComponent: (componentId) =>
+    set({ draggingComponent: componentId, dragPosition: null, dragPanelId: null }),
+  setDragPosition: (position, panelId) =>
+    set({ dragPosition: position, dragPanelId: panelId || null }),
 }));
 

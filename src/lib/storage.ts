@@ -1,4 +1,4 @@
-import { PanelDesign, Rule, Panel, Component } from '@/types';
+import { PanelDesign, MultiPanelDesign, Rule, Panel, Component } from '@/types';
 
 const STORAGE_KEY = 'konva-panel-designs';
 const CURRENT_DESIGN_KEY = 'konva-current-design';
@@ -6,9 +6,13 @@ const RULES_KEY = 'konva-rules';
 const PANELS_LIBRARY_KEY = 'konva-panels-library';
 const COMPONENTS_LIBRARY_KEY = 'konva-components-library';
 
+// Check if we're in a browser environment
+const isBrowser = typeof window !== 'undefined';
+
 export const storage = {
-  // Save current design
-  saveCurrentDesign: (design: PanelDesign): void => {
+  // Save current design (supports both PanelDesign and MultiPanelDesign)
+  saveCurrentDesign: (design: PanelDesign | MultiPanelDesign): void => {
+    if (!isBrowser) return;
     try {
       localStorage.setItem(CURRENT_DESIGN_KEY, JSON.stringify(design));
     } catch (error) {
@@ -16,32 +20,41 @@ export const storage = {
     }
   },
 
-  // Load current design
-  loadCurrentDesign: (): PanelDesign | null => {
+  // Load current design (supports both formats)
+  loadCurrentDesign: (): PanelDesign | MultiPanelDesign | null => {
+    if (!isBrowser) return null;
     try {
       const data = localStorage.getItem(CURRENT_DESIGN_KEY);
       if (!data) return null;
-      return JSON.parse(data) as PanelDesign;
+      return JSON.parse(data) as PanelDesign | MultiPanelDesign;
     } catch (error) {
       console.error('Failed to load current design:', error);
       return null;
     }
   },
 
-  // Save design with a name
-  saveDesign: (name: string, design: PanelDesign): void => {
+  // Save design with a name (supports both formats)
+  saveDesign: (name: string, design: PanelDesign | MultiPanelDesign): void => {
+    if (!isBrowser) return;
     try {
       const designs = storage.getAllDesigns();
-      const designWithName = { ...design, panel: { ...design.panel, name } };
-      designs[name] = designWithName;
+      // Handle both formats
+      if ('panels' in design) {
+        // MultiPanelDesign
+        designs[name] = design;
+      } else {
+        // Legacy PanelDesign
+        const designWithName = { ...design, panel: { ...design.panel, name } };
+        designs[name] = designWithName;
+      }
       localStorage.setItem(STORAGE_KEY, JSON.stringify(designs));
     } catch (error) {
       console.error('Failed to save design:', error);
     }
   },
 
-  // Load a specific design by name
-  loadDesign: (name: string): PanelDesign | null => {
+  // Load a specific design by name (supports both formats)
+  loadDesign: (name: string): PanelDesign | MultiPanelDesign | null => {
     try {
       const designs = storage.getAllDesigns();
       return designs[name] || null;
@@ -51,12 +64,13 @@ export const storage = {
     }
   },
 
-  // Get all saved designs
-  getAllDesigns: (): Record<string, PanelDesign> => {
+  // Get all saved designs (supports both formats)
+  getAllDesigns: (): Record<string, PanelDesign | MultiPanelDesign> => {
+    if (!isBrowser) return {};
     try {
       const data = localStorage.getItem(STORAGE_KEY);
       if (!data) return {};
-      return JSON.parse(data) as Record<string, PanelDesign>;
+      return JSON.parse(data) as Record<string, PanelDesign | MultiPanelDesign>;
     } catch (error) {
       console.error('Failed to load designs:', error);
       return {};
@@ -65,6 +79,7 @@ export const storage = {
 
   // Delete a design
   deleteDesign: (name: string): void => {
+    if (!isBrowser) return;
     try {
       const designs = storage.getAllDesigns();
       delete designs[name];
@@ -74,15 +89,15 @@ export const storage = {
     }
   },
 
-  // Export design as JSON
-  exportDesign: (design: PanelDesign): string => {
+  // Export design as JSON (supports both formats)
+  exportDesign: (design: PanelDesign | MultiPanelDesign): string => {
     return JSON.stringify(design, null, 2);
   },
 
-  // Import design from JSON
-  importDesign: (json: string): PanelDesign | null => {
+  // Import design from JSON (supports both formats)
+  importDesign: (json: string): PanelDesign | MultiPanelDesign | null => {
     try {
-      return JSON.parse(json) as PanelDesign;
+      return JSON.parse(json) as PanelDesign | MultiPanelDesign;
     } catch (error) {
       console.error('Failed to import design:', error);
       return null;
@@ -91,6 +106,7 @@ export const storage = {
 
   // Rules storage
   saveRules: (rules: Rule[]): void => {
+    if (!isBrowser) return;
     try {
       localStorage.setItem(RULES_KEY, JSON.stringify(rules));
     } catch (error) {
@@ -99,6 +115,7 @@ export const storage = {
   },
 
   loadRules: (): Rule[] => {
+    if (!isBrowser) return [];
     try {
       const data = localStorage.getItem(RULES_KEY);
       if (!data) return [];
@@ -111,6 +128,7 @@ export const storage = {
 
   // Panels library storage
   savePanelsLibrary: (panels: Panel[]): void => {
+    if (!isBrowser) return;
     try {
       localStorage.setItem(PANELS_LIBRARY_KEY, JSON.stringify(panels));
     } catch (error) {
@@ -119,6 +137,7 @@ export const storage = {
   },
 
   loadPanelsLibrary: (): Panel[] => {
+    if (!isBrowser) return [];
     try {
       const data = localStorage.getItem(PANELS_LIBRARY_KEY);
       if (!data) return [];
@@ -131,6 +150,7 @@ export const storage = {
 
   // Components library storage
   saveComponentsLibrary: (components: Component[]): void => {
+    if (!isBrowser) return;
     try {
       localStorage.setItem(COMPONENTS_LIBRARY_KEY, JSON.stringify(components));
     } catch (error) {
@@ -139,6 +159,7 @@ export const storage = {
   },
 
   loadComponentsLibrary: (): Component[] | null => {
+    if (!isBrowser) return null;
     try {
       const data = localStorage.getItem(COMPONENTS_LIBRARY_KEY);
       if (!data) return null; // Return null to use default if not set
