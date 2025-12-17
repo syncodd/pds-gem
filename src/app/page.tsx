@@ -34,7 +34,7 @@ export default function Home() {
     selectedCanvasComponent,
   } = usePanelStore();
   const [viewMode, setViewMode] = useState<'2d' | '3d'>('2d');
-  const [showProperties, setShowProperties] = useState(false);
+  const [showProperties, setShowProperties] = useState(true); // Always start open
   const [showDRC, setShowDRC] = useState(false);
   const [showPanelSelection, setShowPanelSelection] = useState(false);
 
@@ -156,7 +156,30 @@ export default function Home() {
         </div>
 
         {/* Center Canvas */}
-        <div className="flex-1 overflow-hidden bg-gray-100">
+        <div className="flex-1 overflow-hidden bg-gray-100 relative">
+          {/* Toggle Properties Button - Center Right (within canvas area) */}
+          <button
+            onClick={() => setShowProperties(!showProperties)}
+            className={`absolute top-1/2 -translate-y-1/2 px-4 py-3 bg-white text-gray-700 rounded-lg shadow-lg hover:bg-gray-50 flex items-center gap-2 z-40 border border-gray-200 transition-all duration-300 ${
+              showProperties ? 'right-[28rem]' : 'right-4'
+            }`}
+          >
+            <svg
+              className={`w-5 h-5 transition-transform duration-300 ${showProperties ? 'rotate-180' : ''}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d={showProperties ? "M9 5l7 7-7 7" : "M15 19l-7-7 7-7"}
+              />
+            </svg>
+            <span className="text-sm font-medium whitespace-nowrap">{showProperties ? 'Hide' : 'Show'} Properties</span>
+          </button>
+
           {panels.length === 0 ? (
             <div className="h-full flex items-center justify-center">
               <div className="text-center text-gray-400">
@@ -215,7 +238,7 @@ export default function Home() {
           </button>
         )}
 
-        {/* Slide-out Properties */}
+        {/* Slide-out Properties - Always rendered, toggled by button */}
         <SlideOutProperties
           isOpen={showProperties}
           onClose={() => setShowProperties(false)}

@@ -208,33 +208,7 @@ export default function PanelCanvas({ width = 800, height = 600 }: PanelCanvasPr
       scaleY: scale,
     });
 
-    // Draw grid lines across all panels
-    const gridGroup = new Konva.Group();
-    const gridColor = '#e5e7eb';
-    const gridSizePx = gridSize * mmToPixels;
-
-    // Vertical grid lines across all panels
-    for (let x = 0; x <= totalWidthPx; x += gridSizePx) {
-      const line = new Konva.Line({
-        points: [x, 0, x, maxHeightPx],
-        stroke: gridColor,
-        strokeWidth: 0.5,
-        listening: false,
-      });
-      gridGroup.add(line);
-    }
-
-    // Horizontal grid lines
-    for (let y = 0; y <= maxHeightPx; y += gridSizePx) {
-      const line = new Konva.Line({
-        points: [0, y, totalWidthPx, y],
-        stroke: gridColor,
-        strokeWidth: 0.5,
-        listening: false,
-      });
-      gridGroup.add(line);
-    }
-    canvasGroup.add(gridGroup);
+    // Grid removed - no longer drawing grid lines
 
     // Render each panel
     panelPositions.forEach(({ panel, xOffset, widthPx, heightPx }) => {
@@ -293,20 +267,24 @@ export default function PanelCanvas({ width = 800, height = 600 }: PanelCanvasPr
             listening: true,
           });
           
-          // Add border overlay (highlight if active)
-          const borderRect = new Konva.Rect({
+          // Apply color filter based on selection state
+          // Gray for unselected, red for selected
+          const svgColor = isActive ? '#dc2626' : '#9ca3af'; // Red for active, gray for inactive
+          
+          // Use color overlay with multiply blend mode to colorize the SVG
+          const colorOverlay = new Konva.Rect({
             x: 0,
             y: 0,
             width: widthPx,
             height: heightPx,
-            fill: 'transparent',
-            stroke: isActive ? '#2563eb' : '#dc2626',
-            strokeWidth: isActive ? 3 : 2,
+            fill: svgColor,
+            opacity: 0.5,
+            globalCompositeOperation: 'source-atop',
             listening: false,
           });
           
           panelGroup.add(panelImage);
-          panelGroup.add(borderRect);
+          panelGroup.add(colorOverlay);
           
           // Re-add click handler
           panelImage.on('tap click', handlePanelClick);
@@ -319,9 +297,9 @@ export default function PanelCanvas({ width = 800, height = 600 }: PanelCanvasPr
           const panelRect = new Konva.Rect({
             width: widthPx,
             height: heightPx,
-            fill: '#ffffff',
-            stroke: isActive ? '#2563eb' : '#dc2626',
-            strokeWidth: isActive ? 3 : 2,
+            fill: isActive ? '#fee2e2' : '#f3f4f6', // Light red for active, light gray for inactive
+            stroke: 'transparent',
+            strokeWidth: 0,
             listening: true,
           });
           panelGroup.add(panelRect);
@@ -335,9 +313,9 @@ export default function PanelCanvas({ width = 800, height = 600 }: PanelCanvasPr
         const panelRect = new Konva.Rect({
           width: widthPx,
           height: heightPx,
-          fill: '#ffffff',
-          stroke: isActive ? '#2563eb' : '#dc2626',
-          strokeWidth: isActive ? 3 : 2,
+          fill: isActive ? '#fee2e2' : '#f3f4f6', // Light red for active, light gray for inactive
+          stroke: 'transparent',
+          strokeWidth: 0,
           listening: true,
         });
         panelGroup.add(panelRect);
@@ -729,6 +707,8 @@ export default function PanelCanvas({ width = 800, height = 600 }: PanelCanvasPr
         if (!selectedComponentType) {
           selectCanvasComponent(null);
         }
+        // Clear active panel when clicking empty space
+        setActivePanel(null);
       }
     };
 

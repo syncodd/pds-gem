@@ -4,14 +4,14 @@ import { useState } from 'react';
 import { Panel } from '@/types';
 import { usePanelStore } from '@/lib/store';
 import PanelList from '@/components/PanelEditor/PanelList';
-import PanelForm from '@/components/PanelEditor/PanelForm';
+import PanelCreationFlow from '@/components/PanelEditor/PanelCreationFlow';
 import PanelPreview from '@/components/PanelEditor/PanelPreview';
 
 export default function PanelEditorPage() {
   const { panelsLibrary, addPanelToLibrary, updatePanelInLibrary, deletePanelFromLibrary } =
     usePanelStore();
   const [selectedPanel, setSelectedPanel] = useState<Panel | null>(null);
-  const [showForm, setShowForm] = useState(false);
+  const [showFlow, setShowFlow] = useState(false);
   const [editingPanel, setEditingPanel] = useState<Panel | null>(null);
 
   const handleSave = (panel: Panel) => {
@@ -21,33 +21,26 @@ export default function PanelEditorPage() {
       addPanelToLibrary(panel);
     }
     setSelectedPanel(null);
-    setShowForm(false);
     setEditingPanel(null);
+    setShowFlow(false);
   };
 
   const handleSelect = (panel: Panel) => {
     setSelectedPanel(panel);
     setEditingPanel({ ...panel });
-    setShowForm(false);
+    setShowFlow(false); // Don't show flow when editing
   };
 
   const handleNew = () => {
-    const newPanel: Panel = {
-      id: `panel-${Date.now()}`,
-      name: '',
-      width: 600,
-      height: 800,
-      depth: 200,
-    };
-    setSelectedPanel(null);
-    setEditingPanel(newPanel);
-    setShowForm(true);
-  };
-
-  const handleCancel = () => {
     setSelectedPanel(null);
     setEditingPanel(null);
-    setShowForm(false);
+    setShowFlow(true); // Show flow only for new panels
+  };
+
+  const handleCloseFlow = () => {
+    setShowFlow(false);
+    setSelectedPanel(null);
+    setEditingPanel(null);
   };
 
   const handleUpdate = (updates: Partial<Panel>) => {
@@ -71,7 +64,7 @@ export default function PanelEditorPage() {
               <h1 className="text-2xl font-bold text-gray-800">Panel Editor</h1>
               <p className="text-sm text-gray-500 mt-1">Manage panel library</p>
             </div>
-            {!showForm && (
+            {!showFlow && (
               <button
                 onClick={handleNew}
                 className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
@@ -110,38 +103,38 @@ export default function PanelEditorPage() {
       </header>
 
       <div className="flex-1 flex overflow-hidden">
-        {showForm ? (
-          <div className="flex-1 bg-white">
-            <PanelForm panel={selectedPanel} onSave={handleSave} onCancel={handleCancel} />
-          </div>
-        ) : (
-          <>
-            <div className="w-96 border-r border-gray-200 bg-white">
-              <PanelList
-                panels={panelsLibrary}
-                onSelect={handleSelect}
-                onDelete={deletePanelFromLibrary}
-              />
+        <div className="w-96 border-r border-gray-200 bg-white">
+          <PanelList
+            panels={panelsLibrary}
+            onSelect={handleSelect}
+            onDelete={deletePanelFromLibrary}
+          />
+        </div>
+        <div className="flex-1 bg-gray-50">
+          {editingPanel && !showFlow ? (
+            <PanelPreview
+              panel={editingPanel}
+              onUpdate={handleUpdate}
+              onSave={handleSavePreview}
+            />
+          ) : (
+            <div className="h-full flex items-center justify-center">
+              <div className="text-center text-gray-400">
+                <p className="text-lg">Select a panel to edit</p>
+                <p className="text-sm mt-2">or create a new one</p>
+              </div>
             </div>
-            <div className="flex-1 bg-gray-50">
-              {editingPanel ? (
-                <PanelPreview
-                  panel={editingPanel}
-                  onUpdate={handleUpdate}
-                  onSave={handleSavePreview}
-                />
-              ) : (
-                <div className="h-full flex items-center justify-center">
-                  <div className="text-center text-gray-400">
-                    <p className="text-lg">Select a panel to edit</p>
-                    <p className="text-sm mt-2">or create a new one</p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </>
-        )}
+          )}
+        </div>
       </div>
+
+      {/* Panel Creation Flow Modal - Only for new panels */}
+      <PanelCreationFlow
+        panel={null}
+        isOpen={showFlow}
+        onSave={handleSave}
+        onClose={handleCloseFlow}
+      />
     </div>
   );
 }

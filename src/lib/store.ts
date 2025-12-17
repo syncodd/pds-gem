@@ -143,7 +143,7 @@ export const usePanelStore = create<PanelStore>((set, get) => ({
         return {
           panel: newPanel,
           panels: [newPanel],
-          activePanelId: newPanel.id,
+          activePanelId: state.activePanelId, // Don't auto-select
         };
       } else {
         const updatedPanel = { ...state.panels[0], ...updates };
