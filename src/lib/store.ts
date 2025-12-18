@@ -7,6 +7,7 @@ import {
   MultiPanelDesign,
   Rule,
   RuleViolation,
+  Project,
 } from '@/types';
 import { defaultComponents } from '@/data/components';
 import { storage } from './storage';
@@ -80,6 +81,17 @@ interface PanelStore {
   // Actions - Violations
   setViolations: (violations: RuleViolation[]) => void;
   clearViolations: () => void;
+  
+  // Projects state
+  projects: Project[];
+  currentProject: Project | null;
+  
+  // Actions - Projects
+  addProject: (project: Project) => void;
+  updateProject: (id: string, updates: Partial<Project>) => void;
+  deleteProject: (id: string) => void;
+  setCurrentProject: (project: Project | null) => void;
+  loadProjects: () => void;
 }
 
 const defaultPanel: Panel = {
@@ -100,17 +112,20 @@ const loadInitialState = () => {
       rules: [],
       panelsLibrary: [defaultPanel],
       componentLibrary: defaultComponents,
+      projects: [],
     };
   }
   
   const savedRules = storage.loadRules();
   const savedPanels = storage.loadPanelsLibrary();
   const savedComponents = storage.loadComponentsLibrary();
+  const savedProjects = storage.getAllProjects();
   
   return {
     rules: savedRules,
     panelsLibrary: savedPanels.length > 0 ? savedPanels : [defaultPanel],
     componentLibrary: savedComponents || defaultComponents,
+    projects: Object.values(savedProjects),
   };
 };
 
@@ -133,6 +148,8 @@ export const usePanelStore = create<PanelStore>((set, get) => ({
   selectedComponentType: null,
   selectedCanvasComponent: null,
   dragPanelId: null,
+  projects: initialState.projects,
+  currentProject: null,
 
   // Panel Design Actions
   setPanel: (updates) =>
@@ -372,5 +389,43 @@ export const usePanelStore = create<PanelStore>((set, get) => ({
     set({ draggingComponent: componentId, dragPosition: null, dragPanelId: null }),
   setDragPosition: (position, panelId) =>
     set({ dragPosition: position, dragPanelId: panelId || null }),
+
+  // Projects Actions
+  addProject: (project) =>
+    set((state) => {
+      const updated = [...state.projects, project];
+      storage.saveProject(project);
+      return { projects: updated };
+    }),
+
+  updateProject: (id, updates) =>
+    set((state) => {
+      const updated = state.projects.map((project) =>
+        project.id === id ? { ...project, ...updates, updatedAt: Date.now() } : project
+      );
+      const updatedProject = updated.find((p) => p.id === id);
+      if (updatedProject) {
+        storage.saveProject(updatedProject);
+      }
+      return { projects: updated };
+    }),
+
+  deleteProject: (id) =>
+    set((state) => {
+      const updated = state.projects.filter((project) => project.id !== id);
+      storage.deleteProject(id);
+      return {
+        projects: updated,
+        currentProject: state.currentProject?.id === id ? null : state.currentProject,
+      };
+    }),
+
+  setCurrentProject: (project) => set({ currentProject: project }),
+
+  loadProjects: () =>
+    set(() => {
+      const savedProjects = storage.getAllProjects();
+      return { projects: Object.values(savedProjects) };
+    }),
 }));
 

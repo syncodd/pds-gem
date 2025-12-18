@@ -109,3 +109,21 @@ export interface RuleViolation {
   requiredComponentId?: string; // For co-usage violations: the component that requires the missing one
 }
 
+export interface Project {
+  id: string;
+  name: string;
+  panelName: string; // Complete panel name
+  customer: string;
+  editor: string;
+  comment: string;
+  earthing: string;
+  peNCrossSection: string;
+  nominalCurrent: string;
+  shortCircuitCurrent: string;
+  forming: string;
+  panels: Panel[]; // Panels in the project
+  components: CanvasComponent[]; // Components in the project
+  createdAt: number; // Timestamp
+  updatedAt: number; // Timestamp
+}
+

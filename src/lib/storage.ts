@@ -1,10 +1,11 @@
-import { PanelDesign, MultiPanelDesign, Rule, Panel, Component } from '@/types';
+import { PanelDesign, MultiPanelDesign, Rule, Panel, Component, Project } from '@/types';
 
 const STORAGE_KEY = 'konva-panel-designs';
 const CURRENT_DESIGN_KEY = 'konva-current-design';
 const RULES_KEY = 'konva-rules';
 const PANELS_LIBRARY_KEY = 'konva-panels-library';
 const COMPONENTS_LIBRARY_KEY = 'konva-components-library';
+const PROJECTS_KEY = 'konva-projects';
 
 // Check if we're in a browser environment
 const isBrowser = typeof window !== 'undefined';
@@ -167,6 +168,52 @@ export const storage = {
     } catch (error) {
       console.error('Failed to load components library:', error);
       return null;
+    }
+  },
+
+  // Projects storage
+  saveProject: (project: Project): void => {
+    if (!isBrowser) return;
+    try {
+      const projects = storage.getAllProjects();
+      projects[project.id] = project;
+      localStorage.setItem(PROJECTS_KEY, JSON.stringify(projects));
+    } catch (error) {
+      console.error('Failed to save project:', error);
+    }
+  },
+
+  loadProject: (id: string): Project | null => {
+    if (!isBrowser) return null;
+    try {
+      const projects = storage.getAllProjects();
+      return projects[id] || null;
+    } catch (error) {
+      console.error('Failed to load project:', error);
+      return null;
+    }
+  },
+
+  getAllProjects: (): Record<string, Project> => {
+    if (!isBrowser) return {};
+    try {
+      const data = localStorage.getItem(PROJECTS_KEY);
+      if (!data) return {};
+      return JSON.parse(data) as Record<string, Project>;
+    } catch (error) {
+      console.error('Failed to load projects:', error);
+      return {};
+    }
+  },
+
+  deleteProject: (id: string): void => {
+    if (!isBrowser) return;
+    try {
+      const projects = storage.getAllProjects();
+      delete projects[id];
+      localStorage.setItem(PROJECTS_KEY, JSON.stringify(projects));
+    } catch (error) {
+      console.error('Failed to delete project:', error);
     }
   },
 };
