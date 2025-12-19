@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Component } from '@/types';
 import { usePanelStore } from '@/lib/store';
 import ComponentList from '@/components/ComponentEditor/ComponentList';
-import ComponentForm from '@/components/ComponentEditor/ComponentForm';
+import ComponentCreationFlow from '@/components/ComponentEditor/ComponentCreationFlow';
 import ComponentPreview from '@/components/ComponentEditor/ComponentPreview';
 
 export default function ComponentEditorPage() {
@@ -15,7 +15,7 @@ export default function ComponentEditorPage() {
     deleteComponentFromLibrary,
   } = usePanelStore();
   const [selectedComponent, setSelectedComponent] = useState<Component | null>(null);
-  const [showForm, setShowForm] = useState(false);
+  const [showFlow, setShowFlow] = useState(false);
   const [editingComponent, setEditingComponent] = useState<Component | null>(null);
 
   const handleSave = (component: Component) => {
@@ -26,36 +26,25 @@ export default function ComponentEditorPage() {
     }
     setSelectedComponent(null);
     setEditingComponent(null);
-    setShowForm(false);
+    setShowFlow(false);
   };
 
   const handleSelect = (component: Component) => {
     setSelectedComponent(component);
     setEditingComponent({ ...component });
-    setShowForm(false);
+    setShowFlow(false); // Don't show flow when editing
   };
 
   const handleNew = () => {
-    const newComponent: Component = {
-      id: `component-${Date.now()}`,
-      name: '',
-      type: '',
-      category: '',
-      width: 20,
-      height: 30,
-      depth: 15,
-      color: '#4a90e2',
-      specs: {},
-    };
-    setSelectedComponent(null);
-    setEditingComponent(newComponent);
-    setShowForm(true);
-  };
-
-  const handleCancel = () => {
     setSelectedComponent(null);
     setEditingComponent(null);
-    setShowForm(false);
+    setShowFlow(true); // Show flow only for new components
+  };
+
+  const handleCloseFlow = () => {
+    setShowFlow(false);
+    setSelectedComponent(null);
+    setEditingComponent(null);
   };
 
   const handleUpdate = (updates: Partial<Component>) => {
@@ -79,7 +68,7 @@ export default function ComponentEditorPage() {
               <h1 className="text-2xl font-bold text-gray-800">Component Editor</h1>
               <p className="text-sm text-gray-500 mt-1">Manage component library</p>
             </div>
-            {!showForm && (
+            {!showFlow && (
               <button
                 onClick={handleNew}
                 className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
@@ -124,16 +113,6 @@ export default function ComponentEditorPage() {
       </header>
 
       <div className="flex-1 flex overflow-hidden">
-        {showForm ? (
-          <div className="flex-1 bg-white">
-            <ComponentForm
-              component={selectedComponent}
-              onSave={handleSave}
-              onCancel={handleCancel}
-            />
-          </div>
-        ) : (
-          <>
             <div className="w-96 border-r border-gray-200 bg-white">
               <ComponentList
                 components={componentLibrary}
@@ -142,7 +121,7 @@ export default function ComponentEditorPage() {
               />
             </div>
             <div className="flex-1 bg-gray-50">
-              {editingComponent ? (
+          {editingComponent && !showFlow ? (
                 <ComponentPreview
                   component={editingComponent}
                   onUpdate={handleUpdate}
@@ -157,9 +136,15 @@ export default function ComponentEditorPage() {
                 </div>
               )}
             </div>
-          </>
-        )}
       </div>
+
+      {/* Component Creation Flow Modal - Only for new components */}
+      <ComponentCreationFlow
+        component={null}
+        isOpen={showFlow}
+        onSave={handleSave}
+        onClose={handleCloseFlow}
+      />
     </div>
   );
 }

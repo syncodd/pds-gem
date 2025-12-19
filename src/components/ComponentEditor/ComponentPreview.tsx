@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { Component } from '@/types';
 import ComponentModelFields from './ComponentModelFields';
+import ComponentSpecsEditor from './ComponentSpecsEditor';
 
 // Dynamically import 3D view with SSR disabled
 const Component3DView = dynamic(() => import('./Component3DView'), {
@@ -196,6 +197,30 @@ export default function ComponentPreview({ component, onUpdate, onSave }: Compon
                   className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
                 />
               </div>
+            </div>
+          )}
+        </div>
+
+        {/* Specifications */}
+        <div className="mt-4 pt-4 border-t border-gray-200">
+          <h3 className="text-sm font-semibold text-gray-700 mb-3">Specifications</h3>
+          {isEditing ? (
+            <ComponentSpecsEditor
+              specs={formData.specs || {}}
+              onChange={(specs) => handleUpdate({ specs })}
+            />
+          ) : (
+            <div className="space-y-2">
+              {Object.keys(formData.specs || {}).length === 0 ? (
+                <p className="text-sm text-gray-400 italic">No specifications defined</p>
+              ) : (
+                Object.entries(formData.specs || {}).map(([key, value]) => (
+                  <div key={key} className="flex items-center gap-2 text-sm">
+                    <span className="text-gray-500 font-medium">{key}:</span>
+                    <span className="text-gray-800">{String(value)}</span>
+                  </div>
+                ))
+              )}
             </div>
           )}
         </div>

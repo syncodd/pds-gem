@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Component } from '@/types';
 import ComponentModelFields from './ComponentModelFields';
+import ComponentSpecsEditor from './ComponentSpecsEditor';
 
 interface ComponentFormProps {
   component: Component | null;
@@ -196,6 +197,11 @@ export default function ComponentForm({
             className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
+
+        <ComponentSpecsEditor
+          specs={formData.specs || {}}
+          onChange={(specs) => setFormData({ ...formData, specs })}
+        />
 
         <ComponentModelFields
           component={formData}
