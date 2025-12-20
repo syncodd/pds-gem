@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { usePanelStore } from '@/lib/store';
 import { Project } from '@/types';
 
@@ -8,12 +9,7 @@ interface ProjectListProps {
 }
 
 export default function ProjectList({ onProjectSelect }: ProjectListProps) {
-  const { projects, setCurrentProject, deleteProject, loadProjects } = usePanelStore();
-
-  const handleSelect = (project: Project) => {
-    setCurrentProject(project);
-    onProjectSelect();
-  };
+  const { projects, deleteProject, loadProjects } = usePanelStore();
 
   const handleDelete = (e: React.MouseEvent, projectId: string) => {
     e.stopPropagation();
@@ -46,10 +42,10 @@ export default function ProjectList({ onProjectSelect }: ProjectListProps) {
     <div className="h-full overflow-y-auto p-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {projects.map((project) => (
-          <div
+          <Link
             key={project.id}
-            onClick={() => handleSelect(project)}
-            className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-lg transition-shadow cursor-pointer"
+            href={`/projects/${project.id}`}
+            className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-lg transition-shadow cursor-pointer block"
           >
             <div className="flex items-start justify-between mb-3">
               <div className="flex-1">
@@ -94,7 +90,7 @@ export default function ProjectList({ onProjectSelect }: ProjectListProps) {
                 <span>{formatDate(project.createdAt)}</span>
               </div>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
     </div>

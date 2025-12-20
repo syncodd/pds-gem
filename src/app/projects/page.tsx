@@ -1,35 +1,23 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import dynamic from 'next/dynamic';
+import { useRouter } from 'next/navigation';
 import { usePanelStore } from '@/lib/store';
 import { Project } from '@/types';
 import ProjectList from '@/components/Projects/ProjectList';
 import ProjectCreationFlow from '@/components/Projects/ProjectCreationFlow';
 import DesignSetupStep from '@/components/Projects/ProjectFlowSteps/DesignSetupStep';
 
-// Dynamically import ProjectCanvas with SSR disabled since Konva is browser-only
-const ProjectCanvas = dynamic(() => import('@/components/Projects/ProjectCanvas'), {
-  ssr: false,
-});
-
 export default function ProjectsPage() {
-  const { currentProject, loadProjects, addProject } = usePanelStore();
+  const router = useRouter();
+  const { loadProjects } = usePanelStore();
   const [showFlow, setShowFlow] = useState(false);
-  const [viewMode, setViewMode] = useState<'list' | 'design' | 'setup'>('list');
+  const [viewMode, setViewMode] = useState<'list' | 'setup'>('list');
   const [setupFormData, setSetupFormData] = useState<Partial<Project> | null>(null);
 
   useEffect(() => {
     loadProjects();
   }, [loadProjects]);
-
-  useEffect(() => {
-    if (currentProject) {
-      setViewMode('design');
-    } else {
-      setViewMode('list');
-    }
-  }, [currentProject]);
 
   const handleNewProject = () => {
     setShowFlow(true);
@@ -46,10 +34,9 @@ export default function ProjectsPage() {
   };
 
   const handleProjectCreated = (project: Project) => {
-    // Project is already saved in DesignSetupStep, set it as current but stay in setup mode
-    usePanelStore.getState().setCurrentProject(project);
+    // Project is already saved in DesignSetupStep, redirect to project page
     loadProjects();
-    // Stay in setup mode to allow adding panels
+    router.push(`/projects/${project.id}`);
   };
 
   const handleSetupCancel = () => {
@@ -58,12 +45,7 @@ export default function ProjectsPage() {
   };
 
   const handleProjectSelect = () => {
-    setViewMode('design');
-  };
-
-  const handleBackToList = () => {
-    usePanelStore.getState().setCurrentProject(null);
-    setViewMode('list');
+    // Navigation is now handled by Link in ProjectList
   };
 
   return (
@@ -81,14 +63,6 @@ export default function ProjectsPage() {
                 className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
               >
                 + New Project
-              </button>
-            )}
-            {viewMode === 'design' && currentProject && (
-              <button
-                onClick={handleBackToList}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
-              >
-                ← Back to Projects
               </button>
             )}
           </div>
@@ -136,9 +110,7 @@ export default function ProjectsPage() {
             onProjectCreated={handleProjectCreated}
             onCancel={handleSetupCancel}
           />
-        ) : (
-          currentProject && <ProjectCanvas project={currentProject} />
-        )}
+        ) : null}
       </div>
 
       {/* Project Creation Flow Modal - Only for steps 0 and 1 */}

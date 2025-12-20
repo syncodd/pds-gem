@@ -27,6 +27,7 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
   const [originalPanels, setOriginalPanels] = useState<Panel[]>(project.panels || []);
   const [originalComponents, setOriginalComponents] = useState<CanvasComponent[]>(project.components || []);
   const [hasChanges, setHasChanges] = useState(false);
+  const [showLabels, setShowLabels] = useState(true);
   
   // Cache for loaded images to prevent reloading
   const imageCacheRef = useRef<Map<string, HTMLImageElement>>(new Map());
@@ -481,7 +482,9 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
 
     const container = containerRef.current;
     const containerWidth = container.clientWidth;
-    const containerHeight = container.clientHeight;
+    // Account for padding when calculating available height
+    const availableHeight = container.clientHeight - 70; // 60px top padding + 10px bottom padding
+    const containerHeight = Math.max(availableHeight, 400); // Minimum height
 
     // Calculate scale to fit all panels with padding
     const padding = 40;
@@ -517,7 +520,9 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
     const handleResize = () => {
       if (!containerRef.current) return;
       const newWidth = container.clientWidth;
-      const newHeight = container.clientHeight;
+      // Account for padding when calculating available height
+      const availableHeight = container.clientHeight - 70; // 60px top padding + 10px bottom padding
+      const newHeight = Math.max(availableHeight, 400); // Minimum height
 
       const newScaleX = totalWidthPx > 0 ? (newWidth - padding * 2) / totalWidthPx : 1;
       const newScaleY = maxHeightPx > 0 ? (newHeight - padding * 2) / maxHeightPx : 1;
@@ -698,38 +703,157 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
           panelRect.on('mouseleave', () => { document.body.style.cursor = 'default'; });
         }
 
-        // Panel name label
-        const nameText = new Konva.Text({
-          x: 5,
-          y: 5,
-          text: panel.name,
-          fontSize: 12,
-          fontStyle: 'bold',
-          fill: isSelected ? '#2563eb' : '#666',
-          padding: 4,
-          backgroundColor: 'rgba(255, 255, 255, 0.8)',
-          cornerRadius: 2,
-          listening: false,
-        });
-        panelGroup.add(nameText);
+        // Panel name label (conditional)
+        if (showLabels) {
+          const nameText = new Konva.Text({
+            x: 5,
+            y: 5,
+            text: panel.name,
+            fontSize: 12,
+            fontStyle: 'bold',
+            fill: isSelected ? '#2563eb' : '#666',
+            padding: 4,
+            backgroundColor: 'rgba(255, 255, 255, 0.8)',
+            cornerRadius: 2,
+            listening: false,
+          });
+          panelGroup.add(nameText);
+        }
 
-        // Panel dimensions text
-        const dimText = new Konva.Text({
-          x: widthPx / 2 - 40,
-          y: heightPx + 10,
-          text: `${panel.width} × ${panel.height}mm`,
-          fontSize: 12,
-          fill: '#666',
-          width: 80,
-          align: 'center',
-          listening: false,
-        });
-        panelGroup.add(dimText);
+        // Panel width dimension lines and label (below panel) - bigger and bolder
+
+          const gapFromPanel = 10; // Gap between panel bottom and dimension lines
+          const extensionLineLength = 15; // Length of extension lines below panel
+          const dimensionStartY = heightPx + gapFromPanel; // Start Y position for dimension lines
+          const labelY = dimensionStartY + extensionLineLength + 5; // Position label below extension lines
+          
+          // Left extension line (vertical line extending down from left edge)
+          const leftExtensionLine = new Konva.Line({
+            points: [0, dimensionStartY, 0, dimensionStartY + extensionLineLength],
+            stroke: '#666',
+            strokeWidth: 1,
+            listening: false,
+          });
+          panelGroup.add(leftExtensionLine);
+          
+          // Right extension line (vertical line extending down from right edge)
+          const rightExtensionLine = new Konva.Line({
+            points: [widthPx, dimensionStartY, widthPx, dimensionStartY + extensionLineLength],
+            stroke: '#666',
+            strokeWidth: 1,
+            listening: false,
+          });
+          panelGroup.add(rightExtensionLine);
+          
+          // Horizontal line at the end (bottom, connecting the extension lines) - bolder
+          const bottomHorizontalLine = new Konva.Line({
+            points: [0, dimensionStartY + extensionLineLength, widthPx, dimensionStartY + extensionLineLength],
+            stroke: '#666',
+            strokeWidth: 2,
+            listening: false,
+          });
+          panelGroup.add(bottomHorizontalLine);
+          
+          // Width label centered between extension lines
+          const widthText = new Konva.Text({
+            x: widthPx / 2 - 40,
+            y: labelY,
+            text: `${panel.width}mm`,
+            fontSize: 18,
+            fontStyle: 'bold',
+            fill: '#666',
+            width: 80,
+            align: 'center',
+            listening: false,
+          });
+          panelGroup.add(widthText);
+        
 
         canvasGroup.add(panelGroup);
       });
 
       layer.add(canvasGroup);
+
+      // Add height ruler on the left side (for first panel only)
+      // Height displays bottom-to-top: 0 at bottom, panel height at top
+      if (panels.length > 0) {
+        const firstPanel = panels[0];
+        const firstPanelHeightPx = firstPanel.height * mmToPixels;
+        // Position ruler next to panels (to the left of the first panel)
+        const rulerX = offset.x - 60; // Position to the left of the first panel
+        const rulerGroup = new Konva.Group({
+          x: rulerX,
+          y: offset.y,
+          scaleX: scale,
+          scaleY: scale,
+        });
+
+        // Ruler line (vertical line on the right edge of ruler)
+        const rulerLine = new Konva.Line({
+          points: [50, 0, 50, firstPanelHeightPx],
+          stroke: '#666',
+          strokeWidth: 1,
+          listening: false,
+        });
+        rulerGroup.add(rulerLine);
+
+        // Ruler ticks and labels - bottom to top
+        // Only show labels at 0 (bottom) and max height (top), show lines for all ticks
+        const tickInterval = 100; // Every 100mm
+        const numTicks = Math.ceil(firstPanel.height / tickInterval);
+        
+        for (let i = 0; i <= numTicks; i++) {
+          const tickHeight = i * tickInterval;
+          if (tickHeight > firstPanel.height) break;
+          
+          // Calculate Y position from bottom (0 at bottom, height at top)
+          const tickY = firstPanelHeightPx - (tickHeight * mmToPixels);
+          
+          // Major tick (horizontal line from left to ruler line)
+          const tick = new Konva.Line({
+            points: [40, tickY, 50, tickY],
+            stroke: '#666',
+            strokeWidth: 1,
+            listening: false,
+          });
+          rulerGroup.add(tick);
+
+          // Only show labels at 0 (bottom) and max height (top)
+          const isBottom = tickHeight === 0;
+          const isTop = Math.abs(tickHeight - firstPanel.height) < 0.1; // Account for floating point
+          
+          if (isBottom || isTop) {
+            // Label (positioned to the right of the ruler line, right-aligned) - bigger and bold
+            const label = new Konva.Text({
+              x: -140,
+              y: tickY - 8,
+              text: `${tickHeight}mm`,
+              fontSize: 18,
+              fontStyle: 'bold',
+              fill: '#666',
+              align: 'right',
+              width: 150,
+              listening: false,
+            });
+            rulerGroup.add(label);
+          }
+
+          // Minor ticks (every 50mm)
+          if (i < numTicks && tickHeight + 50 <= firstPanel.height) {
+            const minorTickHeight = tickHeight + 50;
+            const minorTickY = firstPanelHeightPx - (minorTickHeight * mmToPixels);
+            const minorTick = new Konva.Line({
+              points: [45, minorTickY, 50, minorTickY],
+              stroke: '#999',
+              strokeWidth: 0.5,
+              listening: false,
+            });
+            rulerGroup.add(minorTick);
+          }
+        }
+
+        layer.add(rulerGroup);
+      }
 
       // Render components
       components.forEach((canvasComp) => {
@@ -787,18 +911,20 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
           });
           gapGroup.add(gapRect);
 
-          // Gap label
-          const gapLabel = new Konva.Text({
-            x: (gapWidth * scale) / 2 - 20,
-            y: (gapHeight * scale) / 2 - 6,
-            text: `Gap ${canvasComp.properties?.gapHeight || 10}mm`,
-            fontSize: 8,
-            fill: isGapSelected ? '#dc2626' : '#6b7280',
-            width: 40,
-            align: 'center',
-            listening: false,
-          });
-          gapGroup.add(gapLabel);
+          // Gap label (conditional)
+          if (showLabels) {
+            const gapLabel = new Konva.Text({
+              x: (gapWidth * scale) / 2 - 20,
+              y: (gapHeight * scale) / 2 - 6,
+              text: `Gap ${canvasComp.properties?.gapHeight || 10}mm`,
+              fontSize: 8,
+              fill: isGapSelected ? '#dc2626' : '#6b7280',
+              width: 40,
+              align: 'center',
+              listening: false,
+            });
+            gapGroup.add(gapLabel);
+          }
 
           // Gap click handler
           const handleGapClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
@@ -1234,17 +1360,20 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
           labelText += `\n(${values.join(', ')})`;
         }
 
-        const compLabel = new Konva.Text({
-          x: compWidth / 2 - 40,
-          y: compHeight / 2 - 12,
-          text: labelText,
-          fontSize: 9,
-          fill: '#333',
-          width: 80,
-          align: 'center',
-          listening: false,
-        });
-        compGroup.add(compLabel);
+        // Component label (conditional)
+        if (showLabels) {
+          const compLabel = new Konva.Text({
+            x: compWidth / 2 - 40,
+            y: compHeight / 2 - 12,
+            text: labelText,
+            fontSize: 9,
+            fill: '#333',
+            width: 80,
+            align: 'center',
+            listening: false,
+          });
+          compGroup.add(compLabel);
+        }
 
         // For placeholder, color is already changed above
         // No need to add border overlay since we changed the fill color
@@ -1483,6 +1612,7 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
     snapToGrid,
     localComponents,
     localPanels,
+    showLabels,
   ]);
 
   // Separate effect to update selection visuals without re-rendering everything
@@ -1612,8 +1742,8 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
         <h3 className="text-2xl font-bold text-red-600">{(project.name || '').toUpperCase()}</h3>
       </div>
 
-      {/* Canvas area - with top padding to avoid title overlap */}
-      <div className="flex-1 bg-white relative overflow-auto" style={{ paddingTop: '60px', paddingBottom: '10px' }} ref={containerRef}>
+      {/* Canvas area - with top padding to avoid title overlap, no scroll, properly sized */}
+      <div className="flex-1 bg-white relative overflow-hidden min-h-0" style={{ paddingTop: '60px', paddingBottom: '10px' }} ref={containerRef}>
         {/* Empty state with START DESIGN button */}
         {panels.length === 0 && (
           <>
@@ -1662,6 +1792,34 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
           
           {/* Action buttons */}
           <div className="flex items-center gap-3">
+            {/* Show Labels checkbox */}
+            <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={showLabels}
+                onChange={(e) => setShowLabels(e.target.checked)}
+                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              />
+              <span>Show Labels</span>
+            </label>
+            
+            {/* Delete Panel button - only active when panel is selected */}
+            <button
+              onClick={() => {
+                if (selectedPanelId) {
+                  handleRemovePanel(selectedPanelId);
+                }
+              }}
+              disabled={!selectedPanelId}
+              className={`px-4 py-2 text-sm rounded-md font-medium transition-colors ${
+                selectedPanelId
+                  ? 'bg-red-500 text-white hover:bg-red-600'
+                  : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+              }`}
+            >
+              Delete Panel
+            </button>
+            
             {/* Add Panel button */}
             <button
               onClick={() => setShowAddPanel(true)}
