@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePanelStore } from '@/lib/store';
 import { Project } from '@/types';
+import { useEffect, useState } from 'react';
 
 interface ProjectListProps {
   onProjectSelect: () => void;
@@ -10,6 +11,11 @@ interface ProjectListProps {
 
 export default function ProjectList({ onProjectSelect }: ProjectListProps) {
   const { projects, deleteProject, loadProjects } = usePanelStore();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleDelete = (e: React.MouseEvent, projectId: string) => {
     e.stopPropagation();
@@ -27,7 +33,8 @@ export default function ProjectList({ onProjectSelect }: ProjectListProps) {
     });
   };
 
-  if (projects.length === 0) {
+  // Prevent hydration mismatch by only rendering empty state after mount
+  if (!mounted || projects.length === 0) {
     return (
       <div className="h-full flex items-center justify-center">
         <div className="text-center text-gray-400">

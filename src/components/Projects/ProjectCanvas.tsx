@@ -28,6 +28,7 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
   const [originalComponents, setOriginalComponents] = useState<CanvasComponent[]>(project.components || []);
   const [hasChanges, setHasChanges] = useState(false);
   const [showLabels, setShowLabels] = useState(true);
+  const [stageReady, setStageReady] = useState(false); // Track when stage is initialized
   
   // Cache for loaded images to prevent reloading
   const imageCacheRef = useRef<Map<string, HTMLImageElement>>(new Map());
@@ -51,15 +52,30 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
     return Array.from(widths).sort((a, b) => a - b);
   }, [panelsLibrary]);
 
-  // Update local state when project prop changes (new project selected)
+  // Track if this is the first mount to always sync on initial load
+  const isFirstMountRef = useRef(true);
+
+  // Update local state when project ID changes (new project selected)
+  // Only sync when project ID changes, not when projects array changes (to avoid resetting unsaved changes)
   useEffect(() => {
     const latestProject = projects.find((p) => p.id === project.id) || project;
-    setLocalPanels(latestProject.panels || []);
-    setLocalComponents(latestProject.components || []);
-    setOriginalPanels(latestProject.panels || []);
-    setOriginalComponents(latestProject.components || []);
-    setHasChanges(false);
-  }, [project.id]); // Only when project ID changes, not when projects array changes
+    const storePanelsLength = latestProject.panels?.length || 0;
+    const storeComponentsLength = latestProject.components?.length || 0;
+
+    // On first mount, always sync from store (project prop might be stale)
+    // After first mount, only sync if we don't have unsaved changes
+    const hasLocalChanges = localPanels.length > storePanelsLength || 
+                            localComponents.length > storeComponentsLength;
+
+    if (isFirstMountRef.current || !hasLocalChanges) {
+      setLocalPanels(latestProject.panels || []);
+      setLocalComponents(latestProject.components || []);
+      setOriginalPanels(latestProject.panels || []);
+      setOriginalComponents(latestProject.components || []);
+      setHasChanges(false);
+      isFirstMountRef.current = false;
+    }
+  }, [project.id, projects]); // Only depend on project.id and projects array
 
   // Detect changes by comparing local state with original
   useEffect(() => {
@@ -104,18 +120,19 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
   const handleSave = () => {
     if (!hasChanges) return;
     
-    const updatedProject = {
-      ...project,
+    const saveData = {
       panels: localPanels,
       components: localComponents,
       updatedAt: Date.now(),
     };
+
+    updateProject(project.id, saveData);
     
-    updateProject(project.id, {
-      panels: localPanels,
-      components: localComponents,
-      updatedAt: Date.now(),
-    });
+    const updatedProject = {
+      ...project,
+      ...saveData,
+    };
+    
     setCurrentProject(updatedProject);
     setOriginalPanels([...localPanels]);
     setOriginalComponents([...localComponents]);
@@ -132,6 +149,7 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
 
     // Find a panel from library with the selected width, or create a new one
     const templatePanel = panelsLibrary.find((p) => p.width === Number(selectedWidth));
+
     const newPanel: Panel = templatePanel
       ? {
           ...templatePanel,
@@ -147,9 +165,18 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
         };
 
     const updatedPanels = [...localPanels, newPanel];
+
     setLocalPanels(updatedPanels);
     setSelectedWidth('');
-    setShowAddPanel(false);
+    
+    // Defer modal closing to avoid DOM manipulation errors during React's render cycle
+    // Use requestAnimationFrame twice to ensure React has finished rendering and Konva has initialized
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        setShowAddPanel(false);
+      });
+    });
+    
     // Don't auto-save, just update local state - user will click Save
   };
 
@@ -476,9 +503,36 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
     return updatedComponents;
   };
 
-  // Initialize Konva stage
+  // Initialize Konva stage - only when there are panels to render
   useEffect(() => {
     if (!containerRef.current) return;
+
+    // If no panels, clean up stage and return (empty state will be shown)
+    if (panels.length === 0) {
+      if (stageRef.current) {
+        try {
+          stageRef.current.destroy();
+        } catch (e) {
+          // Ignore errors during cleanup
+        }
+        stageRef.current = null;
+        layerRef.current = null;
+      }
+      setStageReady(false); // Mark stage as not ready when no panels
+      return;
+    }
+
+    // Clean up existing stage before creating new one
+    if (stageRef.current) {
+      try {
+        stageRef.current.destroy();
+      } catch (e) {
+        // Ignore errors during cleanup
+      }
+      stageRef.current = null;
+      layerRef.current = null;
+      setStageReady(false); // Mark stage as not ready when destroyed
+    }
 
     const container = containerRef.current;
     const containerWidth = container.clientWidth;
@@ -503,22 +557,34 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
       height: containerHeight,
     });
 
-    // Create stage
-    const stage = new Konva.Stage({
-      container: container,
-      width: containerWidth,
-      height: containerHeight,
+    // Create stage - use requestAnimationFrame to ensure DOM is ready and empty state is unmounted
+    let rafId: number;
+    rafId = requestAnimationFrame(() => {
+      if (!containerRef.current) return;
+      
+      // Double-check stage wasn't already created or destroyed during the frame
+      if (stageRef.current) {
+        // Stage already exists, skip creation
+        return;
+      }
+
+      const stage = new Konva.Stage({
+        container: containerRef.current,
+        width: containerWidth,
+        height: containerHeight,
+      });
+
+      const layer = new Konva.Layer();
+      stage.add(layer);
+
+      stageRef.current = stage;
+      layerRef.current = layer;
+      setStageReady(true); // Mark stage as ready
     });
-
-    const layer = new Konva.Layer();
-    stage.add(layer);
-
-    stageRef.current = stage;
-    layerRef.current = layer;
 
     // Handle window resize
     const handleResize = () => {
-      if (!containerRef.current) return;
+      if (!containerRef.current || !stageRef.current) return;
       const newWidth = container.clientWidth;
       // Account for padding when calculating available height
       const availableHeight = container.clientHeight - 70; // 60px top padding + 10px bottom padding
@@ -534,22 +600,39 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
         y: maxHeightPx > 0 ? (newHeight - maxHeightPx * newScaleValue) / 2 : 0,
       });
 
-      stage.width(newWidth);
-      stage.height(newHeight);
-      stage.draw();
+      const currentStage = stageRef.current;
+      if (currentStage) {
+        currentStage.width(newWidth);
+        currentStage.height(newHeight);
+        currentStage.draw();
+      }
     };
 
     window.addEventListener('resize', handleResize);
 
     return () => {
       window.removeEventListener('resize', handleResize);
-      stage.destroy();
+      cancelAnimationFrame(rafId);
+      // Clean up stage using ref to avoid closure issues
+      if (stageRef.current) {
+        try {
+          stageRef.current.destroy();
+        } catch (e) {
+          // Stage might already be destroyed, ignore error
+        }
+        stageRef.current = null;
+        layerRef.current = null;
+      }
     };
   }, [totalWidthPx, maxHeightPx, panels.length]);
 
   // Render panels and components
   useEffect(() => {
-    if (!stageRef.current || !layerRef.current) return;
+    // If we have panels but no stage, the Konva init effect should create it
+    // This effect will re-run when stage is created (via panels.length dependency in Konva effect)
+    if (!stageRef.current || !layerRef.current) {
+      return;
+    }
 
     const stage = stageRef.current;
     const layer = layerRef.current;
@@ -1613,6 +1696,7 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
     localComponents,
     localPanels,
     showLabels,
+    stageReady, // Re-run when stage becomes ready
   ]);
 
   // Separate effect to update selection visuals without re-rendering everything
@@ -1866,14 +1950,32 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
 
       {/* Add Panel Modal - Width Selection */}
       {showAddPanel && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center pointer-events-none">
-          <div className="pointer-events-auto bg-white border-t border-gray-200 rounded-t-lg shadow-2xl w-full max-w-2xl max-h-[50vh] flex flex-col">
+        <div 
+          className="fixed inset-0 z-50 flex items-end justify-center pointer-events-none"
+          onClick={(e) => {
+            // Close modal when clicking backdrop
+            if (e.target === e.currentTarget) {
+              // Use requestAnimationFrame to defer closing
+              requestAnimationFrame(() => {
+                setShowAddPanel(false);
+                setSelectedWidth('');
+              });
+            }
+          }}
+        >
+          <div 
+            className="pointer-events-auto bg-white border-t border-gray-200 rounded-t-lg shadow-2xl w-full max-w-2xl max-h-[50vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="p-4 border-b border-gray-200 flex items-center justify-between">
               <h3 className="text-lg font-semibold text-gray-800">Add Panel</h3>
               <button
                 onClick={() => {
-                  setShowAddPanel(false);
-                  setSelectedWidth('');
+                  // Use requestAnimationFrame to defer closing
+                  requestAnimationFrame(() => {
+                    setShowAddPanel(false);
+                    setSelectedWidth('');
+                  });
                 }}
                 className="p-1 hover:bg-gray-100 rounded-md transition-colors"
               >
@@ -1921,8 +2023,11 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
             <div className="p-4 border-t border-gray-200 flex justify-end gap-3">
               <button
                 onClick={() => {
-                  setShowAddPanel(false);
-                  setSelectedWidth('');
+                  // Use requestAnimationFrame to defer closing
+                  requestAnimationFrame(() => {
+                    setShowAddPanel(false);
+                    setSelectedWidth('');
+                  });
                 }}
                 className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
               >
