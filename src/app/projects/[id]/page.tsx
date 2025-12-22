@@ -109,6 +109,12 @@ export default function ProjectPage() {
                 Component Editor
               </a>
               <a
+                href="/combinator-editor"
+                className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600"
+              >
+                Combinator Editor
+              </a>
+              <a
                 href="/projects"
                 className="px-3 py-2 text-sm font-medium text-blue-600 border-b-2 border-blue-500"
               >
@@ -172,6 +178,12 @@ export default function ProjectPage() {
               className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600"
             >
               Component Editor
+            </a>
+            <a
+              href="/combinator-editor"
+              className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600"
+            >
+              Combinator Editor
             </a>
             <a
               href="/projects"

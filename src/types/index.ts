@@ -28,6 +28,19 @@ export interface Component {
   requiredComponents?: string[]; // Component IDs that must be used together
 }
 
+export interface Combinator {
+  id: string;
+  name: string;
+  width: number; // in mm
+  height: number; // in mm
+  depth?: number; // in mm
+  componentIds: string[]; // Array of component IDs contained in this combinator
+  brand: string;
+  series: string;
+  currentA: string; // Current in Amperes
+  pole: string;
+}
+
 export interface CanvasComponent {
   id: string;
   componentId: string; // reference to Component.id
@@ -68,9 +81,10 @@ export interface Constraint {
 export interface Rule {
   id: string;
   name: string;
-  type: 'global' | 'panel' | 'component';
+  type: 'global' | 'panel' | 'component' | 'combinator';
   panelId?: string; // For panel-based rules
   componentId?: string; // For component-based rules
+  combinatorId?: string; // For combinator-based rules
   conditions: RuleCondition[];
   constraints: Constraint[];
   dependencies?: string[]; // Rule IDs this rule depends on
@@ -85,13 +99,14 @@ export interface RuleCondition {
 
 export interface RuleNode {
   id: string;
-  type: 'global' | 'panel' | 'component' | 'constraint' | 'panelNode' | 'constraintNode' | 'conditionNode';
+  type: 'global' | 'panel' | 'component' | 'combinator' | 'constraint' | 'panelNode' | 'constraintNode' | 'conditionNode' | 'combinatorNode';
   data: {
     label: string;
     rule?: Rule;
     constraint?: Constraint;
     condition?: RuleCondition;
     panelId?: string; // For panelNode
+    combinatorId?: string; // For combinatorNode
   };
   position: { x: number; y: number };
 }

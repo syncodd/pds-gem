@@ -41,7 +41,7 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
   // Store original positions for visual reordering during drag
   const originalPositionsRef = useRef<Map<string, { x: number; y: number }>>(new Map());
 
-  const { componentLibrary, updateProject, setCurrentProject, projects, panelsLibrary, loadProjects } = usePanelStore();
+  const { componentLibrary, combinatorsLibrary, updateProject, setCurrentProject, projects, panelsLibrary, loadProjects } = usePanelStore();
 
   // Get unique width values from panels library
   const widthOptions = useMemo(() => {
@@ -217,8 +217,10 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
         totalHeight += gapHeight + spacing;
       } else {
         const compDef = componentLibrary.find((c) => c.id === comp.componentId);
-        if (compDef) {
-          totalHeight += compDef.height + spacing;
+        const combinatorDef = combinatorsLibrary.find((c) => c.id === comp.componentId);
+        const def = compDef || combinatorDef;
+        if (def) {
+          totalHeight += def.height + spacing;
         }
       }
     }
@@ -252,6 +254,32 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
         ...(aValue && { aValue }),
         ...(vValue && { vValue }),
         ...(pValue && { pValue }),
+      },
+    };
+
+    setLocalComponents([...localComponents, newComponent]);
+  };
+
+  // Handle adding combinator to selected panel
+  const handleAddCombinator = (combinatorId: string) => {
+    if (!selectedPanelId) return;
+
+    const combinator = combinatorsLibrary.find((c) => c.id === combinatorId);
+    if (!combinator) return;
+
+    const position = calculateNextComponentPosition(selectedPanelId, combinator.width, combinator.height);
+
+    const newComponent: CanvasComponent = {
+      id: `canvas-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      componentId: combinatorId, // Use combinator ID as componentId
+      panelId: selectedPanelId,
+      x: position.x,
+      y: position.y,
+      rotation: 0,
+      scale: 1,
+      properties: {
+        order: position.order,
+        isCombinator: true, // Mark as combinator
       },
     };
 
@@ -483,8 +511,10 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
           currentY += item.height + spacing;
         } else {
           const compDef = componentLibrary.find((c) => c.id === item.comp.componentId);
-          if (compDef) {
-            const centeredX = (panel.width - compDef.width) / 2;
+          const combinatorDef = combinatorsLibrary.find((c) => c.id === item.comp.componentId);
+          const def = compDef || combinatorDef;
+          if (def) {
+            const centeredX = (panel.width - def.width) / 2;
             updatedComponents[compIndex] = {
               ...updatedComponents[compIndex],
               x: centeredX,
@@ -494,7 +524,7 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
                 order: index,
               },
             };
-            currentY += compDef.height + spacing;
+            currentY += def.height + spacing;
           }
         }
       }
@@ -1235,29 +1265,372 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
         }
 
         const compDef = componentLibrary.find((c) => c.id === canvasComp.componentId);
-        if (!compDef) return;
+        const combinatorDef = combinatorsLibrary.find((c) => c.id === canvasComp.componentId);
+        const def = compDef || combinatorDef;
+        if (!def) return;
 
         // Find the panel this component belongs to
         const panelPos = panelPositions.find((p) => p.panel.id === canvasComp.panelId);
         if (!panelPos) return;
 
+        // Handle combinator rendering separately
+        if (combinatorDef) {
+          // Render combinator with its components
+          // Always center combinator horizontally in the panel
+          const centeredX = (panelPos.panel.width - combinatorDef.width) / 2;
+          
+          const combX = offset.x + (panelPos.xOffset + centeredX) * mmToPixels * scale;
+          const combY = offset.y + canvasComp.y * mmToPixels * scale;
+          const combWidth = combinatorDef.width * mmToPixels;
+          const combHeight = combinatorDef.height * mmToPixels;
+
+          const currentPanelPos = panelPos;
+          const isCombinatorSelected = selectedComponentId === canvasComp.id;
+          const centeredXPos = centeredX; // Use the same centered X position
+
+          // Create combinator group
+          const combinatorGroup = new Konva.Group({
+            x: combX,
+            y: combY,
+            rotation: canvasComp.rotation || 0,
+            scaleX: scale * (canvasComp.scale || 1),
+            scaleY: scale * (canvasComp.scale || 1),
+            draggable: false,
+            dragBoundFunc: (pos) => {
+              const centeredStageX = offset.x + (currentPanelPos.xOffset + centeredXPos) * mmToPixels * scale;
+              const canvasY = (pos.y - offset.y) / scale / mmToPixels;
+              const maxY = currentPanelPos.panel.height - combinatorDef.height;
+              const clampedY = Math.max(0, Math.min(canvasY, maxY));
+              const clampedStageY = offset.y + clampedY * mmToPixels * scale;
+              return { x: centeredStageX, y: clampedStageY };
+            },
+          });
+
+          // Draw combinator boundary box (border only, no fill)
+          const boundaryBox = new Konva.Rect({
+            x: 0,
+            y: 0,
+            width: combWidth,
+            height: combHeight,
+            stroke: isCombinatorSelected ? '#dc2626' : '#4a90e2',
+            strokeWidth: isCombinatorSelected ? 4 : 2,
+            fill: 'transparent',
+            cornerRadius: 4,
+            listening: true,
+          });
+          combinatorGroup.add(boundaryBox);
+
+          // Render components inside combinator
+          const componentSpacing = 10; // Spacing between components in mm
+          
+          // Calculate total content height to center components vertically
+          let totalContentHeight = 0;
+          combinatorDef.componentIds.forEach((compId) => {
+            const innerComp = componentLibrary.find((c) => c.id === compId);
+            if (!innerComp) return;
+            if (totalContentHeight > 0) {
+              totalContentHeight += componentSpacing; // Add spacing between components
+            }
+            totalContentHeight += innerComp.height;
+          });
+          
+          // Calculate starting Y position to center content vertically
+          const combHeightMm = combinatorDef.height;
+          const startY = (combHeightMm - totalContentHeight) / 2;
+          let componentY = startY;
+          
+          combinatorDef.componentIds.forEach((compId) => {
+            const innerComp = componentLibrary.find((c) => c.id === compId);
+            if (!innerComp) return;
+
+            const innerCompWidth = innerComp.width * mmToPixels;
+            const innerCompHeight = innerComp.height * mmToPixels;
+            const innerCompX = (combWidth - innerCompWidth) / 2; // Center horizontally
+            const innerCompY = componentY * mmToPixels; // Convert to pixels
+
+            // Create a group for the inner component
+            const innerCompGroup = new Konva.Group({
+              x: innerCompX,
+              y: innerCompY,
+              listening: false, // Read-only, no interaction
+            });
+            // Store component ID for later reference
+            innerCompGroup.setAttr('data-component-id', innerComp.id);
+
+            // Component rectangle (fallback/placeholder)
+            const innerCompRect = new Konva.Rect({
+              x: 0,
+              y: 0,
+              width: innerCompWidth,
+              height: innerCompHeight,
+              fill: isCombinatorSelected ? '#dc2626' : innerComp.color,
+              stroke: isCombinatorSelected ? '#dc2626' : '#333',
+              strokeWidth: isCombinatorSelected ? 2 : 1,
+              cornerRadius: 2,
+              opacity: isCombinatorSelected ? 0.8 : 0.8,
+              listening: false,
+              name: 'placeholder',
+            });
+            innerCompGroup.add(innerCompRect);
+
+            // Try to load 2D model (SVG) if available
+            if (innerComp.model2D && (innerComp.model2D.startsWith('http') || innerComp.model2D.startsWith('/'))) {
+              // Check cache first
+              let imageObj = imageCacheRef.current.get(innerComp.model2D);
+              if (!imageObj) {
+                imageObj = new Image();
+                imageObj.crossOrigin = 'anonymous';
+                imageCacheRef.current.set(innerComp.model2D, imageObj);
+              }
+              
+              if (imageObj.complete && imageObj.naturalWidth > 0) {
+                // Image already loaded, use it immediately
+                innerCompRect.destroy();
+                
+                const innerCompImage = new Konva.Image({
+                  x: 0,
+                  y: 0,
+                  image: imageObj,
+                  width: innerCompWidth,
+                  height: innerCompHeight,
+                  listening: false,
+                  opacity: 1,
+                });
+                innerCompGroup.add(innerCompImage);
+                
+                // Add red color overlay if combinator is selected
+                if (isCombinatorSelected) {
+                  const colorOverlay = new Konva.Rect({
+                    x: 0,
+                    y: 0,
+                    width: innerCompWidth,
+                    height: innerCompHeight,
+                    fill: '#dc2626',
+                    opacity: 0.5,
+                    globalCompositeOperation: 'source-atop',
+                    listening: false,
+                    name: 'selection-overlay',
+                  });
+                  innerCompGroup.add(colorOverlay);
+                }
+              } else {
+                // Image not loaded yet, wait for onload
+                imageObj.onload = () => {
+                  const placeholder = innerCompGroup.findOne('.placeholder');
+                  if (placeholder) placeholder.destroy();
+                  
+                  const innerCompImage = new Konva.Image({
+                    x: 0,
+                    y: 0,
+                    image: imageObj!,
+                    width: innerCompWidth,
+                    height: innerCompHeight,
+                    listening: false,
+                    opacity: 1,
+                  });
+                  innerCompGroup.add(innerCompImage);
+                  
+                  // Add red color overlay if combinator is selected
+                  if (isCombinatorSelected) {
+                    const colorOverlay = new Konva.Rect({
+                      x: 0,
+                      y: 0,
+                      width: innerCompWidth,
+                      height: innerCompHeight,
+                      fill: '#dc2626',
+                      opacity: 0.5,
+                      globalCompositeOperation: 'source-atop',
+                      listening: false,
+                      name: 'selection-overlay',
+                    });
+                    innerCompGroup.add(colorOverlay);
+                  }
+                  
+                  if (layer && layer.getStage()) {
+                    layer.draw();
+                  }
+                };
+                
+                imageObj.onerror = () => {
+                  // Keep the placeholder rectangle if image fails to load
+                  console.warn(`Failed to load inner component image: ${innerComp.model2D}`);
+                  if (layer && layer.getStage()) {
+                    layer.draw();
+                  }
+                };
+                
+                if (!imageObj.src) {
+                  imageObj.src = innerComp.model2D;
+                }
+              }
+            }
+
+            // Component label
+            if (showLabels) {
+              const innerLabel = new Konva.Text({
+                x: 5,
+                y: 5,
+                text: innerComp.name,
+                fontSize: 9,
+                fill: '#fff',
+                fontStyle: 'bold',
+                width: innerCompWidth - 10,
+                listening: false,
+              });
+              innerCompGroup.add(innerLabel);
+            }
+
+            combinatorGroup.add(innerCompGroup);
+
+            componentY += innerComp.height + componentSpacing;
+          });
+
+          // Combinator label
+          if (showLabels) {
+            const combLabel = new Konva.Text({
+              x: combWidth / 2 - 40,
+              y: combHeight - 20,
+              text: combinatorDef.name,
+              fontSize: 10,
+              fill: isCombinatorSelected ? '#dc2626' : '#4a90e2',
+              width: 80,
+              align: 'center',
+              fontStyle: 'bold',
+              listening: false,
+            });
+            combinatorGroup.add(combLabel);
+          }
+
+          // Click handler for combinator
+          const handleCombinatorClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
+            e.cancelBubble = true;
+            if (e.evt) {
+              if (typeof e.evt.stopPropagation === 'function') {
+                e.evt.stopPropagation();
+              }
+              if (typeof e.evt.preventDefault === 'function') {
+                e.evt.preventDefault();
+              }
+            }
+            
+            const compId = canvasComp.id;
+            setSelectedComponentId((prevSelected) => {
+              if (prevSelected === compId) {
+                setSelectedPanelId(null);
+                setShowComponentProperties(false);
+                return null;
+              } else {
+                setSelectedPanelId(null);
+                setShowComponentProperties(false);
+                return compId;
+              }
+            });
+          };
+
+          combinatorGroup.on('click tap', handleCombinatorClick);
+
+          // Hold-to-drag for combinator (same as regular components)
+          let combDragStartPos: { x: number; y: number } | null = null;
+          let combIsDragging = false;
+          let combDragTimer: NodeJS.Timeout | null = null;
+
+          combinatorGroup.on('mousedown touchstart', (e) => {
+            e.cancelBubble = true;
+            const stage = combinatorGroup.getStage();
+            if (stage) {
+              const pointerPos = stage.getPointerPosition();
+              if (pointerPos) {
+                combDragStartPos = pointerPos;
+                combDragTimer = setTimeout(() => {
+                  if (combDragStartPos && !combIsDragging) {
+                    combinatorGroup.draggable(true);
+                    combIsDragging = true;
+                    document.body.style.cursor = 'grabbing';
+                  }
+                }, 200);
+              }
+            }
+          });
+
+          combinatorGroup.on('mousemove touchmove', () => {
+            if (combDragStartPos && !combIsDragging) {
+              const stage = combinatorGroup.getStage();
+              if (stage) {
+                const pointerPos = stage.getPointerPosition();
+                if (pointerPos) {
+                  const distance = Math.sqrt(
+                    Math.pow(pointerPos.x - combDragStartPos!.x, 2) + 
+                    Math.pow(pointerPos.y - combDragStartPos!.y, 2)
+                  );
+                  if (distance > 5) {
+                    if (combDragTimer) clearTimeout(combDragTimer);
+                    combinatorGroup.draggable(true);
+                    combIsDragging = true;
+                    document.body.style.cursor = 'grabbing';
+                  }
+                }
+              }
+            }
+          });
+
+          combinatorGroup.on('mouseup touchend', () => {
+            if (combDragTimer) {
+              clearTimeout(combDragTimer);
+              combDragTimer = null;
+            }
+            if (!combIsDragging) {
+              handleCombinatorClick({ cancelBubble: false, evt: {} } as any);
+            }
+            combDragStartPos = null;
+            combIsDragging = false;
+            document.body.style.cursor = 'default';
+          });
+
+          combinatorGroup.on('dragend', () => {
+            const pos = combinatorGroup.position();
+            const canvasY = (pos.y - offset.y) / scale / mmToPixels;
+            const centeredX = (currentPanelPos.panel.width - combinatorDef.width) / 2;
+            
+            const updated = localComponents.map((c) =>
+              c.id === canvasComp.id
+                ? { ...c, x: centeredX, y: canvasY }
+                : c
+            );
+            
+            const finalUpdated = reorderComponents(canvasComp.id, canvasY, canvasComp.panelId, updated);
+            setLocalComponents(finalUpdated);
+            
+            combinatorGroup.draggable(false);
+            combIsDragging = false;
+            document.body.style.cursor = 'default';
+          });
+
+          combinatorGroup.on('mouseenter', () => { document.body.style.cursor = 'move'; });
+          combinatorGroup.on('mouseleave', () => { document.body.style.cursor = 'default'; });
+
+          componentGroupRefsRef.current.set(canvasComp.id, combinatorGroup);
+          layer.add(combinatorGroup);
+          return; // Skip regular component rendering for combinators
+        }
+
+        // Regular component rendering (non-combinator)
         // Use stored X position (should be centered) or calculate centered position
         const storedX = canvasComp.x;
-        const centeredX = (panelPos.panel.width - compDef.width) / 2;
+        const centeredX = (panelPos.panel.width - def.width) / 2;
         const finalX = Math.abs(storedX - centeredX) < 1 ? storedX : centeredX; // Use stored if close to centered, otherwise use centered
         
         // Components are added directly to layer, so we need absolute stage coordinates
         const compX = offset.x + (panelPos.xOffset + finalX) * mmToPixels * scale;
         const compY = offset.y + canvasComp.y * mmToPixels * scale;
-        const compWidth = compDef.width * mmToPixels;
-        const compHeight = compDef.height * mmToPixels;
+        const compWidth = def.width * mmToPixels;
+        const compHeight = def.height * mmToPixels;
 
         // Store panelPos in a variable that will be captured in the closure
         const currentPanelPos = panelPos;
         const isComponentSelected = selectedComponentId === canvasComp.id;
         
         // Calculate centered X position relative to panel (in mm)
-        const centeredXPos = (currentPanelPos.panel.width - compDef.width) / 2;
+        const centeredXPos = (currentPanelPos.panel.width - def.width) / 2;
         
         const compGroup = new Konva.Group({
           x: compX,
@@ -1274,7 +1647,7 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
             // Allow Y movement within panel bounds
             // Convert stage Y to canvas Y (mm) - account for scale
             const canvasY = (pos.y - offset.y) / scale / mmToPixels;
-            const maxY = currentPanelPos.panel.height - compDef.height;
+            const maxY = currentPanelPos.panel.height - def.height;
             const clampedY = Math.max(0, Math.min(canvasY, maxY));
             
             // Convert back to stage coordinates
@@ -1317,7 +1690,9 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
         // Render component 2D model or fallback rectangle
         // First add a temporary placeholder rectangle
         // Change color when selected (red tint)
-        const fillColor = isComponentSelected ? '#dc2626' : compDef.color;
+        // Use a default color for combinators (blue-ish) or component color
+        const defaultColor = combinatorDef ? '#4a90e2' : (compDef?.color || '#4a90e2');
+        const fillColor = isComponentSelected ? '#dc2626' : defaultColor;
         const placeholderRect = new Konva.Rect({
           width: compWidth,
           height: compHeight,
@@ -1334,8 +1709,8 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
         // Store component group reference
         componentGroupRefsRef.current.set(canvasComp.id, compGroup);
 
-        // Try to load 2D model if available
-        if (compDef.model2D && (compDef.model2D.startsWith('http') || compDef.model2D.startsWith('/'))) {
+        // Try to load 2D model if available (only for components, not combinators)
+        if (compDef && compDef.model2D && (compDef.model2D.startsWith('http') || compDef.model2D.startsWith('/'))) {
           // Check cache first
           let imageObj = imageCacheRef.current.get(compDef.model2D);
           if (!imageObj) {
@@ -1433,7 +1808,8 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
         }
 
         // Build label text with A/V/P values if available
-        let labelText = compDef.name;
+        // At this point, combinatorDef should be null (combinators handled above)
+        let labelText = compDef?.name || 'Unknown';
         const props = canvasComp.properties || {};
         if (props.aValue || props.vValue || props.pValue) {
           const values = [];
@@ -1558,7 +1934,7 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
             })
             .sort((a, b) => a.centerY - b.centerY);
 
-          const draggedCenterY = canvasY + compDef.height / 2;
+          const draggedCenterY = canvasY + def.height / 2;
 
           // Find insert position
           let insertIndex = panelComps.length;
@@ -1577,7 +1953,7 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
           panelComps.forEach((item, index) => {
             if (index === insertIndex) {
               // This is where the dragged component should be
-              currentY += compDef.height + spacing;
+              currentY += def.height + spacing;
             }
             
             const otherGroup = canvasComp.id === item.comp.id 
@@ -1615,7 +1991,7 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
           const canvasY = (pos.y - offset.y) / scale / mmToPixels;
 
           // Ensure X is centered and update component temporarily
-          const centeredX = (currentPanelPos.panel.width - compDef.width) / 2;
+          const centeredX = (currentPanelPos.panel.width - def.width) / 2;
           const tempUpdated = localComponents.map((c) =>
             c.id === canvasComp.id
               ? {
@@ -1752,47 +2128,113 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
       // Check if group still exists in the layer
       if (!compGroup.getParent()) return;
       
-      const existingOverlay = compGroup.findOne('.selection-overlay') as Konva.Rect | null;
-      const placeholder = compGroup.findOne('.placeholder') as Konva.Rect | null;
-      const isSelected = selectedComponentId === compId;
+      const canvasComp = localComponents.find((c) => c.id === compId);
+      const combinatorDef = canvasComp ? combinatorsLibrary.find((c) => c.id === canvasComp.componentId) : null;
+      const isCombinator = !!combinatorDef;
       
-      if (isSelected) {
-        if (!existingOverlay) {
-          // Check if there's an image (SVG) or placeholder
-          const compImage = compGroup.findOne('Image') as Konva.Image | null;
-          if (compImage) {
-            // Add overlay for image
-            const width = compImage.width();
-            const height = compImage.height();
-            const colorOverlay = new Konva.Rect({
-              x: 0,
-              y: 0,
-              width,
-              height,
-              fill: '#dc2626',
-              opacity: 0.5,
-              globalCompositeOperation: 'source-atop',
-              cornerRadius: 2,
-              listening: false,
-              name: 'selection-overlay',
-            });
-            compGroup.add(colorOverlay);
-          } else if (placeholder) {
-            // Update placeholder color
-            placeholder.fill('#dc2626');
+      if (isCombinator) {
+        // Handle combinator selection
+        const isSelected = selectedComponentId === compId;
+        const boundaryBox = compGroup.findOne('Rect') as Konva.Rect | null;
+        
+        if (boundaryBox) {
+          // Update boundary box stroke and width
+          boundaryBox.stroke(isSelected ? '#dc2626' : '#4a90e2');
+          boundaryBox.strokeWidth(isSelected ? 4 : 2);
+        }
+        
+        // Update inner component overlays
+        const innerGroups = compGroup.find('Group') as Konva.Group[];
+        innerGroups.forEach((innerGroup) => {
+          const existingOverlay = innerGroup.findOne('.selection-overlay') as Konva.Rect | null;
+          const innerImage = innerGroup.findOne('Image') as Konva.Image | null;
+          const placeholder = innerGroup.findOne('.placeholder') as Konva.Rect | null;
+          
+          if (isSelected) {
+            if (innerImage && !existingOverlay) {
+              // Add red overlay to inner component SVG
+              const width = innerImage.width();
+              const height = innerImage.height();
+              const colorOverlay = new Konva.Rect({
+                x: 0,
+                y: 0,
+                width,
+                height,
+                fill: '#dc2626',
+                opacity: 0.5,
+                globalCompositeOperation: 'source-atop',
+                listening: false,
+                name: 'selection-overlay',
+              });
+              innerGroup.add(colorOverlay);
+            } else if (placeholder && !existingOverlay) {
+              // Update placeholder to red
+              placeholder.fill('#dc2626');
+              placeholder.stroke('#dc2626');
+              placeholder.strokeWidth(2);
+            }
+          } else {
+            // Remove overlays and reset colors
+            if (existingOverlay) {
+              existingOverlay.destroy();
+            }
+            if (placeholder) {
+              // Reset placeholder - need to find the component
+              const innerCompId = innerGroup.getAttr('data-component-id');
+              if (innerCompId) {
+                const innerComp = componentLibrary.find((c) => c.id === innerCompId);
+                if (innerComp) {
+                  placeholder.fill(innerComp.color);
+                  placeholder.stroke('#333');
+                  placeholder.strokeWidth(1);
+                }
+              }
+            }
           }
-        }
+        });
       } else {
-        if (existingOverlay) {
-          existingOverlay.destroy();
-        }
-        if (placeholder) {
-          // Reset placeholder color - need to get component definition
-          const canvasComp = localComponents.find((c) => c.id === compId);
-          if (canvasComp) {
-            const compDef = componentLibrary.find((c) => c.id === canvasComp.componentId);
-            if (compDef) {
-              placeholder.fill(compDef.color);
+        // Handle regular component selection
+        const existingOverlay = compGroup.findOne('.selection-overlay') as Konva.Rect | null;
+        const placeholder = compGroup.findOne('.placeholder') as Konva.Rect | null;
+        const isSelected = selectedComponentId === compId;
+        
+        if (isSelected) {
+          if (!existingOverlay) {
+            // Check if there's an image (SVG) or placeholder
+            const compImage = compGroup.findOne('Image') as Konva.Image | null;
+            if (compImage) {
+              // Add overlay for image
+              const width = compImage.width();
+              const height = compImage.height();
+              const colorOverlay = new Konva.Rect({
+                x: 0,
+                y: 0,
+                width,
+                height,
+                fill: '#dc2626',
+                opacity: 0.5,
+                globalCompositeOperation: 'source-atop',
+                cornerRadius: 2,
+                listening: false,
+                name: 'selection-overlay',
+              });
+              compGroup.add(colorOverlay);
+            } else if (placeholder) {
+              // Update placeholder color
+              placeholder.fill('#dc2626');
+            }
+          }
+        } else {
+          if (existingOverlay) {
+            existingOverlay.destroy();
+          }
+          if (placeholder) {
+            // Reset placeholder color - need to get component definition
+            if (canvasComp) {
+              const compDef = componentLibrary.find((c) => c.id === canvasComp.componentId);
+              if (compDef) {
+                placeholder.fill(compDef.color);
+              }
             }
           }
         }
@@ -1817,7 +2259,7 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
     });
 
     layer.draw();
-  }, [selectedPanelId, selectedComponentId, localComponents, componentLibrary]);
+  }, [selectedPanelId, selectedComponentId, localComponents, componentLibrary, combinatorsLibrary]);
 
   return (
     <div className="h-full flex flex-col bg-white">
@@ -1939,6 +2381,7 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
         selectedPanel={localPanels.find((p) => p.id === selectedPanelId) || null}
         panelComponents={localComponents.filter((c) => c.panelId === selectedPanelId)}
         onAddComponent={handleAddComponent}
+        onAddCombinator={handleAddCombinator}
         onAddGap={handleAddGap}
         onDeleteComponent={handleDeleteComponent}
         onUpdateGap={handleUpdateGap}

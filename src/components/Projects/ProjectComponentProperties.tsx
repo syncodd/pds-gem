@@ -18,6 +18,7 @@ interface ProjectComponentPropertiesProps {
   selectedPanel: Panel | null;
   panelComponents: CanvasComponent[];
   onAddComponent: (componentId: string, aValue?: string, vValue?: string, pValue?: string) => void;
+  onAddCombinator?: (combinatorId: string) => void;
   onAddGap: (height: number) => void;
   onDeleteComponent: (componentId: string) => void;
   onUpdateGap: (gapId: string, height: number) => void;
@@ -30,13 +31,16 @@ export default function ProjectComponentProperties({
   selectedPanel,
   panelComponents,
   onAddComponent,
+  onAddCombinator,
   onAddGap,
   onDeleteComponent,
   onUpdateGap,
   onClose,
 }: ProjectComponentPropertiesProps) {
-  const { componentLibrary } = usePanelStore();
+  const { componentLibrary, combinatorsLibrary } = usePanelStore();
+  const [addMode, setAddMode] = useState<'component' | 'combinator'>('component');
   const [selectedType, setSelectedType] = useState<string>('');
+  const [selectedCombinatorId, setSelectedCombinatorId] = useState<string>('');
   const [selectedAValue, setSelectedAValue] = useState<string>('');
   const [selectedVValue, setSelectedVValue] = useState<string>('');
   const [selectedPValue, setSelectedPValue] = useState<string>('');
@@ -87,7 +91,9 @@ export default function ProjectComponentProperties({
   // Reset form when panel changes or closes
   useEffect(() => {
     if (!isOpen || !selectedPanelId) {
+      setAddMode('component');
       setSelectedType('');
+      setSelectedCombinatorId('');
       setSelectedAValue('');
       setSelectedVValue('');
       setSelectedPValue('');
@@ -102,7 +108,22 @@ export default function ProjectComponentProperties({
   }, [selectedType]);
 
   const handleAdd = () => {
-    if (!selectedType || !selectedPanelId) return;
+    if (!selectedPanelId) return;
+
+    if (addMode === 'combinator') {
+      if (!selectedCombinatorId) {
+        alert('Please select a combinator');
+        return;
+      }
+      if (onAddCombinator) {
+        onAddCombinator(selectedCombinatorId);
+        setSelectedCombinatorId('');
+      }
+      return;
+    }
+
+    // Component mode
+    if (!selectedType) return;
 
     // Find a component of the selected type
     const component = findComponentByType(componentLibrary, selectedType);
@@ -213,8 +234,10 @@ export default function ProjectComponentProperties({
               ) : (
                 sortedComponents.map((canvasComp) => {
                   const compDef = componentLibrary.find((c) => c.id === canvasComp.componentId);
+                  const combinatorDef = combinatorsLibrary.find((c) => c.id === canvasComp.componentId);
                   const props = canvasComp.properties || {};
                   const isGap = canvasComp.componentId === 'gap';
+                  const isCombinator = !!combinatorDef;
                   const isEditing = editingGapId === canvasComp.id;
                   
                   return (
@@ -262,11 +285,17 @@ export default function ProjectComponentProperties({
                           )
                         ) : (
                           <div>
-                            <span className="font-medium">{compDef?.name || 'Unknown'}</span>
-                            {(props.aValue || props.vValue || props.pValue) && (
-                              <span className="text-gray-500 ml-2">
-                                ({[props.aValue && `A: ${props.aValue}`, props.vValue && `V: ${props.vValue}`, props.pValue && `P: ${props.pValue}`].filter(Boolean).join(', ')})
-                              </span>
+                            <span className="font-medium">
+                              {isCombinator ? combinatorDef?.name : compDef?.name || 'Unknown'}
+                            </span>
+                            {isCombinator ? (
+                              <span className="text-gray-500 ml-2 text-xs">(Combinator)</span>
+                            ) : (
+                              (props.aValue || props.vValue || props.pValue) && (
+                                <span className="text-gray-500 ml-2">
+                                  ({[props.aValue && `A: ${props.aValue}`, props.vValue && `V: ${props.vValue}`, props.pValue && `P: ${props.pValue}`].filter(Boolean).join(', ')})
+                                </span>
+                              )
                             )}
                           </div>
                         )}
@@ -339,29 +368,72 @@ export default function ProjectComponentProperties({
 
           {/* Component Adding Form */}
           <div className="flex-1 overflow-y-auto p-4">
-            <h3 className="text-sm font-semibold text-gray-700 mb-3">Add Component</h3>
+            <h3 className="text-sm font-semibold text-gray-700 mb-3">Add {addMode === 'component' ? 'Component' : 'Combinator'}</h3>
             <div className="space-y-4">
-            {/* Type Selection */}
+            {/* Add Mode Selection */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Type <span className="text-red-500">*</span>
+                Add Type <span className="text-red-500">*</span>
               </label>
               <select
-                value={selectedType}
-                onChange={(e) => setSelectedType(e.target.value)}
+                value={addMode}
+                onChange={(e) => {
+                  setAddMode(e.target.value as 'component' | 'combinator');
+                  setSelectedType('');
+                  setSelectedCombinatorId('');
+                  setSelectedAValue('');
+                  setSelectedVValue('');
+                  setSelectedPValue('');
+                }}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="">Select component type</option>
-                {componentTypes.map((type) => (
-                  <option key={type} value={type}>
-                    {type.charAt(0).toUpperCase() + type.slice(1)}
-                  </option>
-                ))}
+                <option value="component">Component</option>
+                <option value="combinator">Combinator</option>
               </select>
             </div>
 
-            {/* A (Amperage) Dropdown */}
-            {dropdowns.showA && (
+            {addMode === 'combinator' ? (
+              /* Combinator Selection */
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Combinator <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={selectedCombinatorId}
+                  onChange={(e) => setSelectedCombinatorId(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Select combinator</option>
+                  {combinatorsLibrary.map((combinator) => (
+                    <option key={combinator.id} value={combinator.id}>
+                      {combinator.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ) : (
+              /* Component Type Selection */
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Type <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={selectedType}
+                  onChange={(e) => setSelectedType(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Select component type</option>
+                  {componentTypes.map((type) => (
+                    <option key={type} value={type}>
+                      {type.charAt(0).toUpperCase() + type.slice(1)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* A (Amperage) Dropdown - Only show for components */}
+            {addMode === 'component' && dropdowns.showA && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   A (Amperage) <span className="text-red-500">*</span>
@@ -381,8 +453,8 @@ export default function ProjectComponentProperties({
               </div>
             )}
 
-            {/* V (Voltage) Dropdown */}
-            {dropdowns.showV && (
+            {/* V (Voltage) Dropdown - Only show for components */}
+            {addMode === 'component' && dropdowns.showV && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   V (Voltage) <span className="text-red-500">*</span>
@@ -402,8 +474,8 @@ export default function ProjectComponentProperties({
               </div>
             )}
 
-            {/* P (Power) Dropdown */}
-            {dropdowns.showP && (
+            {/* P (Power) Dropdown - Only show for components */}
+            {addMode === 'component' && dropdowns.showP && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   P (Power) <span className="text-red-500">*</span>
@@ -429,14 +501,19 @@ export default function ProjectComponentProperties({
         <div className="p-4 border-t border-gray-200">
           <button
             onClick={handleAdd}
-            disabled={!selectedType || (dropdowns.showA && !selectedAValue) || (dropdowns.showV && !selectedVValue) || (dropdowns.showP && !selectedPValue)}
+            disabled={
+              addMode === 'combinator'
+                ? !selectedCombinatorId
+                : !selectedType || (dropdowns.showA && !selectedAValue) || (dropdowns.showV && !selectedVValue) || (dropdowns.showP && !selectedPValue)
+            }
             className={`w-full px-4 py-2 rounded-md font-medium transition-colors ${
-              selectedType && (!dropdowns.showA || selectedAValue) && (!dropdowns.showV || selectedVValue) && (!dropdowns.showP || selectedPValue)
+              (addMode === 'combinator' && selectedCombinatorId) ||
+              (addMode === 'component' && selectedType && (!dropdowns.showA || selectedAValue) && (!dropdowns.showV || selectedVValue) && (!dropdowns.showP || selectedPValue))
                 ? 'bg-blue-500 text-white hover:bg-blue-600'
                 : 'bg-gray-200 text-gray-400 cursor-not-allowed'
             }`}
           >
-            Add Component
+            Add {addMode === 'component' ? 'Component' : 'Combinator'}
           </button>
         </div>
       </div>

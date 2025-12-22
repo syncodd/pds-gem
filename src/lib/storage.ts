@@ -1,10 +1,11 @@
-import { PanelDesign, MultiPanelDesign, Rule, Panel, Component, Project } from '@/types';
+import { PanelDesign, MultiPanelDesign, Rule, Panel, Component, Combinator, Project } from '@/types';
 
 const STORAGE_KEY = 'konva-panel-designs';
 const CURRENT_DESIGN_KEY = 'konva-current-design';
 const RULES_KEY = 'konva-rules';
 const PANELS_LIBRARY_KEY = 'konva-panels-library';
 const COMPONENTS_LIBRARY_KEY = 'konva-components-library';
+const COMBINATORS_LIBRARY_KEY = 'konva-combinators-library';
 const PROJECTS_KEY = 'konva-projects';
 
 // Check if we're in a browser environment
@@ -168,6 +169,28 @@ export const storage = {
     } catch (error) {
       console.error('Failed to load components library:', error);
       return null;
+    }
+  },
+
+  // Combinators library storage
+  saveCombinatorsLibrary: (combinators: Combinator[]): void => {
+    if (!isBrowser) return;
+    try {
+      localStorage.setItem(COMBINATORS_LIBRARY_KEY, JSON.stringify(combinators));
+    } catch (error) {
+      console.error('Failed to save combinators library:', error);
+    }
+  },
+
+  loadCombinatorsLibrary: (): Combinator[] => {
+    if (!isBrowser) return [];
+    try {
+      const data = localStorage.getItem(COMBINATORS_LIBRARY_KEY);
+      if (!data) return [];
+      return JSON.parse(data) as Combinator[];
+    } catch (error) {
+      console.error('Failed to load combinators library:', error);
+      return [];
     }
   },
 

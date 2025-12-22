@@ -29,7 +29,7 @@ const nodeTypes: NodeTypes = {
 };
 
 export default function RuleFlow() {
-  const { rules, setRules, addRule, updateRule, deleteRule, panelsLibrary, componentLibrary } =
+  const { rules, setRules, addRule, updateRule, deleteRule, panelsLibrary, componentLibrary, combinatorsLibrary } =
     usePanelStore();
   const [nodes, setNodes, onNodesChange] = useNodesState<Node[]>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge[]>([]);
@@ -72,11 +72,12 @@ export default function RuleFlow() {
       if (!sourceNode) return;
 
       const sourceType = sourceNode.data.panelId ? 'panel' : 
+                        sourceNode.data.combinatorId ? 'combinator' :
                         sourceNode.data.constraint ? 'constraint' : 
                         sourceNode.data.condition ? 'condition' : 'unknown';
       
-      // Only track panel and constraint nodes (they can create new nodes)
-      if (sourceType === 'panel' || sourceType === 'constraint') {
+      // Only track panel, combinator, and constraint nodes (they can create new nodes)
+      if (sourceType === 'panel' || sourceType === 'combinator' || sourceType === 'constraint') {
         connectionStartRef.current = {
           nodeId: params.nodeId,
           nodeType: sourceType,
@@ -125,7 +126,7 @@ export default function RuleFlow() {
       const sourceNode = nodes.find((n) => n.id === nodeId);
       if (!sourceNode) return;
 
-      if (nodeType === 'panel') {
+      if (nodeType === 'panel' || nodeType === 'combinator') {
         // Create constraint node
         const constraintNodeId = `constraint-${Date.now()}`;
         const newConstraint: Constraint = {
@@ -197,15 +198,17 @@ export default function RuleFlow() {
       if (!sourceNode || !targetNode) return;
 
       const sourceType = sourceNode.data.panelId ? 'panel' : 
+                        sourceNode.data.combinatorId ? 'combinator' :
                         sourceNode.data.constraint ? 'constraint' : 
                         sourceNode.data.condition ? 'condition' : 'unknown';
       const targetType = targetNode.data.panelId ? 'panel' : 
+                        targetNode.data.combinatorId ? 'combinator' :
                         targetNode.data.constraint ? 'constraint' : 
                         targetNode.data.condition ? 'condition' : 'unknown';
 
-      // Allow: panel → constraint, constraint → condition
+      // Allow: panel → constraint, combinator → constraint, constraint → condition
       if (
-        (sourceType === 'panel' && targetType === 'constraint') ||
+        ((sourceType === 'panel' || sourceType === 'combinator') && targetType === 'constraint') ||
         (sourceType === 'constraint' && targetType === 'condition')
       ) {
         setEdges((eds) => addEdge(params, eds));
@@ -288,6 +291,29 @@ export default function RuleFlow() {
         label: panel.name,
         panelId: panel.id,
         panel: panel,
+      },
+    };
+
+    setNodes((nds) => [...nds, newNode]);
+  };
+
+  const handleAddCombinator = () => {
+    if (combinatorsLibrary.length === 0) {
+      alert('No combinators available. Please add combinators first.');
+      return;
+    }
+
+    // For now, add the first combinator. In a full implementation, you'd show a dialog to select a combinator
+    const combinator = combinatorsLibrary[0];
+    const combinatorNodeId = `combinator-${combinator.id}-${Date.now()}`;
+    
+    const newNode: Node = {
+      id: combinatorNodeId,
+      type: 'ruleNode',
+      position: { x: Math.random() * 400, y: Math.random() * 400 },
+      data: {
+        label: combinator.name,
+        combinatorId: combinator.id,
       },
     };
 
@@ -491,10 +517,16 @@ export default function RuleFlow() {
               + Panel
             </button>
             <button
+              onClick={handleAddCombinator}
+              className="px-3 py-1.5 text-sm font-medium rounded-md bg-orange-500 text-white hover:bg-orange-600 transition-colors shadow-[0_1px_0_rgba(0,0,0,0.04)]"
+            >
+              + Combinator
+            </button>
+            <button
               onClick={handleAddConstraint}
               className="px-3 py-1.5 text-sm font-medium rounded-md bg-blue-500 text-white hover:bg-blue-600 transition-colors shadow-[0_1px_0_rgba(0,0,0,0.04)] disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={nodes.filter((n) => n.data.panelId || n.data.panel).length === 0}
-              title={nodes.filter((n) => n.data.panelId || n.data.panel).length === 0 ? 'Add a panel first' : 'Add constraint to selected panel or first panel'}
+              disabled={nodes.filter((n) => n.data.panelId || n.data.panel || n.data.combinatorId || n.data.combinator).length === 0}
+              title={nodes.filter((n) => n.data.panelId || n.data.panel || n.data.combinatorId || n.data.combinator).length === 0 ? 'Add a panel or combinator first' : 'Add constraint to selected panel/combinator or first one'}
             >
               + Constraint
             </button>

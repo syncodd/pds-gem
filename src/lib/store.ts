@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import {
   Panel,
   Component,
+  Combinator,
   CanvasComponent,
   PanelDesign,
   MultiPanelDesign,
@@ -27,6 +28,9 @@ interface PanelStore {
   
   // Panels library
   panelsLibrary: Panel[];
+  
+  // Combinators library
+  combinatorsLibrary: Combinator[];
   
   // Rules
   rules: Rule[];
@@ -71,6 +75,11 @@ interface PanelStore {
   deletePanelFromLibrary: (id: string) => void;
   loadPanelFromLibrary: (id: string) => void;
   
+  // Actions - Combinators Library
+  addCombinatorToLibrary: (combinator: Combinator) => void;
+  updateCombinatorInLibrary: (id: string, updates: Partial<Combinator>) => void;
+  deleteCombinatorFromLibrary: (id: string) => void;
+  
   // Actions - Rules
   setRules: (rules: Rule[]) => void;
   addRule: (rule: Rule) => void;
@@ -112,6 +121,7 @@ const loadInitialState = () => {
       rules: [],
       panelsLibrary: [defaultPanel],
       componentLibrary: defaultComponents,
+      combinatorsLibrary: [],
       projects: [],
     };
   }
@@ -119,12 +129,14 @@ const loadInitialState = () => {
   const savedRules = storage.loadRules();
   const savedPanels = storage.loadPanelsLibrary();
   const savedComponents = storage.loadComponentsLibrary();
+  const savedCombinators = storage.loadCombinatorsLibrary();
   const savedProjects = storage.getAllProjects();
   
   return {
     rules: savedRules,
     panelsLibrary: savedPanels.length > 0 ? savedPanels : [defaultPanel],
     componentLibrary: savedComponents || defaultComponents,
+    combinatorsLibrary: savedCombinators || [],
     projects: Object.values(savedProjects),
   };
 };
@@ -143,6 +155,7 @@ export const usePanelStore = create<PanelStore>((set, get) => ({
   
   componentLibrary: initialState.componentLibrary,
   panelsLibrary: initialState.panelsLibrary,
+  combinatorsLibrary: initialState.combinatorsLibrary,
   rules: initialState.rules,
   violations: [],
   selectedComponentType: null,
@@ -337,6 +350,30 @@ export const usePanelStore = create<PanelStore>((set, get) => ({
         panel: { ...panel },
         components: [], // Clear components when loading new panel
       };
+    }),
+
+  // Combinators Library Actions
+  addCombinatorToLibrary: (combinator) =>
+    set((state) => {
+      const updated = [...state.combinatorsLibrary, combinator];
+      storage.saveCombinatorsLibrary(updated);
+      return { combinatorsLibrary: updated };
+    }),
+
+  updateCombinatorInLibrary: (id, updates) =>
+    set((state) => {
+      const updated = state.combinatorsLibrary.map((comb) =>
+        comb.id === id ? { ...comb, ...updates } : comb
+      );
+      storage.saveCombinatorsLibrary(updated);
+      return { combinatorsLibrary: updated };
+    }),
+
+  deleteCombinatorFromLibrary: (id) =>
+    set((state) => {
+      const updated = state.combinatorsLibrary.filter((comb) => comb.id !== id);
+      storage.saveCombinatorsLibrary(updated);
+      return { combinatorsLibrary: updated };
     }),
 
   // Rules Actions

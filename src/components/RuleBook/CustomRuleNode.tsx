@@ -1,7 +1,7 @@
 'use client';
 
 import { Handle, Position, NodeProps } from '@xyflow/react';
-import { Rule, Constraint, RuleCondition, Panel } from '@/types';
+import { Rule, Constraint, RuleCondition, Panel, Combinator } from '@/types';
 
 interface CustomRuleNodeData {
   label: string;
@@ -10,10 +10,37 @@ interface CustomRuleNodeData {
   condition?: RuleCondition;
   panelId?: string;
   panel?: Panel;
+  combinatorId?: string;
+  combinator?: Combinator;
 }
 
 export default function CustomRuleNode({ data, selected }: NodeProps<CustomRuleNodeData>) {
-  const { rule, constraint, condition, panel, panelId } = data;
+  const { rule, constraint, condition, panel, panelId, combinator, combinatorId } = data;
+  
+  // Combinator Node
+  if (combinator || combinatorId) {
+    return (
+      <div
+        className={`
+          px-4 py-3 rounded-lg shadow-md border-2 min-w-[200px] bg-orange-50
+          ${selected ? 'border-orange-500' : 'border-orange-300'}
+        `}
+      >
+        <Handle type="target" position={Position.Top} />
+        
+        <div className="flex items-center gap-2 mb-2">
+          <div className="w-3 h-3 rounded-full bg-orange-500" />
+          <span className="text-xs font-semibold text-gray-600">Combinator</span>
+        </div>
+        
+        <div className="font-semibold text-gray-800 mb-1">
+          {combinator?.name || combinatorId || 'Combinator'}
+        </div>
+        
+        <Handle type="source" position={Position.Bottom} />
+      </div>
+    );
+  }
   
   // Panel Node
   if (panel || panelId) {
@@ -129,6 +156,8 @@ export default function CustomRuleNode({ data, selected }: NodeProps<CustomRuleN
           return 'bg-green-500';
         case 'component':
           return 'bg-purple-500';
+        case 'combinator':
+          return 'bg-orange-500';
         default:
           return 'bg-gray-500';
       }
@@ -142,6 +171,8 @@ export default function CustomRuleNode({ data, selected }: NodeProps<CustomRuleN
           return 'Panel';
         case 'component':
           return 'Component';
+        case 'combinator':
+          return 'Combinator';
         default:
           return 'Rule';
       }
