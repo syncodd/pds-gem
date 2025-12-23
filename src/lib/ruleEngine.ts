@@ -13,6 +13,7 @@ import {
   getComponentBounds,
   checkIntersectsWithPanelBounds,
 } from './collisionDetection';
+import { getPanelSizeFromWidth } from './componentUtils';
 
 /**
  * Evaluate all rules against the current design (multi-panel support)
@@ -486,6 +487,55 @@ function checkConstraint(
             timestamp,
           });
         }
+      }
+      break;
+
+    case 'panelSizeMapping':
+      // Determine panel size: use constraint.panelSize if specified, otherwise calculate from panel width
+      const panelSize = constraint.panelSize !== undefined 
+        ? constraint.panelSize 
+        : getPanelSizeFromWidth(panel.width);
+      
+      // Get component types to check (support both old componentType and new componentTypes)
+      const componentTypesToCheck = constraint.componentTypes || 
+        (constraint.componentType ? [constraint.componentType] : []);
+      
+      // Filter components to check
+      const componentsToCheck = canvasComponents.filter((cc) => {
+        const comp = componentLibrary.find((c) => c.id === cc.componentId);
+        if (!comp) return false;
+        
+        // If component types are specified, must match one of them
+        if (componentTypesToCheck.length > 0) {
+          if (!componentTypesToCheck.includes(comp.type)) {
+            return false; // Not in the list of types to check
+          }
+        }
+        
+        // Check if component has panelSize spec
+        const compPanelSize = comp.specs.panelSize;
+        if (compPanelSize === undefined) {
+          return false; // Component doesn't have panelSize, skip
+        }
+        
+        // Check if panel size matches
+        return Number(compPanelSize) !== panelSize;
+      });
+      
+      // Generate violations for mismatched components
+      for (const canvasComp of componentsToCheck) {
+        const comp = componentLibrary.find((c) => c.id === canvasComp.componentId);
+        violations.push({
+          id: `violation-${timestamp}-${canvasComp.id}-panel-size`,
+          ruleId: rule.id,
+          ruleName: rule.name,
+          message:
+            constraint.message ||
+            `${comp?.name || canvasComp.componentId} size (${comp?.specs.panelSize}cm) does not match required panel size (${panelSize}cm)`,
+          severity: 'error',
+          componentId: canvasComp.id,
+          timestamp,
+        });
       }
       break;
   }

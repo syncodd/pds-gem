@@ -1,0 +1,21 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:lc="http://www.librecad.org" width="600mm" height="35mm" viewBox="0 0 600 35">
+    <g lc:layername="0" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1">
+        <line x1="37.5" y1="30" x2="0" y2="30" />
+        <line x1="37.5" y1="35" x2="0" y2="35" />
+        <line x1="37.5" y1="4.99999999" x2="0" y2="4.99999999" />
+        <line x1="37.5" y1="0" x2="0" y2="0" />
+        <path d="M19.6875,20 A2.5,2.5 0 0,0 19.6875,15 " />
+        <path d="M10.3125,15 A2.5,2.5 0 0,0 10.3125,20 " />
+        <line x1="10.3125" y1="15" x2="19.6875" y2="15" />
+        <line x1="10.3125" y1="20" x2="19.6875" y2="20" />
+        <path d="M580.3125,15 A2.5,2.5 0 0,0 580.3125,20 " />
+        <path d="M589.6875,20 A2.5,2.5 0 0,0 589.6875,15 " />
+        <line x1="589.6875" y1="15" x2="580.3125" y2="15" />
+        <line x1="589.6875" y1="20" x2="580.3125" y2="20" />
+        <line x1="37.5" y1="30" x2="600" y2="30" />
+        <line x1="37.5" y1="35" x2="600" y2="35" />
+        <line x1="37.5" y1="4.99999999" x2="600" y2="4.99999999" />
+        <line x1="37.5" y1="0" x2="600" y2="0" />
+    </g>
+    </svg>

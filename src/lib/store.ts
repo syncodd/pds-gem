@@ -11,6 +11,7 @@ import {
   Project,
 } from '@/types';
 import { defaultComponents } from '@/data/components';
+import { defaultPanels } from '@/data/panels';
 import { storage } from './storage';
 
 interface PanelStore {
@@ -103,14 +104,15 @@ interface PanelStore {
   loadProjects: () => void;
 }
 
-const defaultPanel: Panel = {
+// Legacy default panel for backward compatibility
+const defaultPanel: Panel = defaultPanels[0] || {
   id: 'panel-1',
   name: 'New Panel',
   width: 600,
   height: 800,
   depth: 200,
   model2D: '/models/panel-sample-2d.svg',
-  model3D: '/models/panel-sample-3d.glb', // Placeholder - replace with actual 3D model file
+  model3D: '/models/panel-sample-3d.glb',
 };
 
 // Load initial state from localStorage (safe for SSR)
@@ -119,7 +121,7 @@ const loadInitialState = () => {
   if (typeof window === 'undefined') {
     return {
       rules: [],
-      panelsLibrary: [defaultPanel],
+      panelsLibrary: defaultPanels,
       componentLibrary: defaultComponents,
       combinatorsLibrary: [],
       projects: [],
@@ -134,7 +136,7 @@ const loadInitialState = () => {
   
   return {
     rules: savedRules,
-    panelsLibrary: savedPanels.length > 0 ? savedPanels : [defaultPanel],
+    panelsLibrary: savedPanels.length > 0 ? savedPanels : defaultPanels,
     componentLibrary: savedComponents || defaultComponents,
     combinatorsLibrary: savedCombinators || [],
     projects: Object.values(savedProjects),

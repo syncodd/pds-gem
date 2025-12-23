@@ -121,3 +121,61 @@ export function getComponentTypes(components: Component[]): string[] {
 export function findComponentByType(components: Component[], type: string): Component | null {
   return components.find((c) => c.type === type) || null;
 }
+
+/**
+ * Gets the panel size in cm from panel width in mm
+ * 600mm → 60, 500mm → 50, etc.
+ */
+export function getPanelSizeFromWidth(panelWidth: number): number {
+  return Math.round(panelWidth / 10);
+}
+
+/**
+ * Gets components that match a specific panel size
+ */
+export function getComponentsByPanelSize(components: Component[], panelSize: number): Component[] {
+  return components.filter((comp) => {
+    const compPanelSize = comp.specs.panelSize;
+    return compPanelSize !== undefined && Number(compPanelSize) === panelSize;
+  });
+}
+
+/**
+ * Gets components of a specific type that match panel size
+ */
+export function getComponentsByTypeAndPanelSize(
+  components: Component[],
+  componentType: string,
+  panelSize: number
+): Component[] {
+  return components.filter((comp) => {
+    return comp.type === componentType && comp.specs.panelSize === panelSize;
+  });
+}
+
+/**
+ * Gets all variants of a component type (all panel sizes)
+ */
+export function getComponentVariantsByType(components: Component[], componentType: string): Component[] {
+  return components.filter((comp) => comp.type === componentType);
+}
+
+/**
+ * Filters components to show only those matching the panel width
+ * If a component type is selected, shows only matching size variants of that type
+ */
+export function filterComponentsByPanelWidth(
+  components: Component[],
+  panelWidth: number,
+  selectedComponentType?: string | null
+): Component[] {
+  const panelSize = getPanelSizeFromWidth(panelWidth);
+  
+  if (selectedComponentType) {
+    // Filter by both type and panel size
+    return getComponentsByTypeAndPanelSize(components, selectedComponentType, panelSize);
+  }
+  
+  // Filter by panel size only
+  return getComponentsByPanelSize(components, panelSize);
+}

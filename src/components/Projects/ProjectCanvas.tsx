@@ -4,6 +4,7 @@ import { useRef, useEffect, useState, useMemo } from 'react';
 import Konva from 'konva';
 import { Project, Panel, CanvasComponent } from '@/types';
 import { usePanelStore } from '@/lib/store';
+import { evaluateRules } from '@/lib/ruleEngine';
 import ProjectComponentProperties from './ProjectComponentProperties';
 
 interface ProjectCanvasProps {
@@ -41,7 +42,7 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
   // Store original positions for visual reordering during drag
   const originalPositionsRef = useRef<Map<string, { x: number; y: number }>>(new Map());
 
-  const { componentLibrary, combinatorsLibrary, updateProject, setCurrentProject, projects, panelsLibrary, loadProjects } = usePanelStore();
+  const { componentLibrary, combinatorsLibrary, updateProject, setCurrentProject, projects, panelsLibrary, loadProjects, rules, setViolations } = usePanelStore();
 
   // Get unique width values from panels library
   const widthOptions = useMemo(() => {
@@ -82,11 +83,29 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
     const panelsChanged = JSON.stringify(localPanels) !== JSON.stringify(originalPanels);
     const componentsChanged = JSON.stringify(localComponents) !== JSON.stringify(originalComponents);
     setHasChanges(panelsChanged || componentsChanged);
-  }, [localPanels, localComponents, originalPanels, originalComponents]);
+    
+    // Preserve selection if panel still exists after update
+    if (selectedPanelId && !localPanels.find((p) => p.id === selectedPanelId)) {
+      // Panel was deleted, clear selection
+      setSelectedPanelId(null);
+      setShowComponentProperties(false);
+    }
+  }, [localPanels, localComponents, originalPanels, originalComponents, selectedPanelId]);
 
   // Use local state for panels and components
   const panels = localPanels;
   const components = localComponents;
+
+  // Evaluate rules and update violations
+  useEffect(() => {
+    if (rules && rules.length > 0 && panels.length > 0 && componentLibrary.length > 0) {
+      const violations = evaluateRules(rules, panels, components, componentLibrary);
+      setViolations(violations);
+    } else {
+      // Clear violations if no rules or no panels
+      setViolations([]);
+    }
+  }, [rules, panels, components, componentLibrary, setViolations]);
 
   // Calculate scale factor (1mm = scale pixels)
   const mmToPixels = 0.5; // 1mm = 0.5 pixels
@@ -691,20 +710,22 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
           y: 0,
         });
 
-        // Panel click handler
+        // Panel click handler - use function form of setState to get current value
         const handlePanelClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
           e.cancelBubble = true;
-          if (selectedPanelId === panel.id) {
-            // Deselect if clicking same panel
-            setSelectedPanelId(null);
-            setSelectedComponentId(null);
-            setShowComponentProperties(false);
-          } else {
-            // Select panel and open properties, deselect any component
-            setSelectedPanelId(panel.id);
-            setSelectedComponentId(null);
-            setShowComponentProperties(true);
-          }
+          setSelectedPanelId((currentSelectedId) => {
+            if (currentSelectedId === panel.id) {
+              // Deselect if clicking same panel
+              setSelectedComponentId(null);
+              setShowComponentProperties(false);
+              return null;
+            } else {
+              // Select panel and open properties, deselect any component
+              setSelectedComponentId(null);
+              setShowComponentProperties(true);
+              return panel.id;
+            }
+          });
         };
 
         // Store panel group reference
@@ -824,7 +845,7 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
             text: panel.name,
             fontSize: 12,
             fontStyle: 'bold',
-            fill: isSelected ? '#2563eb' : '#666',
+            fill: '#666', // Keep title color unchanged, don't change to blue when selected
             padding: 4,
             backgroundColor: 'rgba(255, 255, 255, 0.8)',
             cornerRadius: 2,

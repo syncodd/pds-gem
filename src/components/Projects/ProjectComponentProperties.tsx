@@ -10,6 +10,9 @@ import {
   extractPValues,
   getComponentTypes,
   findComponentByType,
+  getPanelSizeFromWidth,
+  filterComponentsByPanelWidth,
+  getComponentsByTypeAndPanelSize,
 } from '@/lib/componentUtils';
 
 interface ProjectComponentPropertiesProps {
@@ -37,7 +40,7 @@ export default function ProjectComponentProperties({
   onUpdateGap,
   onClose,
 }: ProjectComponentPropertiesProps) {
-  const { componentLibrary, combinatorsLibrary } = usePanelStore();
+  const { componentLibrary, combinatorsLibrary, rules, panelsLibrary } = usePanelStore();
   const [addMode, setAddMode] = useState<'component' | 'combinator'>('component');
   const [selectedType, setSelectedType] = useState<string>('');
   const [selectedCombinatorId, setSelectedCombinatorId] = useState<string>('');
@@ -58,8 +61,122 @@ export default function ProjectComponentProperties({
     });
   }, [panelComponents]);
 
-  // Get component types from library
-  const componentTypes = useMemo(() => getComponentTypes(componentLibrary), [componentLibrary]);
+  // Get applicable panel size mapping rules for this panel
+  const applicableRules = useMemo(() => {
+    if (!selectedPanel || !rules || rules.length === 0) return [];
+    
+    return rules
+      .filter((rule) => {
+        // Rule must be enabled
+        if (rule.enabled === false) return false;
+        
+        // Rule must have panelSizeMapping constraint
+        const hasPanelSizeMapping = rule.constraints.some(
+          (constraint) => constraint.type === 'panelSizeMapping'
+        );
+        if (!hasPanelSizeMapping) return false;
+        
+        // Check if rule applies to this panel:
+        // - Global rules apply to all panels
+        // - Panel rules apply if:
+        //   a) panelId matches (exact match)
+        //   b) OR panel width matches the library panel that the rule was created for
+        //   c) OR panel name contains similar keywords (e.g., "Bos Panel 60" matches panel with 600mm width)
+        if (rule.type === 'global') return true;
+        if (rule.type === 'panel') {
+          // First try exact ID match
+          if (rule.panelId === selectedPanel.id) return true;
+          
+          // If no exact match, try to find the panel from library by ID and match by width
+          // This handles cases where panel was copied from library with new ID
+          if (rule.panelId && panelsLibrary) {
+            const libraryPanel = panelsLibrary.find((p) => p.id === rule.panelId);
+            if (libraryPanel) {
+              // Match by width - this is the key matching criteria
+              if (libraryPanel.width === selectedPanel.width) {
+                return true;
+              }
+            }
+          }
+          
+          // Also try matching by panel name pattern (e.g., "Bos Panel 60" -> 600mm)
+          // Extract width from panel name if it contains a number
+          if (rule.panelId && panelsLibrary) {
+            const libraryPanel = panelsLibrary.find((p) => p.id === rule.panelId);
+            if (libraryPanel) {
+              // Check if names are similar (e.g., both contain "60" or "Bos")
+              const libraryName = libraryPanel.name.toLowerCase();
+              const selectedName = selectedPanel.name.toLowerCase();
+              // If names are similar and widths match, it's likely the same panel type
+              if (libraryPanel.width === selectedPanel.width) {
+                // Check if they share common keywords
+                const libraryKeywords = libraryName.split(/\s+/);
+                const selectedKeywords = selectedName.split(/\s+/);
+                const commonKeywords = libraryKeywords.filter(k => selectedKeywords.includes(k));
+                if (commonKeywords.length > 0) {
+                  return true;
+                }
+              }
+            }
+          }
+          
+          return false;
+        }
+        
+        return false;
+      })
+      .flatMap((rule) => 
+        rule.constraints
+          .filter((c) => c.type === 'panelSizeMapping')
+          .map((constraint) => ({ rule, constraint }))
+      );
+  }, [rules, selectedPanel, panelsLibrary]);
+
+  // Filter component library based on applicable rules
+  const filteredComponentLibrary = useMemo(() => {
+    // If no panel selected, show all
+    if (!selectedPanel) return componentLibrary;
+    
+    // If no rules defined for this panel, show nothing (empty array)
+    if (applicableRules.length === 0) {
+      return [];
+    }
+    
+    // Get the first applicable rule's constraint (we'll use the first one)
+    const firstRule = applicableRules[0];
+    const constraint = firstRule.constraint;
+    
+    // Determine panel size: use constraint.panelSize if specified, otherwise calculate from panel width
+    const panelSize = constraint.panelSize !== undefined 
+      ? constraint.panelSize 
+      : getPanelSizeFromWidth(selectedPanel.width);
+    
+    // Get component types from constraint
+    const allowedComponentTypes = constraint.componentTypes || 
+      (constraint.componentType ? [constraint.componentType] : []);
+    
+    // Filter components
+    let filtered = componentLibrary.filter((comp) => {
+      // Must match panel size
+      const compPanelSize = comp.specs.panelSize;
+      if (compPanelSize === undefined || Number(compPanelSize) !== panelSize) {
+        return false;
+      }
+      
+      // If component types are specified, must match one of them
+      if (allowedComponentTypes.length > 0) {
+        return allowedComponentTypes.includes(comp.type);
+      }
+      
+      // If no component types specified, allow all
+      return true;
+    });
+    
+    return filtered;
+  }, [componentLibrary, selectedPanel, applicableRules]);
+
+  // Get component types from filtered library (only types that have variants for this panel size)
+  const componentTypes = useMemo(() => getComponentTypes(filteredComponentLibrary), [filteredComponentLibrary]);
 
   // Get dropdown visibility based on selected type
   const dropdowns = useMemo(() => {
@@ -67,26 +184,26 @@ export default function ProjectComponentProperties({
     return getDropdownsForType(selectedType);
   }, [selectedType]);
 
-  // Get A values for selected type
+  // Get A values for selected type (from filtered library)
   const aValues = useMemo(() => {
     if (!dropdowns.showA) return [];
-    const typeComponents = componentLibrary.filter((c) => c.type === selectedType);
+    const typeComponents = filteredComponentLibrary.filter((c) => c.type === selectedType);
     return extractAValues(typeComponents);
-  }, [componentLibrary, selectedType, dropdowns.showA]);
+  }, [filteredComponentLibrary, selectedType, dropdowns.showA]);
 
-  // Get V values for selected type
+  // Get V values for selected type (from filtered library)
   const vValues = useMemo(() => {
     if (!dropdowns.showV) return [];
-    const typeComponents = componentLibrary.filter((c) => c.type === selectedType);
+    const typeComponents = filteredComponentLibrary.filter((c) => c.type === selectedType);
     return extractVValues(typeComponents);
-  }, [componentLibrary, selectedType, dropdowns.showV]);
+  }, [filteredComponentLibrary, selectedType, dropdowns.showV]);
 
-  // Get P values for selected type
+  // Get P values for selected type (from filtered library)
   const pValues = useMemo(() => {
     if (!dropdowns.showP) return [];
-    const typeComponents = componentLibrary.filter((c) => c.type === selectedType);
+    const typeComponents = filteredComponentLibrary.filter((c) => c.type === selectedType);
     return extractPValues(typeComponents);
-  }, [componentLibrary, selectedType, dropdowns.showP]);
+  }, [filteredComponentLibrary, selectedType, dropdowns.showP]);
 
   // Reset form when panel changes or closes
   useEffect(() => {
@@ -123,12 +240,17 @@ export default function ProjectComponentProperties({
     }
 
     // Component mode
-    if (!selectedType) return;
+    if (!selectedType || !selectedPanel) return;
 
-    // Find a component of the selected type
-    const component = findComponentByType(componentLibrary, selectedType);
+    // Find component from filtered library (already filtered by rules)
+    const component = filteredComponentLibrary.find((c) => c.type === selectedType);
+    
     if (!component) {
-      alert('No component found for selected type');
+      if (applicableRules.length === 0) {
+        alert('No rules defined for this panel. Please define rules first.');
+      } else {
+        alert(`No component found for ${selectedType} matching the panel rules`);
+      }
       return;
     }
 
@@ -417,18 +539,26 @@ export default function ProjectComponentProperties({
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Type <span className="text-red-500">*</span>
                 </label>
-                <select
-                  value={selectedType}
-                  onChange={(e) => setSelectedType(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Select component type</option>
-                  {componentTypes.map((type) => (
-                    <option key={type} value={type}>
-                      {type.charAt(0).toUpperCase() + type.slice(1)}
-                    </option>
-                  ))}
-                </select>
+                {componentTypes.length === 0 ? (
+                  <div className="w-full px-3 py-2 border border-yellow-300 rounded-md bg-yellow-50 text-sm text-yellow-800">
+                    {applicableRules.length === 0 
+                      ? 'No rules defined for this panel. Please define panel size mapping rules in Rule Book first.'
+                      : 'No components match the rules for this panel. Check rule settings (panel size and component types).'}
+                  </div>
+                ) : (
+                  <select
+                    value={selectedType}
+                    onChange={(e) => setSelectedType(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">Select component type</option>
+                    {componentTypes.map((type) => (
+                      <option key={type} value={type}>
+                        {type.charAt(0).toUpperCase() + type.slice(1)}
+                      </option>
+                    ))}
+                  </select>
+                )}
               </div>
             )}
 

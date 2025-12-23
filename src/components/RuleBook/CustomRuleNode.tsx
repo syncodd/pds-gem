@@ -12,6 +12,7 @@ interface CustomRuleNodeData {
   panel?: Panel;
   combinatorId?: string;
   combinator?: Combinator;
+  logicalOperator?: 'and' | 'or';
 }
 
 export default function CustomRuleNode({ data, selected }: NodeProps<CustomRuleNodeData>) {
@@ -44,17 +45,22 @@ export default function CustomRuleNode({ data, selected }: NodeProps<CustomRuleN
   
   // Panel Node
   if (panel || panelId) {
+    const isGlobal = panelId === 'global';
+    const bgColor = isGlobal ? 'bg-indigo-50' : 'bg-green-50';
+    const borderColor = selected 
+      ? (isGlobal ? 'border-indigo-500' : 'border-green-500')
+      : (isGlobal ? 'border-indigo-300' : 'border-green-300');
+    const dotColor = isGlobal ? 'bg-indigo-500' : 'bg-green-500';
+    
     return (
       <div
         className={`
-          px-4 py-3 rounded-lg shadow-md border-2 min-w-[200px] bg-green-50
-          ${selected ? 'border-green-500' : 'border-green-300'}
+          px-4 py-3 rounded-lg shadow-md border-2 min-w-[200px] ${bgColor}
+          ${borderColor}
         `}
       >
-        <Handle type="target" position={Position.Top} />
-        
         <div className="flex items-center gap-2 mb-2">
-          <div className="w-3 h-3 rounded-full bg-green-500" />
+          <div className={`w-3 h-3 rounded-full ${dotColor}`} />
           <span className="text-xs font-semibold text-gray-600">Panel</span>
         </div>
         
@@ -71,6 +77,7 @@ export default function CustomRuleNode({ data, selected }: NodeProps<CustomRuleN
   if (constraint) {
     const getConstraintLabel = () => {
       switch (constraint.type) {
+        case 'panelSizeMapping': return 'Panel Size Mapping';
         case 'overlap': return 'No Overlaps';
         case 'bounds': return 'Within Bounds';
         case 'spacing': return 'Minimum Spacing';
@@ -82,10 +89,37 @@ export default function CustomRuleNode({ data, selected }: NodeProps<CustomRuleN
       }
     };
     
+    const getConstraintDetails = () => {
+      if (constraint.type === 'panelSizeMapping') {
+        const details: string[] = [];
+        
+        if (constraint.componentTypes && constraint.componentTypes.length > 0) {
+          details.push(`Types: ${constraint.componentTypes.join(', ')}`);
+        } else {
+          details.push('All component types');
+        }
+        
+        if (constraint.panelSize) {
+          details.push(`Panel: ${constraint.panelSize}cm`);
+        }
+        
+        return details;
+      }
+      
+      // For other constraint types (legacy support)
+      if (constraint.message) {
+        return [constraint.message];
+      }
+      
+      return [];
+    };
+    
+    const details = getConstraintDetails();
+    
     return (
       <div
         className={`
-          px-4 py-3 rounded-lg shadow-md border-2 min-w-[200px] bg-blue-50
+          px-4 py-3 rounded-lg shadow-md border-2 min-w-[200px] max-w-[280px] bg-blue-50
           ${selected ? 'border-blue-500' : 'border-blue-300'}
         `}
       >
@@ -100,7 +134,17 @@ export default function CustomRuleNode({ data, selected }: NodeProps<CustomRuleN
           {getConstraintLabel()}
         </div>
         
-        {constraint.message && (
+        {details.length > 0 && (
+          <div className="text-xs text-gray-600 mt-2 space-y-1">
+            {details.map((detail, index) => (
+              <div key={index} className="truncate" title={detail}>
+                {detail}
+              </div>
+            ))}
+          </div>
+        )}
+        
+        {constraint.message && constraint.type !== 'panelSizeMapping' && (
           <div className="text-xs text-gray-500 mt-1 truncate">
             {constraint.message}
           </div>
@@ -139,6 +183,34 @@ export default function CustomRuleNode({ data, selected }: NodeProps<CustomRuleN
         
         <div className="font-semibold text-gray-800 mb-1">
           {condition.field} {getOperatorLabel()} {String(condition.value)}
+        </div>
+      </div>
+    );
+  }
+  
+  // Logical Operator Node (AND/OR)
+  if (data.logicalOperator) {
+    const isAnd = data.logicalOperator === 'and';
+    const bgColor = 'bg-yellow-50';
+    const borderColor = selected ? 'border-yellow-500' : 'border-yellow-300';
+    const dotColor = 'bg-yellow-500';
+    
+    return (
+      <div
+        className={`
+          px-4 py-3 rounded-lg shadow-md border-2 min-w-[150px] ${bgColor}
+          ${borderColor}
+        `}
+      >
+        <Handle type="target" position={Position.Top} />
+        
+        <div className="flex items-center gap-2 mb-2">
+          <div className={`w-3 h-3 rounded-full ${dotColor}`} />
+          <span className="text-xs font-semibold text-gray-600">Logic</span>
+        </div>
+        
+        <div className="font-semibold text-gray-800 mb-1 text-center">
+          {data.logicalOperator.toUpperCase()}
         </div>
         
         <Handle type="source" position={Position.Bottom} />

@@ -36,12 +36,21 @@ export default function RuleFlow() {
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
   const connectionStartRef = useRef<{ nodeId: string; nodeType: string } | null>(null);
+  
+  // Change tracking for save system
+  const [originalNodes, setOriginalNodes] = useState<Node[]>([]);
+  const [originalEdges, setOriginalEdges] = useState<Edge[]>([]);
+  const [hasChanges, setHasChanges] = useState(false);
 
   const applyRulesToGraph = useCallback(
     (incomingRules: Rule[]) => {
       const { nodes: graphNodes, edges: graphEdges } = rulesToNodeGraph(incomingRules, panelsLibrary);
       setNodes(graphNodes);
       setEdges(graphEdges);
+      // Set original state when loading rules
+      setOriginalNodes(graphNodes);
+      setOriginalEdges(graphEdges);
+      setHasChanges(false);
     },
     [panelsLibrary, setNodes, setEdges]
   );
@@ -51,18 +60,12 @@ export default function RuleFlow() {
     applyRulesToGraph(rules);
   }, [rules, panelsLibrary, applyRulesToGraph]);
 
-  // Save rules when nodes/edges change (debounced)
+  // Track changes by comparing current nodes/edges with original
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      if (nodes.length > 0) {
-        const newRules = nodeGraphToRules(nodes, edges, panelsLibrary);
-        // Update rules in store (this is a simplified approach - in production you might want to be more careful)
-        // For now, we'll just update when user explicitly saves
-      }
-    }, 1000);
-
-    return () => clearTimeout(timeoutId);
-  }, [nodes, edges, panelsLibrary]);
+    const nodesChanged = JSON.stringify(nodes) !== JSON.stringify(originalNodes);
+    const edgesChanged = JSON.stringify(edges) !== JSON.stringify(originalEdges);
+    setHasChanges(nodesChanged || edgesChanged);
+  }, [nodes, edges, originalNodes, originalEdges]);
 
   const onConnectStart = useCallback(
     (_event: React.MouseEvent | React.TouchEvent, params: { nodeId: string | null; handleType: string | null }) => {
@@ -74,10 +77,11 @@ export default function RuleFlow() {
       const sourceType = sourceNode.data.panelId ? 'panel' : 
                         sourceNode.data.combinatorId ? 'combinator' :
                         sourceNode.data.constraint ? 'constraint' : 
-                        sourceNode.data.condition ? 'condition' : 'unknown';
+                        sourceNode.data.condition ? 'condition' :
+                        sourceNode.data.logicalOperator ? 'logical' : 'unknown';
       
-      // Only track panel, combinator, and constraint nodes (they can create new nodes)
-      if (sourceType === 'panel' || sourceType === 'combinator' || sourceType === 'constraint') {
+      // Only track panel, combinator, constraint, condition, and logical nodes (they can create new nodes)
+      if (sourceType === 'panel' || sourceType === 'combinator' || sourceType === 'constraint' || sourceType === 'condition' || sourceType === 'logical') {
         connectionStartRef.current = {
           nodeId: params.nodeId,
           nodeType: sourceType,
@@ -130,7 +134,7 @@ export default function RuleFlow() {
         // Create constraint node
         const constraintNodeId = `constraint-${Date.now()}`;
         const newConstraint: Constraint = {
-          type: 'overlap',
+          type: 'panelSizeMapping',
           message: '',
         };
 
@@ -154,7 +158,7 @@ export default function RuleFlow() {
           },
         ]);
       } else if (nodeType === 'constraint') {
-        // Create condition node
+        // When dragging from constraint, create condition (logic will be auto-added if needed)
         const conditionNodeId = `condition-${Date.now()}`;
         const newCondition: RuleCondition = {
           field: 'componentCount',
@@ -173,17 +177,117 @@ export default function RuleFlow() {
         };
 
         setNodes((nds) => [...nds, newNode]);
+        
+        // Check if we need to insert a logic node
+        const existingConditionEdges = edges.filter((e) => e.source === nodeId && 
+          nodes.find((n) => n.id === e.target)?.data.condition);
+        
+        if (existingConditionEdges.length > 0) {
+          // Need to create/use logic node
+          const existingLogicEdges = edges.filter((e) => e.source === nodeId &&
+            nodes.find((n) => n.id === e.target)?.data.logicalOperator);
+          
+          if (existingLogicEdges.length === 0) {
+            // Create logic node
+            const logicNodeId = `logical-${Date.now()}`;
+            const logicNode: Node = {
+              id: logicNodeId,
+              type: 'ruleNode',
+              position: {
+                x: sourceNode.position.x + 300,
+                y: sourceNode.position.y,
+              },
+              data: {
+                label: 'AND',
+                logicalOperator: 'and',
+              },
+            };
+            
+            setNodes((nds) => [...nds, logicNode]);
+            
+            // Connect constraint to logic
+            setEdges((eds) => [
+              ...eds,
+              {
+                id: `edge-${nodeId}-${logicNodeId}`,
+                source: nodeId,
+                target: logicNodeId,
+              },
+            ]);
+            
+            // Move existing conditions to logic
+            existingConditionEdges.forEach((edge) => {
+              setEdges((eds) => {
+                const filtered = eds.filter((e) => e.id !== edge.id);
+                return [
+                  ...filtered,
+                  {
+                    ...edge,
+                    source: logicNodeId,
+                  },
+                ];
+              });
+            });
+            
+            // Connect new condition to logic
+            setEdges((eds) => [
+              ...eds,
+              {
+                id: `edge-${logicNodeId}-${conditionNodeId}`,
+                source: logicNodeId,
+                target: conditionNodeId,
+              },
+            ]);
+          } else {
+            // Use existing logic node
+            const logicNode = nodes.find((n) => n.id === existingLogicEdges[0].target);
+            if (logicNode) {
+              setEdges((eds) => [
+                ...eds,
+                {
+                  id: `edge-${logicNode.id}-${conditionNodeId}`,
+                  source: logicNode.id,
+                  target: conditionNodeId,
+                },
+              ]);
+            }
+          }
+        } else {
+          // First condition - connect directly
+          setEdges((eds) => [
+            ...eds,
+            {
+              id: `edge-${nodeId}-${conditionNodeId}`,
+              source: nodeId,
+              target: conditionNodeId,
+            },
+          ]);
+        }
+      } else if (nodeType === 'condition' || nodeType === 'logical') {
+        // Create logical operator node (default to AND)
+        const logicalNodeId = `logical-${Date.now()}`;
+        const newNode: Node = {
+          id: logicalNodeId,
+          type: 'ruleNode',
+          position: position,
+          data: {
+            label: 'AND',
+            logicalOperator: 'and',
+          },
+        };
+
+        setNodes((nds) => [...nds, newNode]);
         setEdges((eds) => [
           ...eds,
           {
-            id: `edge-${nodeId}-${conditionNodeId}`,
+            id: `edge-${nodeId}-${logicalNodeId}`,
             source: nodeId,
-            target: conditionNodeId,
+            target: logicalNodeId,
           },
         ]);
       }
     },
-    [nodes, setNodes, setEdges, reactFlowInstance]
+    [nodes, edges, setNodes, setEdges, reactFlowInstance]
   );
 
   const onConnect = useCallback(
@@ -191,7 +295,6 @@ export default function RuleFlow() {
       // Clear connection start ref since connection succeeded
       connectionStartRef.current = null;
 
-      // Only allow connections: Panel → Constraint, Constraint → Condition
       const sourceNode = nodes.find((n) => n.id === params.source);
       const targetNode = nodes.find((n) => n.id === params.target);
 
@@ -200,33 +303,110 @@ export default function RuleFlow() {
       const sourceType = sourceNode.data.panelId ? 'panel' : 
                         sourceNode.data.combinatorId ? 'combinator' :
                         sourceNode.data.constraint ? 'constraint' : 
-                        sourceNode.data.condition ? 'condition' : 'unknown';
+                        sourceNode.data.condition ? 'condition' :
+                        sourceNode.data.logicalOperator ? 'logical' : 'unknown';
       const targetType = targetNode.data.panelId ? 'panel' : 
                         targetNode.data.combinatorId ? 'combinator' :
                         targetNode.data.constraint ? 'constraint' : 
-                        targetNode.data.condition ? 'condition' : 'unknown';
+                        targetNode.data.condition ? 'condition' :
+                        targetNode.data.logicalOperator ? 'logical' : 'unknown';
 
-      // Allow: panel → constraint, combinator → constraint, constraint → condition
+      // Handle constraint → condition: auto-insert logic node if multiple conditions
+      if (sourceType === 'constraint' && targetType === 'condition') {
+        // Check how many conditions are already connected to this constraint
+        const existingConditionEdges = edges.filter((e) => e.source === sourceNode.id && 
+          nodes.find((n) => n.id === e.target)?.data.condition);
+        
+        if (existingConditionEdges.length === 0) {
+          // First condition - connect directly
+          setEdges((eds) => addEdge(params, eds));
+        } else {
+          // Multiple conditions - need to insert logic node
+          // Check if there's already a logic node connected to this constraint
+          const existingLogicEdges = edges.filter((e) => e.source === sourceNode.id &&
+            nodes.find((n) => n.id === e.target)?.data.logicalOperator);
+          
+          let logicNode: Node | null = null;
+          
+          if (existingLogicEdges.length === 0) {
+            // Create new logic node
+            const logicNodeId = `logical-${Date.now()}`;
+            const constraintPos = sourceNode.position;
+            
+            logicNode = {
+              id: logicNodeId,
+              type: 'ruleNode',
+              position: {
+                x: constraintPos.x + 300,
+                y: constraintPos.y,
+              },
+              data: {
+                label: 'AND',
+                logicalOperator: 'and',
+              },
+            };
+            
+            setNodes((nds) => [...nds, logicNode!]);
+            
+            // Connect constraint to logic node
+            setEdges((eds) => [
+              ...eds,
+              {
+                id: `edge-${sourceNode.id}-${logicNodeId}`,
+                source: sourceNode.id,
+                target: logicNodeId,
+              },
+            ]);
+            
+            // Move existing condition connections to connect to logic node instead
+            existingConditionEdges.forEach((edge) => {
+              setEdges((eds) => [
+                ...eds.filter((e) => e.id !== edge.id),
+                {
+                  ...edge,
+                  source: logicNodeId,
+                },
+              ]);
+            });
+          } else {
+            // Use existing logic node
+            logicNode = nodes.find((n) => n.id === existingLogicEdges[0].target) || null;
+          }
+          
+          // Connect new condition to logic node
+          if (logicNode) {
+            setEdges((eds) => [
+              ...eds,
+              {
+                id: `edge-${logicNode.id}-${targetNode.id}`,
+                source: logicNode.id,
+                target: targetNode.id,
+              },
+            ]);
+          }
+        }
+        return;
+      }
+
+      // Allow: panel → constraint, combinator → constraint, condition → logical, logical → logical, logical → condition
       if (
         ((sourceType === 'panel' || sourceType === 'combinator') && targetType === 'constraint') ||
-        (sourceType === 'constraint' && targetType === 'condition')
+        (sourceType === 'condition' && targetType === 'logical') ||
+        (sourceType === 'logical' && targetType === 'logical') ||
+        (sourceType === 'logical' && targetType === 'condition')
       ) {
         setEdges((eds) => addEdge(params, eds));
       }
     },
-    [nodes, setEdges]
+    [nodes, edges, setNodes, setEdges]
   );
 
   const onNodeClick = useCallback((_event: React.MouseEvent, node: Node) => {
     setSelectedNode(node);
   }, []);
 
-  const handleSaveNode = () => {
-    if (!selectedNode) return;
-
-    // Get updated node from state
-    const updatedNode = nodes.find((n) => n.id === selectedNode.id);
-    if (!updatedNode) return;
+  const handleSave = () => {
+    if (!hasChanges) return;
 
     // Convert to rules and save
     const newRules = nodeGraphToRules(nodes, edges, panelsLibrary);
@@ -249,28 +429,22 @@ export default function RuleFlow() {
       }
     });
 
-    setSelectedNode(null);
+    // Update original state to mark as saved
+    setOriginalNodes([...nodes]);
+    setOriginalEdges([...edges]);
+    setHasChanges(false);
   };
 
   const handleDeleteNode = (nodeId: string) => {
-    // Remove node and connected edges
+    // Only remove the specific node and its direct edges (don't cascade delete)
     setNodes((nds) => nds.filter((n) => n.id !== nodeId));
     setEdges((eds) => eds.filter((e) => e.source !== nodeId && e.target !== nodeId));
-
-    // Convert to rules and update store
-    const updatedNodes = nodes.filter((n) => n.id !== nodeId);
-    const updatedEdges = edges.filter((e) => e.source !== nodeId && e.target !== nodeId);
-    const newRules = nodeGraphToRules(updatedNodes, updatedEdges, panelsLibrary);
     
-    // Remove rules that are no longer in the graph
-    const ruleIds = new Set(newRules.map((r) => r.id));
-    rules.forEach((rule) => {
-      if (!ruleIds.has(rule.id)) {
-        deleteRule(rule.id);
-      }
-    });
-
-    setSelectedNode(null);
+    // Clear selection if deleted node was selected
+    if (selectedNode?.id === nodeId) {
+      setSelectedNode(null);
+    }
+    // Don't save immediately - let user click Save button
   };
 
   const handleAddPanel = () => {
@@ -279,14 +453,21 @@ export default function RuleFlow() {
       return;
     }
 
-    // For now, add the first panel. In a full implementation, you'd show a dialog to select a panel
+    // Allow selecting a panel from a dropdown or use first panel if only one
+    // For now, we'll allow adding multiple instances of any panel
+    // User can change the panel selection in the properties panel after adding
     const panel = panelsLibrary[0];
-    const panelNodeId = `panel-${panel.id}-${Date.now()}`;
+    const panelNodeId = `panel-${panel.id}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    
+    // Calculate position to avoid overlap
+    const existingPanelNodes = nodes.filter((n) => n.data.panelId || n.data.panel);
+    const baseX = existingPanelNodes.length * 250;
+    const baseY = existingPanelNodes.length * 150;
     
     const newNode: Node = {
       id: panelNodeId,
       type: 'ruleNode',
-      position: { x: Math.random() * 400, y: Math.random() * 400 },
+      position: { x: baseX, y: baseY },
       data: {
         label: panel.name,
         panelId: panel.id,
@@ -333,7 +514,7 @@ export default function RuleFlow() {
 
     const constraintNodeId = `constraint-${Date.now()}`;
     const newConstraint: Constraint = {
-      type: 'overlap',
+      type: 'panelSizeMapping',
       message: '',
     };
 
@@ -394,15 +575,79 @@ export default function RuleFlow() {
       value: 0,
     };
 
-    // Calculate position - find a good spot to the right of the constraint
-    const existingConditions = edges
-      .filter((e) => e.source === constraintNode.id)
-      .map((e) => nodes.find((n) => n.id === e.target))
-      .filter((n): n is Node => n !== undefined);
+    // Check if there are already conditions connected to this constraint
+    const existingConditionEdges = edges.filter((e) => e.source === constraintNode.id && 
+      nodes.find((n) => n.id === e.target)?.data.condition);
     
-    const baseX = constraintNode.position.x + 300;
-    const baseY = constraintNode.position.y;
-    const yOffset = existingConditions.length * 100;
+    let targetSourceId = constraintNode.id;
+    let baseX = constraintNode.position.x + 300;
+    let baseY = constraintNode.position.y;
+    
+    // If there are existing conditions, we need to use/create a logic node
+    if (existingConditionEdges.length > 0) {
+      // Check if there's already a logic node
+      const existingLogicEdges = edges.filter((e) => e.source === constraintNode.id &&
+        nodes.find((n) => n.id === e.target)?.data.logicalOperator);
+      
+      if (existingLogicEdges.length === 0) {
+        // Create logic node
+        const logicNodeId = `logical-${Date.now()}`;
+        const logicNode: Node = {
+          id: logicNodeId,
+          type: 'ruleNode',
+          position: {
+            x: baseX,
+            y: baseY,
+          },
+          data: {
+            label: 'AND',
+            logicalOperator: 'and',
+          },
+        };
+        
+        setNodes((nds) => [...nds, logicNode]);
+        
+        // Connect constraint to logic node
+        setEdges((eds) => [
+          ...eds,
+          {
+            id: `edge-${constraintNode.id}-${logicNodeId}`,
+            source: constraintNode.id,
+            target: logicNodeId,
+          },
+        ]);
+        
+        // Move existing condition connections to logic node
+        existingConditionEdges.forEach((edge) => {
+          setEdges((eds) => [
+            ...eds.filter((e) => e.id !== edge.id),
+            {
+              ...edge,
+              source: logicNodeId,
+            },
+          ]);
+        });
+        
+        targetSourceId = logicNodeId;
+        baseX = logicNode.position.x + 300;
+      } else {
+        // Use existing logic node
+        const logicNode = nodes.find((n) => n.id === existingLogicEdges[0].target);
+        if (logicNode) {
+          targetSourceId = logicNode.id;
+          baseX = logicNode.position.x + 300;
+          baseY = logicNode.position.y;
+        }
+      }
+    }
+
+    // Calculate position for new condition
+    const existingConditionsFromSource = edges
+      .filter((e) => e.source === targetSourceId)
+      .map((e) => nodes.find((n) => n.id === e.target))
+      .filter((n): n is Node => n !== undefined && n.data.condition !== undefined);
+    
+    const yOffset = existingConditionsFromSource.length * 100;
 
     const newNode: Node = {
       id: conditionNodeId,
@@ -419,12 +664,12 @@ export default function RuleFlow() {
 
     setNodes((nds) => [...nds, newNode]);
     
-    // Auto-connect to constraint node
+    // Auto-connect to source (constraint or logic node)
     setEdges((eds) => [
       ...eds,
       {
-        id: `edge-${constraintNode.id}-${conditionNodeId}`,
-        source: constraintNode.id,
+        id: `edge-${targetSourceId}-${conditionNodeId}`,
+        source: targetSourceId,
         target: conditionNodeId,
       },
     ]);
@@ -433,10 +678,56 @@ export default function RuleFlow() {
     setSelectedNode(newNode);
   };
 
-  const handleSaveRulesToBrowser = () => {
-    const newRules = nodeGraphToRules(nodes, edges, panelsLibrary);
-    setRules(newRules);
-    alert('Rules saved to browser storage.');
+  const handleAddLogicalOperator = (operator: 'and' | 'or' = 'and') => {
+    // Find a condition or logic node to connect to (use selected node or first available)
+    const sourceNode = selectedNode?.data.condition || selectedNode?.data.logicalOperator
+      ? selectedNode
+      : nodes.find((n) => n.data.condition || n.data.logicalOperator);
+    
+    if (!sourceNode) {
+      alert('Please add a condition or logic node first.');
+      return;
+    }
+
+    const logicalNodeId = `logical-${Date.now()}`;
+    
+    // Calculate position - find a good spot to the right of the source
+    const existingLogical = edges
+      .filter((e) => e.source === sourceNode.id)
+      .map((e) => nodes.find((n) => n.id === e.target))
+      .filter((n): n is Node => n !== undefined && n.data.logicalOperator !== undefined);
+    
+    const baseX = sourceNode.position.x + 300;
+    const baseY = sourceNode.position.y;
+    const yOffset = existingLogical.length * 100;
+
+    const newNode: Node = {
+      id: logicalNodeId,
+      type: 'ruleNode',
+      position: {
+        x: baseX,
+        y: baseY + yOffset,
+      },
+      data: {
+        label: operator.toUpperCase(),
+        logicalOperator: operator,
+      },
+    };
+
+    setNodes((nds) => [...nds, newNode]);
+    
+    // Auto-connect to source node
+    setEdges((eds) => [
+      ...eds,
+      {
+        id: `edge-${sourceNode.id}-${logicalNodeId}`,
+        source: sourceNode.id,
+        target: logicalNodeId,
+      },
+    ]);
+
+    // Select the new node
+    setSelectedNode(newNode);
   };
 
   const handleLoadRulesFromBrowser = () => {
@@ -538,20 +829,29 @@ export default function RuleFlow() {
             >
               + Condition
             </button>
+            <button
+              onClick={() => handleAddLogicalOperator('and')}
+              className="px-3 py-1.5 text-sm font-medium rounded-md bg-yellow-500 text-white hover:bg-yellow-600 transition-colors shadow-[0_1px_0_rgba(0,0,0,0.04)] disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={nodes.filter((n) => n.data.condition || n.data.logicalOperator).length === 0}
+              title={nodes.filter((n) => n.data.condition || n.data.logicalOperator).length === 0 ? 'Add a condition or logic node first' : 'Add logic operator to selected node or first available'}
+            >
+              + Logic
+            </button>
           </div>
 
           <div className="flex items-center gap-2 border-r border-gray-200 pr-3">
             <button
-              onClick={handleSaveRulesToBrowser}
-              className="px-3 py-1.5 text-sm font-medium rounded-md bg-gray-900 text-white hover:bg-black transition-colors shadow-[0_1px_0_rgba(0,0,0,0.04)]"
+              onClick={handleSave}
+              disabled={!hasChanges}
+              className="px-3 py-1.5 text-sm font-medium rounded-md bg-gray-900 text-white hover:bg-black transition-colors shadow-[0_1px_0_rgba(0,0,0,0.04)] disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Save (Browser)
+              Save
             </button>
             <button
               onClick={handleLoadRulesFromBrowser}
               className="px-3 py-1.5 text-sm font-medium rounded-md bg-gray-700 text-white hover:bg-gray-800 transition-colors shadow-[0_1px_0_rgba(0,0,0,0.04)]"
             >
-              Load (Browser)
+              Load
             </button>
           </div>
 
@@ -586,8 +886,9 @@ export default function RuleFlow() {
                 )
               );
             }}
-            onSave={(rule) => {
-              handleSaveNode();
+            onSave={() => {
+              // Save is now handled by the main Save button in toolbar
+              // This callback is kept for compatibility but doesn't need to do anything
             }}
             onDelete={(ruleId) => {
               handleDeleteNode(selectedNode.id);
