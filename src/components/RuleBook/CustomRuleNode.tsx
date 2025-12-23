@@ -85,6 +85,8 @@ export default function CustomRuleNode({ data, selected }: NodeProps<CustomRuleN
         case 'dimension': return 'Dimension';
         case 'co-usage': return 'Co-usage';
         case 'noIntersectWithPanelBounds': return 'Not Intersect Panel Bounds';
+        case 'gap': return 'Gap';
+        case 'maxComponentHeight': return 'Max Component Height';
         default: return 'Constraint';
       }
     };
@@ -103,6 +105,29 @@ export default function CustomRuleNode({ data, selected }: NodeProps<CustomRuleN
           details.push(`Panel: ${constraint.panelSize}cm`);
         }
         
+        return details;
+      }
+      
+      if (constraint.type === 'gap') {
+        const details: string[] = [];
+        if (constraint.placement) {
+          details.push(`Placement: ${constraint.placement}`);
+        }
+        if (constraint.size !== undefined) {
+          details.push(`Size: ${constraint.size}mm`);
+        }
+        return details;
+      }
+      
+      if (constraint.type === 'maxComponentHeight') {
+        const details: string[] = [];
+        if (constraint.automatic) {
+          details.push('Automatic calculation');
+        } else {
+          if (constraint.height !== undefined) {
+            details.push(`Height: ${constraint.height}mm`);
+          }
+        }
         return details;
       }
       
@@ -144,7 +169,7 @@ export default function CustomRuleNode({ data, selected }: NodeProps<CustomRuleN
           </div>
         )}
         
-        {constraint.message && constraint.type !== 'panelSizeMapping' && (
+        {constraint.message && constraint.type !== 'panelSizeMapping' && constraint.type !== 'gap' && constraint.type !== 'maxComponentHeight' && (
           <div className="text-xs text-gray-500 mt-1 truncate">
             {constraint.message}
           </div>

@@ -8,19 +8,24 @@ interface CombinatorPreviewCanvasProps {
   components: Component[];
   combinatorWidth: number;
   combinatorHeight: number;
+  gaps?: number[]; // Array of gaps: gaps[0] = top gap, gaps[1..n-1] = gaps between components, gaps[n] = bottom gap
   onReorder: (newOrder: string[]) => void;
   onRemove?: (componentId: string) => void;
+  onGapChange?: (index: number, value: number) => void;
+  showLabels?: boolean;
 }
 
 const mmToPixels = 0.5; // 1mm = 0.5 pixels
-const spacing = 10; // Spacing between components in mm
 
 export default function CombinatorPreviewCanvas({
   components,
   combinatorWidth,
   combinatorHeight,
+  gaps = [],
   onReorder,
   onRemove,
+  onGapChange,
+  showLabels = true,
 }: CombinatorPreviewCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<Konva.Stage | null>(null);
@@ -98,10 +103,10 @@ export default function CombinatorPreviewCanvas({
         y: boundaryY,
         width: previewWidth,
         height: previewHeight,
-        stroke: '#4a90e2',
+        stroke: '#000000',
         strokeWidth: 2,
-        fill: 'rgba(74, 144, 226, 0.1)',
-        cornerRadius: 4,
+        fill: 'rgba(0, 0, 0, 0.05)',
+        cornerRadius: 0,
       });
       layer.add(boundaryBox);
 
@@ -111,13 +116,14 @@ export default function CombinatorPreviewCanvas({
         y: boundaryY + 5,
         text: `Combinator: ${combinatorWidth} × ${combinatorHeight}mm`,
         fontSize: 12,
-        fill: '#4a90e2',
+        fill: '#000000',
         fontStyle: 'bold',
       });
       layer.add(boundaryLabel);
 
-      // Calculate positions for components (stacked vertically, centered)
-      let currentY = boundaryY + spacing;
+      // Apply top gap (just spacing, no visual element)
+      const topGap = gaps.length > 0 ? gaps[0] : 0;
+      let currentY = boundaryY + (topGap * mmToPixels * scale);
       const centerX = boundaryX + previewWidth / 2;
 
       components.forEach((component, index) => {
@@ -140,40 +146,95 @@ export default function CombinatorPreviewCanvas({
           },
         });
 
-        // Component rectangle
+        // Create initial rectangle (will be replaced by image if SVG loads)
         const compRect = new Konva.Rect({
           width: compWidth,
           height: compHeight,
           fill: component.color,
           stroke: '#333',
           strokeWidth: 1,
-          cornerRadius: 2,
+          cornerRadius: 0,
           opacity: 0.8,
+          name: 'component-rect',
         });
         compGroup.add(compRect);
 
-        // Component label
-        const compLabel = new Konva.Text({
-          x: 5,
-          y: 5,
-          text: component.name,
-          fontSize: 10,
-          fill: '#fff',
-          fontStyle: 'bold',
-          width: compWidth - 10,
-        });
-        compGroup.add(compLabel);
+        // Try to load SVG image
+        if (component.model2D && (component.model2D.startsWith('http') || component.model2D.startsWith('/'))) {
+          const imageObj = new Image();
+          imageObj.crossOrigin = 'anonymous';
+          
+          imageObj.onload = () => {
+            if (compGroup && compGroup.getParent()) {
+              // Remove existing rectangle
+              const existingRect = compGroup.findOne('.component-rect');
+              if (existingRect) {
+                existingRect.destroy();
+              }
+              
+              // Create image node
+              const compImage = new Konva.Image({
+                x: 0,
+                y: 0,
+                image: imageObj,
+                width: compWidth,
+                height: compHeight,
+                listening: false,
+                name: 'component-image',
+              });
+              compGroup.add(compImage);
+              
+              // Move labels to top
+              const label = compGroup.findOne('.component-label');
+              const dimLabel = compGroup.findOne('.dim-label');
+              if (label) label.moveToTop();
+              if (dimLabel) dimLabel.moveToTop();
+              
+              if (layerRef.current) {
+                layerRef.current.draw();
+              }
+            }
+          };
+          
+          imageObj.onerror = () => {
+            // Keep the rectangle if image fails to load
+            if (layerRef.current) {
+              layerRef.current.draw();
+            }
+          };
+          
+          // Start loading the image
+          imageObj.src = component.model2D.startsWith('/') 
+            ? component.model2D 
+            : component.model2D;
+        }
 
-        // Component dimensions label
-        const dimLabel = new Konva.Text({
-          x: 5,
-          y: compHeight - 20,
-          text: `${component.width} × ${component.height}mm`,
-          fontSize: 8,
-          fill: '#fff',
-          width: compWidth - 10,
-        });
-        compGroup.add(dimLabel);
+        // Component label (only if showLabels is true)
+        if (showLabels) {
+          const compLabel = new Konva.Text({
+            x: 5,
+            y: 5,
+            text: component.name,
+            fontSize: 10,
+            fill: '#000',
+            fontStyle: 'bold',
+            width: compWidth - 10,
+            name: 'component-label',
+          });
+          compGroup.add(compLabel);
+
+          // Component dimensions label
+          const dimLabel = new Konva.Text({
+            x: 5,
+            y: compHeight - 20,
+            text: `${component.width} × ${component.height}mm`,
+            fontSize: 8,
+            fill: '#000',
+            width: compWidth - 10,
+            name: 'dim-label',
+          });
+          compGroup.add(dimLabel);
+        }
 
         // Remove button (if onRemove is provided)
         if (onRemove) {
@@ -208,7 +269,10 @@ export default function CombinatorPreviewCanvas({
         compGroup.on('dragstart', () => {
           setDraggedId(component.id);
           compGroup.moveToTop();
-          compRect.opacity(1);
+          const rect = compGroup.findOne('.component-rect');
+          const image = compGroup.findOne('.component-image');
+          if (rect) rect.opacity(1);
+          if (image) image.opacity(1);
         });
 
         // Drag move - visual reordering
@@ -242,14 +306,17 @@ export default function CombinatorPreviewCanvas({
             }
           }
 
-          // Calculate new positions for visual reordering
-          let newY = boundaryY + spacing;
+          // Calculate new positions for visual reordering using gaps
+          const topGap = gaps.length > 0 ? gaps[0] : 0;
+          let newY = boundaryY + (topGap * mmToPixels * scale);
           let currentIndex = 0;
 
           otherComps.forEach((item, idx) => {
             if (idx === insertIndex) {
               // This is where the dragged component should be
-              newY += compHeight + spacing;
+              const gapIndex = idx + 1;
+              const gap = gaps.length > gapIndex ? gaps[gapIndex] : 0;
+              newY += compHeight + (gap * mmToPixels * scale);
             }
             const otherGroup = componentGroupRefsRef.current.get(item.comp.id);
             if (otherGroup && otherGroup !== compGroup) {
@@ -260,7 +327,9 @@ export default function CombinatorPreviewCanvas({
                 easing: Konva.Easings.EaseInOut,
               });
             }
-            newY += item.comp.height * mmToPixels * scale + spacing;
+            const gapIndex = idx + 1;
+            const gap = gaps.length > gapIndex ? gaps[gapIndex] : 0;
+            newY += item.comp.height * mmToPixels * scale + (gap * mmToPixels * scale);
           });
 
           // If dragged component should be at the end
@@ -308,7 +377,10 @@ export default function CombinatorPreviewCanvas({
           onReorder(newOrder);
 
           // Reset opacity
-          compRect.opacity(0.8);
+          const rect = compGroup.findOne('.component-rect');
+          const image = compGroup.findOne('.component-image');
+          if (rect) rect.opacity(0.8);
+          if (image) image.opacity(0.8);
           setDraggedId(null);
         });
 
@@ -317,7 +389,11 @@ export default function CombinatorPreviewCanvas({
         componentGroupRefsRef.current.set(component.id, compGroup);
         layer.add(compGroup);
 
-        currentY += compHeight + spacing;
+        // Move to next position using gap (just spacing, no visual element)
+        currentY += compHeight;
+        const gapIndex = index + 1;
+        const gap = gaps.length > gapIndex ? gaps[gapIndex] : 0;
+        currentY += gap * mmToPixels * scale;
       });
 
       // Only draw if stage and layer are properly initialized and attached
@@ -356,9 +432,9 @@ export default function CombinatorPreviewCanvas({
         layerRef.current = null;
       }
     };
-  }, [components, combinatorWidth, combinatorHeight, canvasWidth, canvasHeight, onReorder, onRemove]);
+    }, [components, combinatorWidth, combinatorHeight, gaps, canvasWidth, canvasHeight, onReorder, onRemove, onGapChange, showLabels]);
 
-  // Update positions when components change
+  // Update positions when components or gaps change
   useEffect(() => {
     if (!layerRef.current || !stageRef.current) return;
 
@@ -368,10 +444,12 @@ export default function CombinatorPreviewCanvas({
     // Check if layer is attached to stage
     if (!stage.getLayers().includes(layer)) return;
 
-    let currentY = (canvasHeight - previewHeight) / 2 + spacing;
+    const boundaryY = (canvasHeight - previewHeight) / 2;
+    const topGap = gaps.length > 0 ? gaps[0] : 0;
+    let currentY = boundaryY + (topGap * mmToPixels * scale);
     const centerX = (canvasWidth - previewWidth) / 2 + previewWidth / 2;
 
-    components.forEach((component) => {
+    components.forEach((component, index) => {
       const compGroup = componentGroupRefsRef.current.get(component.id);
       if (compGroup) {
         const compHeight = component.height * mmToPixels * scale;
@@ -386,7 +464,12 @@ export default function CombinatorPreviewCanvas({
         });
 
         originalPositionsRef.current.set(component.id, { x: compX, y: currentY });
-        currentY += compHeight + spacing;
+        
+        // Move to next position using gap
+        currentY += compHeight;
+        const gapIndex = index + 1;
+        const gap = gaps.length > gapIndex ? gaps[gapIndex] : 0;
+        currentY += gap * mmToPixels * scale;
       }
     });
 
@@ -407,7 +490,24 @@ export default function CombinatorPreviewCanvas({
         console.warn('Failed to schedule draw on update:', error);
       }
     }
-  }, [components.length, canvasWidth, canvasHeight, previewWidth, previewHeight]);
+  }, [components, gaps, canvasWidth, canvasHeight, previewWidth, previewHeight, showLabels, onGapChange]);
+
+  // Update label visibility when showLabels changes
+  useEffect(() => {
+    if (!layerRef.current) return;
+    
+    const layer = layerRef.current;
+    layer.find('.component-label').forEach((label) => {
+      label.visible(showLabels);
+    });
+    layer.find('.dim-label').forEach((label) => {
+      label.visible(showLabels);
+    });
+    
+    if (layer.getStage()) {
+      layer.draw();
+    }
+  }, [showLabels]);
 
   return (
     <div className="w-full">

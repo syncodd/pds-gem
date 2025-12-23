@@ -5,6 +5,7 @@ import {
   CanvasComponent,
   Component,
   Constraint,
+  Combinator,
 } from '@/types';
 import {
   checkOverlaps,
@@ -22,7 +23,8 @@ export function evaluateRules(
   rules: Rule[],
   panels: Panel[],
   canvasComponents: CanvasComponent[],
-  componentLibrary: Component[]
+  componentLibrary: Component[],
+  combinatorsLibrary: Combinator[] = []
 ): RuleViolation[] {
   const violations: RuleViolation[] = [];
 
@@ -42,7 +44,9 @@ export function evaluateRules(
         panel,
         panels,
         canvasComponents,
-        componentLibrary
+        componentLibrary,
+        combinatorsLibrary,
+        enabledRules
       );
       violations.push(...ruleViolations);
     }
@@ -57,7 +61,9 @@ export function evaluateRules(
         panels[0],
         panels,
         canvasComponents,
-        componentLibrary
+        componentLibrary,
+        combinatorsLibrary,
+        enabledRules
       );
       violations.push(...ruleViolations);
     }
@@ -71,7 +77,9 @@ export function evaluateRules(
         panel,
         panels,
         canvasComponents,
-        componentLibrary
+        componentLibrary,
+        combinatorsLibrary,
+        enabledRules
       );
       violations.push(...ruleViolations);
     }
@@ -88,7 +96,9 @@ export function evaluateRule(
   panel: Panel,
   panels: Panel[],
   canvasComponents: CanvasComponent[],
-  componentLibrary: Component[]
+  componentLibrary: Component[],
+  combinatorsLibrary: Combinator[] = [],
+  allRules: Rule[] = []
 ): RuleViolation[] {
   const violations: RuleViolation[] = [];
 
@@ -116,6 +126,11 @@ export function evaluateRule(
     return violations;
   }
 
+  // Get all panel rules to find gap constraints (needed for maxComponentHeight)
+  const allPanelRules = allRules.filter(
+    (r) => r.enabled !== false && r.type === 'panel' && (!r.panelId || r.panelId === panel.id)
+  );
+
   // Evaluate constraints
   for (const constraint of rule.constraints) {
     const constraintViolations = checkConstraint(
@@ -124,7 +139,9 @@ export function evaluateRule(
       panel,
       panels,
       panelComponents,
-      componentLibrary
+      componentLibrary,
+      combinatorsLibrary,
+      allPanelRules
     );
     violations.push(...constraintViolations);
   }
@@ -192,7 +209,9 @@ function checkConstraint(
   panel: Panel,
   panels: Panel[],
   canvasComponents: CanvasComponent[],
-  componentLibrary: Component[]
+  componentLibrary: Component[],
+  combinatorsLibrary: Combinator[] = [],
+  allPanelRules: Rule[] = []
 ): RuleViolation[] {
   const violations: RuleViolation[] = [];
   const timestamp = Date.now();
@@ -538,8 +557,265 @@ function checkConstraint(
         });
       }
       break;
+
+    case 'gap':
+      // Gap constraint validation - ensure only one gap per placement per panel
+      // This is mainly informational, actual gap usage is in height calculations
+      // Could add validation here if needed (e.g., check for duplicate gaps)
+      break;
+
+    case 'maxComponentHeight':
+      // Get gap constraints for this panel from all panel rules
+      const gapConstraints: Constraint[] = [];
+      for (const panelRule of allPanelRules) {
+        for (const c of panelRule.constraints) {
+          if (c.type === 'gap') {
+            gapConstraints.push(c);
+          }
+        }
+      }
+      const topGap = gapConstraints.find((c) => c.placement === 'top');
+      const bottomGap = gapConstraints.find((c) => c.placement === 'bottom');
+      const topGapSize = topGap?.size || 0;
+      const bottomGapSize = bottomGap?.size || 0;
+
+      // Calculate max allowed height
+      let maxHeight: number;
+      if (constraint.automatic) {
+        maxHeight = panel.height - topGapSize - bottomGapSize;
+      } else {
+        if (constraint.height === undefined) {
+          // Invalid constraint - height required when automatic is false
+          violations.push({
+            id: `violation-${timestamp}-max-height-invalid`,
+            ruleId: rule.id,
+            ruleName: rule.name,
+            message: constraint.message || 'Max component height constraint requires height value when automatic is disabled',
+            severity: 'error',
+            timestamp,
+          });
+          break;
+        }
+        maxHeight = constraint.height;
+      }
+
+      // Calculate total component height (including spacing)
+      const totalHeight = calculateTotalComponentHeight(
+        panel,
+        canvasComponents,
+        componentLibrary,
+        combinatorsLibrary,
+        true // Include spacing
+      );
+
+      if (totalHeight > maxHeight) {
+        violations.push({
+          id: `violation-${timestamp}-max-height`,
+          ruleId: rule.id,
+          ruleName: rule.name,
+          message:
+            constraint.message ||
+            `Total component height (${totalHeight.toFixed(1)}mm) exceeds maximum allowed height (${maxHeight.toFixed(1)}mm)`,
+          severity: 'error',
+          timestamp,
+        });
+      }
+      break;
   }
 
   return violations;
+}
+
+/**
+ * Calculate total component height for a panel
+ * Includes: components, combinators (with internal gaps), gap components, and spacing between components
+ */
+export function calculateTotalComponentHeight(
+  panel: Panel,
+  canvasComponents: CanvasComponent[],
+  componentLibrary: Component[],
+  combinatorsLibrary: Combinator[],
+  includeSpacing: boolean = true
+): number {
+  const panelComponents = canvasComponents.filter((cc) => cc.panelId === panel.id);
+  const spacing = 10; // mm spacing between components
+  let totalHeight = 0;
+  let componentCount = 0; // Count non-gap components for spacing calculation
+
+  for (const canvasComp of panelComponents) {
+    if (canvasComp.componentId === 'gap') {
+      // Gap component - use gapHeight property
+      const gapHeight = canvasComp.properties?.gapHeight || 0;
+      totalHeight += gapHeight;
+    } else {
+      // Check if it's a combinator
+      const combinator = combinatorsLibrary.find((c) => c.id === canvasComp.componentId);
+      if (combinator) {
+        // Combinator height already includes internal gaps (from combinator.gaps)
+        totalHeight += combinator.height;
+        componentCount++;
+      } else {
+        // Regular component
+        const component = componentLibrary.find((c) => c.id === canvasComp.componentId);
+        if (component) {
+          totalHeight += component.height;
+          componentCount++;
+        }
+      }
+    }
+  }
+
+  // Add spacing between components (spacing after each component except the last)
+  if (includeSpacing && componentCount > 0) {
+    totalHeight += spacing * (componentCount - 1);
+  }
+
+  return totalHeight;
+}
+
+/**
+ * Calculate available height (empty area) for a panel
+ * Returns: available height in mm, or null if no maxComponentHeight constraint
+ */
+export function calculateAvailableHeight(
+  panel: Panel,
+  canvasComponents: CanvasComponent[],
+  componentLibrary: Component[],
+  combinatorsLibrary: Combinator[],
+  rules: Rule[] // Should be pre-filtered to match the panel
+): { available: number; maxHeight: number; used: number } | null {
+  // Use the provided rules (already filtered to match the panel)
+  // No need to filter again - the caller should have done width-based matching
+  const panelRules = rules.filter((rule) => rule.enabled !== false && rule.type === 'panel');
+
+  // Find maxComponentHeight constraint and collect all gap constraints
+  let maxHeightConstraint: Constraint | null = null;
+  const gapConstraints: Constraint[] = [];
+
+  for (const rule of panelRules) {
+    for (const constraint of rule.constraints) {
+      if (constraint.type === 'maxComponentHeight') {
+        maxHeightConstraint = constraint;
+      } else if (constraint.type === 'gap') {
+        gapConstraints.push(constraint);
+      }
+    }
+  }
+
+  if (!maxHeightConstraint) {
+    return null; // No constraint
+  }
+
+  // Get gap constraints
+  const topGap = gapConstraints.find((c) => c.placement === 'top');
+  const bottomGap = gapConstraints.find((c) => c.placement === 'bottom');
+  const topGapSize = topGap?.size || 0;
+  const bottomGapSize = bottomGap?.size || 0;
+
+  // Calculate max allowed height
+  let maxHeight: number;
+  if (maxHeightConstraint.automatic) {
+    maxHeight = panel.height - topGapSize - bottomGapSize;
+  } else {
+    if (maxHeightConstraint.height === undefined) {
+      return null; // Invalid constraint
+    }
+    maxHeight = maxHeightConstraint.height;
+  }
+
+  // Calculate used height (including spacing)
+  const usedHeight = calculateTotalComponentHeight(
+    panel,
+    canvasComponents,
+    componentLibrary,
+    combinatorsLibrary,
+    true // Include spacing
+  );
+
+  const available = Math.max(0, maxHeight - usedHeight);
+
+  return { available, maxHeight, used: usedHeight };
+}
+
+/**
+ * Validate if adding a component/combinator would violate maxComponentHeight constraint
+ * Returns error message if violation, null if valid
+ */
+export function validateComponentHeight(
+  panel: Panel,
+  canvasComponents: CanvasComponent[],
+  componentLibrary: Component[],
+  combinatorsLibrary: Combinator[],
+  rules: Rule[],
+  newComponentHeight: number,
+  isCombinator: boolean = false
+): string | null {
+  // Get panel rules - need to support width-based matching
+  // For now, use simple ID matching (width-based matching should be done by caller)
+  const panelRules = rules.filter(
+    (rule) => rule.enabled !== false && rule.type === 'panel' && (!rule.panelId || rule.panelId === panel.id)
+  );
+
+  // Find maxComponentHeight constraint and collect all gap constraints
+  let maxHeightConstraint: Constraint | null = null;
+  const gapConstraints: Constraint[] = [];
+
+  for (const rule of panelRules) {
+    for (const constraint of rule.constraints) {
+      if (constraint.type === 'maxComponentHeight') {
+        maxHeightConstraint = constraint;
+      } else if (constraint.type === 'gap') {
+        gapConstraints.push(constraint);
+      }
+    }
+  }
+
+  if (!maxHeightConstraint) {
+    return null; // No constraint, allow addition
+  }
+
+  // Calculate current total height (including spacing)
+  const currentHeight = calculateTotalComponentHeight(
+    panel,
+    canvasComponents,
+    componentLibrary,
+    combinatorsLibrary,
+    true // Include spacing
+  );
+
+  // Calculate spacing that will be added for the new component
+  const spacing = 10;
+  const panelComponents = canvasComponents.filter((cc) => cc.panelId === panel.id && cc.componentId !== 'gap');
+  const spacingToAdd = panelComponents.length > 0 ? spacing : 0; // Add spacing if there are existing components
+
+  // Calculate new total height (current + new component + spacing if needed)
+  const newTotalHeight = currentHeight + newComponentHeight + spacingToAdd;
+
+  // Get gap constraints
+  const topGap = gapConstraints.find((c) => c.placement === 'top');
+  const bottomGap = gapConstraints.find((c) => c.placement === 'bottom');
+  const topGapSize = topGap?.size || 0;
+  const bottomGapSize = bottomGap?.size || 0;
+
+  // Calculate max allowed height
+  let maxHeight: number;
+  if (maxHeightConstraint.automatic) {
+    maxHeight = panel.height - topGapSize - bottomGapSize;
+  } else {
+    if (maxHeightConstraint.height === undefined) {
+      return 'Max component height constraint is invalid (height not specified)';
+    }
+    maxHeight = maxHeightConstraint.height;
+  }
+
+  // Check if new total height exceeds max
+  if (newTotalHeight > maxHeight) {
+    return (
+      maxHeightConstraint.message ||
+      `Adding this ${isCombinator ? 'combinator' : 'component'} would exceed maximum component height (${maxHeight.toFixed(1)}mm). Current: ${currentHeight.toFixed(1)}mm, After adding: ${newTotalHeight.toFixed(1)}mm`
+    );
+  }
+
+  return null; // Valid
 }
 

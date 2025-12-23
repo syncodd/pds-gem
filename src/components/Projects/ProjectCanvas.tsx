@@ -2,9 +2,9 @@
 
 import { useRef, useEffect, useState, useMemo } from 'react';
 import Konva from 'konva';
-import { Project, Panel, CanvasComponent } from '@/types';
+import { Project, Panel, CanvasComponent, Constraint } from '@/types';
 import { usePanelStore } from '@/lib/store';
-import { evaluateRules } from '@/lib/ruleEngine';
+import { evaluateRules, validateComponentHeight, calculateTotalComponentHeight } from '@/lib/ruleEngine';
 import ProjectComponentProperties from './ProjectComponentProperties';
 
 interface ProjectCanvasProps {
@@ -99,13 +99,202 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
   // Evaluate rules and update violations
   useEffect(() => {
     if (rules && rules.length > 0 && panels.length > 0 && componentLibrary.length > 0) {
-      const violations = evaluateRules(rules, panels, components, componentLibrary);
+      const violations = evaluateRules(rules, panels, components, componentLibrary, combinatorsLibrary);
       setViolations(violations);
     } else {
       // Clear violations if no rules or no panels
       setViolations([]);
     }
-  }, [rules, panels, components, componentLibrary, setViolations]);
+  }, [rules, panels, components, componentLibrary, combinatorsLibrary, setViolations]);
+
+  // Automatically apply gap constraints from rules
+  useEffect(() => {
+    if (!rules || rules.length === 0 || localPanels.length === 0) return;
+
+    const updatedComponents: CanvasComponent[] = [];
+    const gapComponentIds = new Set<string>();
+
+    // Process each panel
+    for (const panel of localPanels) {
+      // Get gap constraints for this panel
+      // Check both exact panel ID match and width-based matching (for panels copied from library)
+      const panelRules = rules.filter((rule) => {
+        if (rule.enabled === false) return false;
+        if (rule.type !== 'panel') return false;
+        
+        // Exact ID match
+        if (rule.panelId === panel.id) return true;
+        
+        // Width-based matching (for panels copied from library)
+        if (rule.panelId && panelsLibrary) {
+          const libraryPanel = panelsLibrary.find((p) => p.id === rule.panelId);
+          if (libraryPanel && libraryPanel.width === panel.width) return true;
+        }
+        
+        // Also check if no panelId specified (applies to all panels)
+        if (!rule.panelId) return true;
+        
+        return false;
+      });
+
+      let topGap: Constraint | null = null;
+      let bottomGap: Constraint | null = null;
+
+      for (const rule of panelRules) {
+        for (const constraint of rule.constraints) {
+          if (constraint.type === 'gap') {
+            if (constraint.placement === 'top') {
+              topGap = constraint;
+            } else if (constraint.placement === 'bottom') {
+              bottomGap = constraint;
+            }
+          }
+        }
+      }
+
+      // Get existing components for this panel (excluding old gap components)
+      const panelComponents = localComponents.filter(
+        (c) => c.panelId === panel.id && c.componentId !== 'gap'
+      );
+
+      // Add top gap if constraint exists
+      if (topGap && topGap.size) {
+        const topGapId = `gap-top-${panel.id}`;
+        gapComponentIds.add(topGapId);
+        
+        // Check if top gap already exists
+        const existingTopGap = localComponents.find((c) => c.id === topGapId);
+        if (existingTopGap) {
+          // Update existing gap
+          updatedComponents.push({
+            ...existingTopGap,
+            properties: {
+              ...existingTopGap.properties,
+              gapHeight: topGap.size || 0,
+              order: -1, // Top gap has lowest order
+            },
+            y: 0,
+            x: 0,
+          });
+        } else {
+          // Create new top gap
+          updatedComponents.push({
+            id: topGapId,
+            componentId: 'gap',
+            panelId: panel.id,
+            x: 0,
+            y: 0,
+            rotation: 0,
+            scale: 1,
+            properties: {
+              order: -1,
+              gapHeight: topGap.size || 0,
+            },
+          });
+        }
+      }
+
+      // Don't add regular components here - they're already in localComponents
+      // We only need to add/update gap components
+
+      // Add bottom gap if constraint exists
+      if (bottomGap && bottomGap.size) {
+        const bottomGapId = `gap-bottom-${panel.id}`;
+        gapComponentIds.add(bottomGapId);
+        
+        // Check if bottom gap already exists
+        const existingBottomGap = localComponents.find((c) => c.id === bottomGapId);
+        if (existingBottomGap) {
+          // Update existing gap - position will be recalculated
+          updatedComponents.push({
+            ...existingBottomGap,
+            properties: {
+              ...existingBottomGap.properties,
+              gapHeight: bottomGap.size || 0,
+              order: 9999, // Bottom gap has highest order
+            },
+          });
+        } else {
+          // Create new bottom gap - position will be calculated
+          updatedComponents.push({
+            id: bottomGapId,
+            componentId: 'gap',
+            panelId: panel.id,
+            x: 0,
+            y: 0,
+            rotation: 0,
+            scale: 1,
+            properties: {
+              order: 9999,
+              gapHeight: bottomGap.size || 0,
+            },
+          });
+        }
+      }
+    }
+
+    // Merge components: 
+    // updatedComponents contains only gap components (top and bottom gaps)
+    // Keep all existing non-gap components, remove old gaps, add new/updated gaps
+    const existingNonGapComponents = localComponents.filter((c) => c.componentId !== 'gap');
+    
+    // Final components: all existing non-gap components + all gap components from updatedComponents
+    const finalComponents = existingNonGapComponents.concat(updatedComponents);
+
+    // Recalculate positions for all components
+    const repositionedComponents = finalComponents.map((comp) => {
+      const panel = localPanels.find((p) => p.id === comp.panelId);
+      if (!panel) return comp;
+
+      const panelComps = finalComponents
+        .filter((c) => c.panelId === comp.panelId)
+        .sort((a, b) => (a.properties?.order ?? 0) - (b.properties?.order ?? 0));
+
+      const spacing = 10;
+      let currentY = 0;
+
+      // Find position in sorted order
+      const compIndex = panelComps.findIndex((c) => c.id === comp.id);
+      if (compIndex === -1) return comp;
+
+      // Calculate Y position
+      for (let i = 0; i < compIndex; i++) {
+        const prevComp = panelComps[i];
+        if (prevComp.componentId === 'gap') {
+          currentY += (prevComp.properties?.gapHeight || 0) + spacing;
+        } else {
+          const compDef = componentLibrary.find((c) => c.id === prevComp.componentId);
+          const combinatorDef = combinatorsLibrary.find((c) => c.id === prevComp.componentId);
+          const def = compDef || combinatorDef;
+          if (def) {
+            currentY += def.height + spacing;
+          }
+        }
+      }
+
+      return {
+        ...comp,
+        y: currentY,
+        x: (() => {
+          if (comp.componentId === 'gap') return 0;
+          const compDef = componentLibrary.find((c) => c.id === comp.componentId);
+          const combinatorDef = combinatorsLibrary.find((c) => c.id === comp.componentId);
+          const width = compDef?.width || combinatorDef?.width || 0;
+          return (panel.width - width) / 2;
+        })(),
+      };
+    });
+
+    // Only update if gap components changed (to avoid infinite loops)
+    const currentGapIds = new Set(
+      localComponents.filter((c) => c.componentId === 'gap').map((c) => c.id)
+    );
+    const newGapIds = new Set(gapComponentIds);
+    
+    // Always update to ensure positions are recalculated correctly
+    // This is safe because we're only adding/updating gap components and recalculating positions
+    setLocalComponents(repositionedComponents);
+  }, [rules, localPanels, componentLibrary, combinatorsLibrary, panelsLibrary]); // Note: intentionally not including localComponents to avoid loops
 
   // Calculate scale factor (1mm = scale pixels)
   const mmToPixels = 0.5; // 1mm = 0.5 pixels
@@ -220,7 +409,22 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
       .sort((a, b) => (a.properties?.order ?? 0) - (b.properties?.order ?? 0));
 
     const spacing = 10; // mm spacing between components
-    const startY = 10; // Start 10mm from top
+    
+    // Get gap constraints for this panel
+    const panelRules = rules.filter(
+      (rule) => rule.enabled !== false && rule.type === 'panel' && (!rule.panelId || rule.panelId === panelId)
+    );
+    let topGapSize = 0;
+    for (const rule of panelRules) {
+      for (const constraint of rule.constraints) {
+        if (constraint.type === 'gap' && constraint.placement === 'top') {
+          topGapSize = constraint.size || 0;
+          break;
+        }
+      }
+    }
+    
+    const startY = topGapSize; // Start from top gap
 
     if (panelComponents.length === 0) {
       const centeredX = (panel.width - componentWidth) / 2;
@@ -228,19 +432,25 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
     }
 
     // Calculate Y position based on last component
+    // Spacing is between components, not after each one
     let totalHeight = startY;
-    for (const comp of panelComponents) {
+    for (let i = 0; i < panelComponents.length; i++) {
+      const comp = panelComponents[i];
       if (comp.componentId === 'gap') {
         // For gaps, use the gapHeight property
         const gapHeight = comp.properties?.gapHeight || 10;
-        totalHeight += gapHeight + spacing;
+        totalHeight += gapHeight;
       } else {
         const compDef = componentLibrary.find((c) => c.id === comp.componentId);
         const combinatorDef = combinatorsLibrary.find((c) => c.id === comp.componentId);
         const def = compDef || combinatorDef;
         if (def) {
-          totalHeight += def.height + spacing;
+          totalHeight += def.height;
         }
+      }
+      // Add spacing after this component (before the next one)
+      if (i < panelComponents.length - 1) {
+        totalHeight += spacing;
       }
     }
 
@@ -256,6 +466,42 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
 
     const component = componentLibrary.find((c) => c.id === componentId);
     if (!component) return;
+
+    const panel = localPanels.find((p) => p.id === selectedPanelId);
+    if (!panel) return;
+
+    // Filter rules to match panel (by ID or width for panels copied from library)
+    const matchingRules = rules.filter((rule) => {
+      if (rule.enabled === false) return false;
+      if (rule.type !== 'panel') return false;
+      
+      // Exact ID match
+      if (rule.panelId === panel.id) return true;
+      
+      // Width-based matching (for panels copied from library)
+      if (rule.panelId && panelsLibrary) {
+        const libraryPanel = panelsLibrary.find((p) => p.id === rule.panelId);
+        if (libraryPanel && libraryPanel.width === panel.width) return true;
+      }
+      
+      return false;
+    });
+
+    // Validate against maxComponentHeight constraint
+    const validationError = validateComponentHeight(
+      panel,
+      localComponents,
+      componentLibrary,
+      combinatorsLibrary,
+      matchingRules,
+      component.height,
+      false
+    );
+
+    if (validationError) {
+      alert(validationError);
+      return;
+    }
 
     const position = calculateNextComponentPosition(selectedPanelId, component.width, component.height);
 
@@ -286,6 +532,42 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
     const combinator = combinatorsLibrary.find((c) => c.id === combinatorId);
     if (!combinator) return;
 
+    const panel = localPanels.find((p) => p.id === selectedPanelId);
+    if (!panel) return;
+
+    // Filter rules to match panel (by ID or width for panels copied from library)
+    const matchingRules = rules.filter((rule) => {
+      if (rule.enabled === false) return false;
+      if (rule.type !== 'panel') return false;
+      
+      // Exact ID match
+      if (rule.panelId === panel.id) return true;
+      
+      // Width-based matching (for panels copied from library)
+      if (rule.panelId && panelsLibrary) {
+        const libraryPanel = panelsLibrary.find((p) => p.id === rule.panelId);
+        if (libraryPanel && libraryPanel.width === panel.width) return true;
+      }
+      
+      return false;
+    });
+
+    // Validate against maxComponentHeight constraint
+    const validationError = validateComponentHeight(
+      panel,
+      localComponents,
+      componentLibrary,
+      combinatorsLibrary,
+      matchingRules,
+      combinator.height,
+      true
+    );
+
+    if (validationError) {
+      alert(validationError);
+      return;
+    }
+
     const position = calculateNextComponentPosition(selectedPanelId, combinator.width, combinator.height);
 
     const newComponent: CanvasComponent = {
@@ -305,34 +587,6 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
     setLocalComponents([...localComponents, newComponent]);
   };
 
-  // Handle adding gap to selected panel
-  const handleAddGap = (height: number) => {
-    if (!selectedPanelId) return;
-
-    const panel = localPanels.find((p) => p.id === selectedPanelId);
-    if (!panel) return;
-
-    // Calculate position for gap (same as component)
-    const gapWidth = panel.width; // Gap spans full width
-    const position = calculateNextComponentPosition(selectedPanelId, gapWidth, height);
-
-    // Create a gap component (special component with componentId 'gap')
-    const gapComponent: CanvasComponent = {
-      id: `gap-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      componentId: 'gap', // Special ID for gaps
-      panelId: selectedPanelId,
-      x: 0, // Gap starts at left edge
-      y: position.y,
-      rotation: 0,
-      scale: 1,
-      properties: {
-        order: position.order,
-        gapHeight: height,
-      },
-    };
-
-    setLocalComponents([...localComponents, gapComponent]);
-  };
 
   // Handle deleting component or gap
   const handleDeleteComponent = (componentId: string) => {
@@ -352,9 +606,31 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
         .filter((c) => c.panelId === panelId)
         .sort((a, b) => (a.properties?.order ?? 0) - (b.properties?.order ?? 0));
       
+      // Get gap constraints for this panel
+      const panelRules = rules.filter((rule) => {
+        if (rule.enabled === false) return false;
+        if (rule.type !== 'panel') return false;
+        if (rule.panelId === panel.id) return true;
+        if (rule.panelId && panelsLibrary) {
+          const libraryPanel = panelsLibrary.find((p) => p.id === rule.panelId);
+          if (libraryPanel && libraryPanel.width === panel.width) return true;
+        }
+        return false;
+      });
+      
+      let topGapSize = 0;
+      for (const rule of panelRules) {
+        for (const constraint of rule.constraints) {
+          if (constraint.type === 'gap' && constraint.placement === 'top') {
+            topGapSize = constraint.size || 0;
+            break;
+          }
+        }
+      }
+      
       // Recalculate Y positions and order for all components in the panel
       const spacing = 10;
-      const startY = 10;
+      const startY = topGapSize; // Start from top gap
       let currentY = startY;
       
       const repositioned = panelComponents.map((comp, index) => {
@@ -363,22 +639,34 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
           height = comp.properties?.gapHeight || 10;
         } else {
           const compDef = componentLibrary.find((c) => c.id === comp.componentId);
-          height = compDef?.height || 0;
+          const combinatorDef = combinatorsLibrary.find((c) => c.id === comp.componentId);
+          height = compDef?.height || combinatorDef?.height || 0;
+        }
+        
+        // Calculate x position
+        let xPos = 0;
+        if (comp.componentId !== 'gap') {
+          const compDef = componentLibrary.find((c) => c.id === comp.componentId);
+          const combinatorDef = combinatorsLibrary.find((c) => c.id === comp.componentId);
+          const width = compDef?.width || combinatorDef?.width || 0;
+          xPos = (panel.width - width) / 2;
         }
         
         const result = {
           ...comp,
+          x: xPos,
           y: currentY,
           properties: {
             ...comp.properties,
-            order: index,
+            order: index + (topGapSize > 0 ? 1 : 0), // Account for top gap in order
           },
-          ...(comp.componentId === 'gap' 
-            ? { x: 0 } 
-            : { x: (panel.width - (componentLibrary.find((c) => c.id === comp.componentId)?.width || 0)) / 2 }),
         };
         
-        currentY += height + spacing;
+        currentY += height;
+        // Add spacing after this component (before the next one)
+        if (index < panelComponents.length - 1) {
+          currentY += spacing;
+        }
         return result;
       });
       
@@ -397,92 +685,242 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
     }
   };
 
-  // Handle updating gap height
-  const handleUpdateGap = (gapId: string, height: number) => {
-    const updatedComponents = localComponents.map((comp) => {
-      if (comp.id === gapId && comp.componentId === 'gap') {
-        return {
-          ...comp,
-          properties: {
-            ...comp.properties,
-            gapHeight: height,
-          },
-        };
-      }
-      return comp;
-    });
-    
-    // Recalculate positions for all components in the panel after gap height change
-    const gapComponent = updatedComponents.find((c) => c.id === gapId);
-    if (gapComponent) {
-      const panelId = gapComponent.panelId;
-      const panel = localPanels.find((p) => p.id === panelId);
-      if (panel) {
-        const panelComponents = updatedComponents
-          .filter((c) => c.panelId === panelId)
-          .sort((a, b) => (a.properties?.order ?? 0) - (b.properties?.order ?? 0));
+  // Automatically apply gap constraints from rules
+  useEffect(() => {
+    if (!rules || rules.length === 0 || localPanels.length === 0) return;
+
+    const updatedComponents: CanvasComponent[] = [];
+    const gapComponentIds = new Set<string>();
+
+    // Process each panel
+    for (const panel of localPanels) {
+      // Get gap constraints for this panel
+      // Check both exact panel ID match and width-based matching (for panels copied from library)
+      const panelRules = rules.filter((rule) => {
+        if (rule.enabled === false) return false;
+        if (rule.type !== 'panel') return false;
         
-        const spacing = 10;
-        const startY = 10;
-        let currentY = startY;
+        // Exact ID match
+        if (rule.panelId === panel.id) return true;
         
-        const repositioned = panelComponents.map((comp) => {
-          let height = 0;
-          if (comp.componentId === 'gap') {
-            height = comp.properties?.gapHeight || 10;
-          } else {
-            const compDef = componentLibrary.find((c) => c.id === comp.componentId);
-            height = compDef?.height || 0;
+        // Width-based matching (for panels copied from library)
+        if (rule.panelId && panelsLibrary) {
+          const libraryPanel = panelsLibrary.find((p) => p.id === rule.panelId);
+          if (libraryPanel && libraryPanel.width === panel.width) return true;
+        }
+        
+        // Also check if no panelId specified (applies to all panels)
+        if (!rule.panelId) return true;
+        
+        return false;
+      });
+
+      let topGap: Constraint | null = null;
+      let bottomGap: Constraint | null = null;
+
+      for (const rule of panelRules) {
+        for (const constraint of rule.constraints) {
+          if (constraint.type === 'gap') {
+            if (constraint.placement === 'top') {
+              topGap = constraint;
+            } else if (constraint.placement === 'bottom') {
+              bottomGap = constraint;
+            }
           }
-          
-          const result = {
-            ...comp,
-            y: currentY,
-            ...(comp.componentId === 'gap' ? { x: 0 } : { x: (panel.width - (componentLibrary.find((c) => c.id === comp.componentId)?.width || 0)) / 2 }),
-          };
-          
-          currentY += height + spacing;
-          return result;
-        });
-        
-        const finalComponents = updatedComponents.map((comp) => {
-          const repositionedComp = repositioned.find((r) => r.id === comp.id);
-          return repositionedComp || comp;
-        });
-        
-        setLocalComponents(finalComponents);
-      } else {
-        setLocalComponents(updatedComponents);
+        }
       }
-    } else {
-      setLocalComponents(updatedComponents);
+
+      // Get existing components for this panel (excluding old gap components)
+      const panelComponents = localComponents.filter(
+        (c) => c.panelId === panel.id && c.componentId !== 'gap'
+      );
+
+      // Add top gap if constraint exists
+      if (topGap && topGap.size) {
+        const topGapId = `gap-top-${panel.id}`;
+        gapComponentIds.add(topGapId);
+        
+        // Check if top gap already exists
+        const existingTopGap = localComponents.find((c) => c.id === topGapId);
+        if (existingTopGap) {
+          // Update existing gap
+          updatedComponents.push({
+            ...existingTopGap,
+            properties: {
+              ...existingTopGap.properties,
+              gapHeight: topGap.size || 0,
+              order: -1, // Top gap has lowest order
+            },
+            y: 0,
+            x: 0,
+          });
+        } else {
+          // Create new top gap
+          updatedComponents.push({
+            id: topGapId,
+            componentId: 'gap',
+            panelId: panel.id,
+            x: 0,
+            y: 0,
+            rotation: 0,
+            scale: 1,
+            properties: {
+              order: -1,
+              gapHeight: topGap.size || 0,
+            },
+          });
+        }
+      }
+
+      // Don't add regular components here - they're already in localComponents
+      // We only need to add/update gap components
+
+      // Add bottom gap if constraint exists
+      if (bottomGap && bottomGap.size) {
+        const bottomGapId = `gap-bottom-${panel.id}`;
+        gapComponentIds.add(bottomGapId);
+        
+        // Check if bottom gap already exists
+        const existingBottomGap = localComponents.find((c) => c.id === bottomGapId);
+        if (existingBottomGap) {
+          // Update existing gap - position will be recalculated
+          updatedComponents.push({
+            ...existingBottomGap,
+            properties: {
+              ...existingBottomGap.properties,
+              gapHeight: bottomGap.size || 0,
+              order: 9999, // Bottom gap has highest order
+            },
+          });
+        } else {
+          // Create new bottom gap - position will be calculated
+          updatedComponents.push({
+            id: bottomGapId,
+            componentId: 'gap',
+            panelId: panel.id,
+            x: 0,
+            y: 0,
+            rotation: 0,
+            scale: 1,
+            properties: {
+              order: 9999,
+              gapHeight: bottomGap.size || 0,
+            },
+          });
+        }
+      }
     }
-  };
+
+    // Merge components: 
+    // updatedComponents contains only gap components (top and bottom gaps)
+    // Keep all existing non-gap components, remove old gaps, add new/updated gaps
+    const existingNonGapComponents = localComponents.filter((c) => c.componentId !== 'gap');
+    
+    // Final components: all existing non-gap components + all gap components from updatedComponents
+    const finalComponents = existingNonGapComponents.concat(updatedComponents);
+
+    // Recalculate positions for all components
+    const repositionedComponents = finalComponents.map((comp) => {
+      const panel = localPanels.find((p) => p.id === comp.panelId);
+      if (!panel) return comp;
+
+      const panelComps = finalComponents
+        .filter((c) => c.panelId === comp.panelId)
+        .sort((a, b) => (a.properties?.order ?? 0) - (b.properties?.order ?? 0));
+
+      const spacing = 10;
+      let currentY = 0;
+
+      // Find position in sorted order
+      const compIndex = panelComps.findIndex((c) => c.id === comp.id);
+      if (compIndex === -1) return comp;
+
+      // Calculate Y position
+      for (let i = 0; i < compIndex; i++) {
+        const prevComp = panelComps[i];
+        if (prevComp.componentId === 'gap') {
+          currentY += (prevComp.properties?.gapHeight || 0) + spacing;
+        } else {
+          const compDef = componentLibrary.find((c) => c.id === prevComp.componentId);
+          const combinatorDef = combinatorsLibrary.find((c) => c.id === prevComp.componentId);
+          const def = compDef || combinatorDef;
+          if (def) {
+            currentY += def.height + spacing;
+          }
+        }
+      }
+
+      return {
+        ...comp,
+        y: currentY,
+        x: (() => {
+          if (comp.componentId === 'gap') return 0;
+          const compDef = componentLibrary.find((c) => c.id === comp.componentId);
+          const combinatorDef = combinatorsLibrary.find((c) => c.id === comp.componentId);
+          const width = compDef?.width || combinatorDef?.width || 0;
+          return (panel.width - width) / 2;
+        })(),
+      };
+    });
+
+    setLocalComponents(repositionedComponents);
+  }, [rules, localPanels, componentLibrary, combinatorsLibrary]);
 
   // Reorder components when one is dragged vertically
   const reorderComponents = (draggedComponentId: string, newY: number, panelId: string, currentComponents: CanvasComponent[]) => {
     const panel = localPanels.find((p) => p.id === panelId);
     if (!panel) return currentComponents;
 
-    const spacing = 10;
-    const startY = 10;
+    // Don't allow reordering gaps - they stay fixed
+    const draggedComp = currentComponents.find((c) => c.id === draggedComponentId);
+    if (draggedComp?.componentId === 'gap') {
+      return currentComponents; // Gaps cannot be moved
+    }
 
-    // Get all components in this panel (excluding dragged one)
-    const otherComponents = currentComponents
-      .filter((c) => c.panelId === panelId && c.id !== draggedComponentId)
-      .map((c) => {
-        let height = 0;
-        if (c.componentId === 'gap') {
-          height = c.properties?.gapHeight || 10;
-        } else {
-          const compDef = componentLibrary.find((lib) => lib.id === c.componentId);
-          height = compDef?.height || 0;
+    // Get gap constraints for this panel
+    const panelRules = rules.filter((rule) => {
+      if (rule.enabled === false) return false;
+      if (rule.type !== 'panel') return false;
+      if (rule.panelId === panel.id) return true;
+      if (rule.panelId && panelsLibrary) {
+        const libraryPanel = panelsLibrary.find((p) => p.id === rule.panelId);
+        if (libraryPanel && libraryPanel.width === panel.width) return true;
+      }
+      return false;
+    });
+
+    let topGapSize = 0;
+    let bottomGapSize = 0;
+    const topGapId = `gap-top-${panel.id}`;
+    const bottomGapId = `gap-bottom-${panel.id}`;
+
+    for (const rule of panelRules) {
+      for (const constraint of rule.constraints) {
+        if (constraint.type === 'gap') {
+          if (constraint.placement === 'top') {
+            topGapSize = constraint.size || 0;
+          } else if (constraint.placement === 'bottom') {
+            bottomGapSize = constraint.size || 0;
+          }
         }
+      }
+    }
+
+    const spacing = 10;
+    const startY = topGapSize; // Start after top gap
+
+    // Get all components in this panel (excluding dragged one and gaps - gaps stay fixed)
+    const otherComponents = currentComponents
+      .filter((c) => c.panelId === panelId && c.id !== draggedComponentId && c.componentId !== 'gap')
+      .map((c) => {
+        const compDef = componentLibrary.find((lib) => lib.id === c.componentId);
+        const combinatorDef = combinatorsLibrary.find((lib) => lib.id === c.componentId);
+        const height = compDef?.height || combinatorDef?.height || 0;
         return { comp: c, height, centerY: c.y + height / 2 };
       })
       .sort((a, b) => a.centerY - b.centerY);
 
-    // Find insertion point based on Y position
+    // Find insertion point based on Y position (excluding gaps from consideration)
     let insertIndex = otherComponents.length;
     for (let i = 0; i < otherComponents.length; i++) {
       if (newY < otherComponents[i].centerY) {
@@ -491,17 +929,12 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
       }
     }
 
-    // Rebuild component list with new order
+    // Rebuild component list with new order (gaps will be added back in fixed positions)
     const reorderedComponents = [...otherComponents];
-    const draggedComp = currentComponents.find((c) => c.id === draggedComponentId);
     if (draggedComp) {
-      let draggedHeight = 0;
-      if (draggedComp.componentId === 'gap') {
-        draggedHeight = draggedComp.properties?.gapHeight || 10;
-      } else {
-        const draggedDef = componentLibrary.find((c) => c.id === draggedComp.componentId);
-        draggedHeight = draggedDef?.height || 0;
-      }
+      const draggedDef = componentLibrary.find((c) => c.id === draggedComp.componentId);
+      const draggedCombinatorDef = combinatorsLibrary.find((c) => c.id === draggedComp.componentId);
+      const draggedHeight = draggedDef?.height || draggedCombinatorDef?.height || 0;
       reorderedComponents.splice(insertIndex, 0, {
         comp: draggedComp,
         height: draggedHeight,
@@ -509,45 +942,64 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
       });
     }
 
-    // Recalculate Y positions for all components
+    // Recalculate Y positions for all components (gaps stay in fixed positions)
     const updatedComponents = [...currentComponents];
+    
+    // First, ensure top gap stays at y=0 (never move it)
+    const topGap = updatedComponents.find((c) => c.id === topGapId);
+    if (topGap) {
+      const topGapIndex = updatedComponents.findIndex((c) => c.id === topGapId);
+      updatedComponents[topGapIndex] = {
+        ...topGap,
+        x: 0,
+        y: 0, // Top gap always at y=0
+        properties: {
+          ...topGap.properties,
+          order: -1, // Top gap always has lowest order
+        },
+      };
+    }
+    
+    // Start positioning regular components after top gap
     let currentY = startY;
 
+    // Position regular components (gaps are excluded from reorderedComponents)
     reorderedComponents.forEach((item, index) => {
       const compIndex = updatedComponents.findIndex((c) => c.id === item.comp.id);
       if (compIndex !== -1) {
-        if (item.comp.componentId === 'gap') {
-          // Gap spans full width, starts at x=0
+        const compDef = componentLibrary.find((c) => c.id === item.comp.componentId);
+        const combinatorDef = combinatorsLibrary.find((c) => c.id === item.comp.componentId);
+        const def = compDef || combinatorDef;
+        if (def) {
+          const centeredX = (panel.width - def.width) / 2;
           updatedComponents[compIndex] = {
             ...updatedComponents[compIndex],
-            x: 0,
+            x: centeredX,
             y: currentY,
             properties: {
               ...updatedComponents[compIndex].properties,
-              order: index,
+              order: index + (topGapSize > 0 ? 1 : 0), // Account for top gap in order
             },
           };
-          currentY += item.height + spacing;
-        } else {
-          const compDef = componentLibrary.find((c) => c.id === item.comp.componentId);
-          const combinatorDef = combinatorsLibrary.find((c) => c.id === item.comp.componentId);
-          const def = compDef || combinatorDef;
-          if (def) {
-            const centeredX = (panel.width - def.width) / 2;
-            updatedComponents[compIndex] = {
-              ...updatedComponents[compIndex],
-              x: centeredX,
-              y: currentY,
-              properties: {
-                ...updatedComponents[compIndex].properties,
-                order: index,
-              },
-            };
-            currentY += def.height + spacing;
-          }
+          currentY += def.height + spacing;
         }
       }
     });
+
+    // Finally, position bottom gap if it exists (always at the end)
+    const bottomGap = updatedComponents.find((c) => c.id === bottomGapId);
+    if (bottomGap) {
+      const bottomGapIndex = updatedComponents.findIndex((c) => c.id === bottomGapId);
+      updatedComponents[bottomGapIndex] = {
+        ...bottomGap,
+        x: 0,
+        y: currentY, // Position after all components
+        properties: {
+          ...bottomGap.properties,
+          order: 9999, // Bottom gap always has highest order
+        },
+      };
+    }
 
     return updatedComponents;
   };
@@ -1005,286 +1457,38 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
           const currentPanelPos = panelPos;
           const isGapSelected = selectedComponentId === canvasComp.id;
 
-          // Create a group for the gap to make it draggable
+          // Create a group for the gap - invisible and not moveable
           const gapGroup = new Konva.Group({
             x: gapX,
             y: gapY,
-            draggable: false, // Start with dragging disabled - enable on hold
-            dragBoundFunc: (pos) => {
-              // Lock X to panel left edge (x=0) - only allow vertical movement
-              const panelLeftX = offset.x + currentPanelPos.xOffset * mmToPixels * scale;
-              
-              // Allow Y movement within panel bounds
-              // Convert stage Y to canvas Y (mm) - account for scale
-              const canvasY = (pos.y - offset.y) / scale / mmToPixels;
-              const gapHeightMm = canvasComp.properties?.gapHeight || 10;
-              const maxY = currentPanelPos.panel.height - gapHeightMm;
-              const clampedY = Math.max(0, Math.min(canvasY, maxY));
-              
-              // Convert back to stage coordinates
-              const clampedStageY = offset.y + clampedY * mmToPixels * scale;
-
-              return {
-                x: panelLeftX, // Always at panel left edge, no horizontal movement
-                y: clampedStageY,
-              };
-            },
+            draggable: false, // Gaps are not draggable
+            listening: false, // Don't listen to events - gaps are invisible and non-interactive
+            opacity: 0, // Completely invisible
           });
 
-          // Gap rectangle - transparent with dashed border
+          // Gap rectangle - completely invisible (no visual representation)
           const gapRect = new Konva.Rect({
             x: 0,
             y: 0,
             width: gapWidth * scale,
             height: gapHeight * scale,
             fill: 'transparent',
-            stroke: isGapSelected ? '#dc2626' : '#d1d5db',
-            strokeWidth: 1,
-            dash: [5, 5],
-            listening: true, // Make it listen to events
+            stroke: 'transparent',
+            strokeWidth: 0,
+            listening: false,
+            visible: false, // Make it completely invisible
           });
           gapGroup.add(gapRect);
 
-          // Gap label (conditional)
-          if (showLabels) {
-            const gapLabel = new Konva.Text({
-              x: (gapWidth * scale) / 2 - 20,
-              y: (gapHeight * scale) / 2 - 6,
-              text: `Gap ${canvasComp.properties?.gapHeight || 10}mm`,
-              fontSize: 8,
-              fill: isGapSelected ? '#dc2626' : '#6b7280',
-              width: 40,
-              align: 'center',
-              listening: false,
-            });
-            gapGroup.add(gapLabel);
-          }
-
-          // Gap click handler
-          const handleGapClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
-            e.cancelBubble = true;
-            if (e.evt) {
-              e.evt.stopPropagation();
-              e.evt.preventDefault();
-            }
-            
-            // Select gap, deselect panel
-            const gapId = canvasComp.id;
-            const panelId = canvasComp.panelId;
-            
-            setSelectedComponentId((prevSelected) => {
-              if (prevSelected === gapId) {
-                // Deselect if clicking same gap
-                setSelectedPanelId(null);
-                setShowComponentProperties(false);
-                return null;
-              } else {
-                // Select gap, deselect panel
-                setSelectedPanelId(null);
-                setShowComponentProperties(false);
-                return gapId;
-              }
-            });
-          };
-
-          // Add click handler - prevent event from bubbling to panel
-          gapGroup.on('click tap', (e) => {
-            e.cancelBubble = true;
-            if (e.evt) {
-              e.evt.stopPropagation();
-              e.evt.preventDefault();
-            }
-            handleGapClick(e);
-          });
-          
-          // Hold-to-drag: enable dragging only after holding
-          let dragStartPos: { x: number; y: number } | null = null;
-          let isDragging = false;
-          let dragTimer: NodeJS.Timeout | null = null;
-          
-          gapGroup.on('mousedown touchstart', (e) => {
-            e.cancelBubble = true;
-            if (e.evt) {
-              e.evt.stopPropagation();
-            }
-            
-            const stage = gapGroup.getStage();
-            if (stage) {
-              const pointerPos = stage.getPointerPosition();
-              dragStartPos = pointerPos ? { x: pointerPos.x, y: pointerPos.y } : null;
-              
-              // Start timer to enable dragging after hold
-              dragTimer = setTimeout(() => {
-                if (dragStartPos && !isDragging) {
-                  gapGroup.draggable(true);
-                  isDragging = true;
-                  document.body.style.cursor = 'grabbing';
-                }
-              }, 200); // 200ms hold time
-            }
-          });
-          
-          gapGroup.on('mousemove touchmove', () => {
-            if (dragStartPos && !isDragging) {
-              const stage = gapGroup.getStage();
-              if (stage) {
-                const pointerPos = stage.getPointerPosition();
-                if (pointerPos) {
-                  const distance = Math.sqrt(
-                    Math.pow(pointerPos.x - dragStartPos!.x, 2) + 
-                    Math.pow(pointerPos.y - dragStartPos!.y, 2)
-                  );
-                  // If moved more than 5 pixels, enable dragging immediately
-                  if (distance > 5) {
-                    if (dragTimer) clearTimeout(dragTimer);
-                    gapGroup.draggable(true);
-                    isDragging = true;
-                    document.body.style.cursor = 'grabbing';
-                  }
-                }
-              }
-            }
-          });
-          
-          gapGroup.on('mouseup touchend', () => {
-            if (dragTimer) {
-              clearTimeout(dragTimer);
-              dragTimer = null;
-            }
-            if (!isDragging) {
-              // It was just a click, handle selection
-              handleGapClick({ cancelBubble: false, evt: {} } as any);
-            }
-            dragStartPos = null;
-            isDragging = false;
-            document.body.style.cursor = 'default';
-          });
-
-          // Store original positions for visual reordering
-          const gapOriginalY = canvasComp.y;
-          originalPositionsRef.current.set(canvasComp.id, { x: 0, y: gapOriginalY });
-
-          // Handle drag move for visual reordering
-          gapGroup.on('dragmove', () => {
-            const pos = gapGroup.position();
-            const canvasY = (pos.y - offset.y) / scale / mmToPixels;
-            
-            // Get all components in the same panel
-            const panelComps = components
-              .filter((c) => c.panelId === canvasComp.panelId && c.id !== canvasComp.id)
-              .map((c) => {
-                let height = 0;
-                if (c.componentId === 'gap') {
-                  height = c.properties?.gapHeight || 10;
-                } else {
-                  const compDef = componentLibrary.find((lib) => lib.id === c.componentId);
-                  height = compDef?.height || 0;
-                }
-                return { comp: c, height, centerY: c.y + height / 2 };
-              })
-              .sort((a, b) => a.centerY - b.centerY);
-
-            const gapHeightMm = canvasComp.properties?.gapHeight || 10;
-            const draggedCenterY = canvasY + gapHeightMm / 2;
-
-            // Find insert position
-            let insertIndex = panelComps.length;
-            for (let i = 0; i < panelComps.length; i++) {
-              if (draggedCenterY < panelComps[i].centerY) {
-                insertIndex = i;
-                break;
-              }
-            }
-
-            // Calculate new positions for visual reordering
-            const spacing = 10;
-            const startY = 10;
-            let currentY = startY;
-            
-            panelComps.forEach((item, index) => {
-              if (index === insertIndex) {
-                // This is where the dragged gap should be
-                currentY += gapHeightMm + spacing;
-              }
-              
-              const otherGroup = canvasComp.id === item.comp.id 
-                ? gapGroup
-                : (item.comp.componentId === 'gap'
-                    ? gapGroupRefsRef.current.get(item.comp.id)
-                    : componentGroupRefsRef.current.get(item.comp.id));
-              
-              if (otherGroup) {
-                const originalPos = originalPositionsRef.current.get(item.comp.id);
-                if (originalPos) {
-                  const targetY = offset.y + currentY * mmToPixels * scale;
-                  // Smooth transition to new position
-                  otherGroup.to({
-                    y: targetY,
-                    duration: 0.2,
-                    easing: Konva.Easings.EaseInOut,
-                  });
-                }
-              }
-              
-              let height = item.height;
-              currentY += height + spacing;
-            });
-            
-            // If dragged gap should be at the end
-            if (insertIndex === panelComps.length) {
-              // Already handled in loop
-            }
-          });
-
-          // Handle drag end to update actual order in list
-          gapGroup.on('dragend', () => {
-            const pos = gapGroup.position();
-            const canvasY = (pos.y - offset.y) / scale / mmToPixels;
-
-            // Update gap position temporarily
-            const updatedComponents = localComponents.map((c) => {
-              if (c.id === canvasComp.id) {
-                return {
-                  ...c,
-                  x: 0,
-                  y: canvasY,
-                };
-              }
-              return c;
-            });
-
-            // Use the existing reorderComponents function to update actual list
-            const reordered = reorderComponents(canvasComp.id, canvasY, canvasComp.panelId, updatedComponents);
-            setLocalComponents(reordered);
-            
-            // Reset dragging state
-            gapGroup.draggable(false);
-            isDragging = false;
-            document.body.style.cursor = 'default';
-            
-            // Update original positions
-            reordered.forEach((comp) => {
-              if (comp.panelId === canvasComp.panelId) {
-                originalPositionsRef.current.set(comp.id, { x: comp.x, y: comp.y });
-              }
-            });
-          });
-
-          // Add cursor change on hover
-          gapGroup.on('mouseenter', () => {
-            document.body.style.cursor = 'move';
-          });
-          gapGroup.on('mouseleave', () => {
-            document.body.style.cursor = 'default';
-          });
-
-          // Store gap group reference
+          // No event handlers - gaps are invisible and non-interactive
+          // Store gap group reference (needed for positioning calculations)
           gapGroupRefsRef.current.set(canvasComp.id, gapGroup);
 
           layer.add(gapGroup);
           return;
         }
 
+        // Regular component rendering continues below
         const compDef = componentLibrary.find((c) => c.id === canvasComp.componentId);
         const combinatorDef = combinatorsLibrary.find((c) => c.id === canvasComp.componentId);
         const def = compDef || combinatorDef;
@@ -1333,34 +1537,24 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
             y: 0,
             width: combWidth,
             height: combHeight,
-            stroke: isCombinatorSelected ? '#dc2626' : '#4a90e2',
-            strokeWidth: isCombinatorSelected ? 4 : 2,
+            stroke: isCombinatorSelected ? '#dc2626' : '#000000',
+            strokeWidth: isCombinatorSelected ? 2 : 1,
             fill: 'transparent',
-            cornerRadius: 4,
+            cornerRadius: 0,
             listening: true,
+            perfectDrawEnabled: false,
+            hitStrokeWidth: 10, // Make it easier to click/drag
           });
           combinatorGroup.add(boundaryBox);
 
-          // Render components inside combinator
-          const componentSpacing = 10; // Spacing between components in mm
+          // Render components inside combinator using gaps
+          const gaps = combinatorDef.gaps || new Array(combinatorDef.componentIds.length + 1).fill(0);
+          const topGap = gaps[0] || 0;
           
-          // Calculate total content height to center components vertically
-          let totalContentHeight = 0;
-          combinatorDef.componentIds.forEach((compId) => {
-            const innerComp = componentLibrary.find((c) => c.id === compId);
-            if (!innerComp) return;
-            if (totalContentHeight > 0) {
-              totalContentHeight += componentSpacing; // Add spacing between components
-            }
-            totalContentHeight += innerComp.height;
-          });
+          // Calculate starting Y position (start from top gap)
+          let componentY = topGap;
           
-          // Calculate starting Y position to center content vertically
-          const combHeightMm = combinatorDef.height;
-          const startY = (combHeightMm - totalContentHeight) / 2;
-          let componentY = startY;
-          
-          combinatorDef.componentIds.forEach((compId) => {
+          combinatorDef.componentIds.forEach((compId, index) => {
             const innerComp = componentLibrary.find((c) => c.id === compId);
             if (!innerComp) return;
 
@@ -1503,7 +1697,11 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
 
             combinatorGroup.add(innerCompGroup);
 
-            componentY += innerComp.height + componentSpacing;
+            // Move to next position using gap
+            componentY += innerComp.height;
+            const gapIndex = index + 1;
+            const gap = gaps.length > gapIndex ? gaps[gapIndex] : 0;
+            componentY += gap;
           });
 
           // Combinator label
@@ -2160,8 +2358,8 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
         
         if (boundaryBox) {
           // Update boundary box stroke and width
-          boundaryBox.stroke(isSelected ? '#dc2626' : '#4a90e2');
-          boundaryBox.strokeWidth(isSelected ? 4 : 2);
+          boundaryBox.stroke(isSelected ? '#dc2626' : '#000000');
+          boundaryBox.strokeWidth(isSelected ? 2 : 1);
         }
         
         // Update inner component overlays
@@ -2403,9 +2601,7 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
         panelComponents={localComponents.filter((c) => c.panelId === selectedPanelId)}
         onAddComponent={handleAddComponent}
         onAddCombinator={handleAddCombinator}
-        onAddGap={handleAddGap}
         onDeleteComponent={handleDeleteComponent}
-        onUpdateGap={handleUpdateGap}
         onClose={() => {
           setShowComponentProperties(false);
           setSelectedPanelId(null);

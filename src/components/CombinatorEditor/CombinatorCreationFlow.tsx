@@ -1,7 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Combinator } from '@/types';
+import { Combinator, Component } from '@/types';
+import { usePanelStore } from '@/lib/store';
+import { calculateCombinatorDimensions } from '@/lib/componentUtils';
 import NameStep from './CombinatorFlowSteps/NameStep';
 import ComponentSelectionStep from './CombinatorFlowSteps/ComponentSelectionStep';
 import DimensionsStep from './CombinatorFlowSteps/DimensionsStep';
@@ -33,6 +35,7 @@ export default function CombinatorCreationFlow({
   onSave,
   onClose,
 }: CombinatorCreationFlowProps) {
+  const { componentLibrary } = usePanelStore();
   const [currentStep, setCurrentStep] = useState<Step>('name');
   const [formData, setFormData] = useState<Combinator>({
     id: '',
@@ -41,6 +44,7 @@ export default function CombinatorCreationFlow({
     height: 300,
     depth: 200,
     componentIds: [],
+    gaps: [],
     brand: '',
     series: '',
     currentA: '',
@@ -49,10 +53,59 @@ export default function CombinatorCreationFlow({
 
   const isEdit = !!combinator;
 
+  // Initialize gaps array when componentIds change
+  useEffect(() => {
+    if (formData.componentIds.length > 0) {
+      const requiredGapsCount = formData.componentIds.length + 1;
+      const currentGaps = formData.gaps || [];
+      
+      // If gaps array doesn't match required length, initialize/update it
+      if (currentGaps.length !== requiredGapsCount) {
+        const newGaps = new Array(requiredGapsCount).fill(0);
+        // Preserve existing gaps if possible
+        for (let i = 0; i < Math.min(currentGaps.length, newGaps.length); i++) {
+          newGaps[i] = currentGaps[i];
+        }
+        setFormData({ ...formData, gaps: newGaps });
+      }
+    } else {
+      // No components, clear gaps
+      if (formData.gaps && formData.gaps.length > 0) {
+        setFormData({ ...formData, gaps: [] });
+      }
+    }
+  }, [formData.componentIds.length]);
+
+  // Calculate dimensions when components or gaps change
+  useEffect(() => {
+    if (formData.componentIds.length > 0 && formData.gaps && formData.gaps.length === formData.componentIds.length + 1) {
+      const selectedComponents = formData.componentIds
+        .map((id) => componentLibrary.find((c) => c.id === id))
+        .filter((c): c is Component => c !== undefined);
+      
+      if (selectedComponents.length > 0) {
+        const calculated = calculateCombinatorDimensions(selectedComponents, formData.gaps);
+        setFormData((prev) => ({
+          ...prev,
+          width: calculated.width,
+          height: calculated.height,
+        }));
+      }
+    }
+  }, [formData.componentIds, formData.gaps, componentLibrary]);
+
   useEffect(() => {
     if (isOpen) {
       if (combinator) {
-        setFormData(combinator);
+        // Ensure gaps array exists and has correct length
+        const componentCount = combinator.componentIds.length;
+        const requiredGapsCount = componentCount > 0 ? componentCount + 1 : 0;
+        const gaps = combinator.gaps || [];
+        const normalizedGaps = gaps.length === requiredGapsCount 
+          ? gaps 
+          : new Array(requiredGapsCount).fill(0);
+        
+        setFormData({ ...combinator, gaps: normalizedGaps });
         setCurrentStep('name');
       } else {
         setFormData({
@@ -62,6 +115,7 @@ export default function CombinatorCreationFlow({
           height: 300,
           depth: 200,
           componentIds: [],
+          gaps: [],
           brand: '',
           series: '',
           currentA: '',

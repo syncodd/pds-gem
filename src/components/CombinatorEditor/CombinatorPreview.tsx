@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Combinator } from '@/types';
+import { Combinator, Component } from '@/types';
 import { usePanelStore } from '@/lib/store';
+import { calculateCombinatorDimensions } from '@/lib/componentUtils';
 import dynamic from 'next/dynamic';
 
 const CombinatorPreviewCanvas = dynamic(() => import('./CombinatorPreviewCanvas'), {
@@ -18,6 +19,7 @@ interface CombinatorPreviewProps {
 export default function CombinatorPreview({ combinator, onUpdate, onSave }: CombinatorPreviewProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<Combinator>(combinator);
+  const [showLabels, setShowLabels] = useState(true);
   const { componentLibrary } = usePanelStore();
 
   useEffect(() => {
@@ -30,13 +32,33 @@ export default function CombinatorPreview({ combinator, onUpdate, onSave }: Comb
   };
 
   const handleReorder = (newOrder: string[]) => {
-    handleUpdate({ componentIds: newOrder });
+    // When reordering, keep gaps array but ensure it has correct length
+    const currentGaps = formData.gaps || [];
+    const requiredGapsCount = newOrder.length + 1;
+    const newGaps = new Array(requiredGapsCount).fill(0);
+    
+    // Preserve existing gaps as much as possible
+    for (let i = 0; i < Math.min(currentGaps.length, newGaps.length); i++) {
+      newGaps[i] = currentGaps[i];
+    }
+    
+    handleUpdate({ 
+      componentIds: newOrder,
+      gaps: newGaps,
+    });
   };
 
   const handleRemoveComponent = (componentId: string) => {
     handleUpdate({
       componentIds: formData.componentIds.filter((id) => id !== componentId),
     });
+  };
+
+  const handleGapChange = (index: number, value: number) => {
+    const currentGaps = formData.gaps || new Array(formData.componentIds.length + 1).fill(0);
+    const newGaps = [...currentGaps];
+    newGaps[index] = Math.max(0, value);
+    handleUpdate({ gaps: newGaps });
   };
 
   const handleAddComponent = (componentId: string) => {
@@ -79,7 +101,32 @@ export default function CombinatorPreview({ combinator, onUpdate, onSave }: Comb
   // Get component details for display
   const componentDetails = formData.componentIds
     .map((id) => componentLibrary.find((c) => c.id === id))
-    .filter(Boolean);
+    .filter((c): c is Component => c !== undefined);
+
+  // Calculate dimensions
+  const calculatedDimensions = componentDetails.length > 0
+    ? calculateCombinatorDimensions(componentDetails, formData.gaps || [])
+    : { width: 0, height: 0 };
+
+  // Initialize gaps if needed
+  useEffect(() => {
+    if (formData.componentIds.length > 0) {
+      const requiredGapsCount = formData.componentIds.length + 1;
+      const currentGaps = formData.gaps || [];
+      
+      if (currentGaps.length !== requiredGapsCount) {
+        const newGaps = new Array(requiredGapsCount).fill(0);
+        for (let i = 0; i < Math.min(currentGaps.length, newGaps.length); i++) {
+          newGaps[i] = currentGaps[i];
+        }
+        handleUpdate({ gaps: newGaps });
+      }
+    } else {
+      if (formData.gaps && formData.gaps.length > 0) {
+        handleUpdate({ gaps: [] });
+      }
+    }
+  }, [formData.componentIds.length]);
 
   // Get available components (not already in combinator)
   const availableComponents = componentLibrary.filter(
@@ -256,11 +303,39 @@ export default function CombinatorPreview({ combinator, onUpdate, onSave }: Comb
           </div>
         </div>
 
+        {/* Calculated Dimensions */}
+        {componentDetails.length > 0 && (
+          <div className="mt-4 pt-4 border-t border-gray-200">
+            <h3 className="text-sm font-semibold text-gray-700 mb-2">Calculated Dimensions</h3>
+            <div className="grid grid-cols-2 gap-4 text-sm mb-4">
+              <div>
+                <span className="text-gray-500">Width:</span>
+                <span className="ml-2 font-medium">{calculatedDimensions.width}mm</span>
+              </div>
+              <div>
+                <span className="text-gray-500">Height:</span>
+                <span className="ml-2 font-medium">{calculatedDimensions.height}mm</span>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Components */}
         <div className="mt-4 pt-4 border-t border-gray-200">
-          <h3 className="text-sm font-semibold text-gray-700 mb-3">
-            Components ({formData.componentIds.length})
-          </h3>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-semibold text-gray-700">
+              Components ({formData.componentIds.length})
+            </h3>
+            <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={showLabels}
+                onChange={(e) => setShowLabels(e.target.checked)}
+                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              />
+              <span>Show Labels</span>
+            </label>
+          </div>
           
           {/* Add Component UI (only when editing) */}
           {isEditing && (
@@ -305,68 +380,147 @@ export default function CombinatorPreview({ combinator, onUpdate, onSave }: Comb
             <>
               <div className="mb-4">
                 <CombinatorPreviewCanvas
-                  components={componentDetails as any}
+                  components={componentDetails}
                   combinatorWidth={formData.width}
                   combinatorHeight={formData.height}
+                  gaps={formData.gaps}
                   onReorder={handleReorder}
                   onRemove={isEditing ? handleRemoveComponent : undefined}
+                  onGapChange={isEditing ? handleGapChange : undefined}
+                  showLabels={showLabels}
                 />
               </div>
-              <div className="space-y-2 max-h-32 overflow-y-auto">
-                {componentDetails.map((comp) => (
-                  <div 
-                    key={comp!.id} 
-                    className="flex items-center justify-between text-sm p-2 bg-gray-50 rounded border border-gray-200"
-                  >
-                    <div className="flex items-center gap-2 flex-1">
-                      <div
-                        className="w-3 h-3 rounded"
-                        style={{ backgroundColor: comp!.color }}
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                {/* Top Gap */}
+                {isEditing && (
+                  <div className="p-2 bg-yellow-50 rounded-lg border border-yellow-200">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded bg-yellow-400 border border-yellow-600" />
+                        <span className="text-xs font-medium text-gray-800">Top Gap</span>
+                      </div>
+                      <input
+                        type="number"
+                        value={formData.gaps?.[0] || 0}
+                        onChange={(e) => handleGapChange(0, parseFloat(e.target.value) || 0)}
+                        min="0"
+                        step="0.1"
+                        className="w-24 px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="0"
                       />
-                      <div>
-                        <span className="font-medium">{comp!.name}</span>
-                        <span className="text-gray-500 ml-2">({comp!.type})</span>
-                        <span className="text-gray-500 ml-2 text-xs">
-                          {comp!.width} × {comp!.height}mm
-                        </span>
-                      </div>
+                      <span className="text-xs text-gray-500 ml-1">mm</span>
                     </div>
-                    {isEditing && (
-                      <div className="flex gap-2">
-                        <select
-                          className="px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                          onChange={(e) => {
-                            if (e.target.value) {
-                              handleReplaceComponent(comp!.id, e.target.value);
-                              e.target.value = ''; // Reset selection
-                            }
-                          }}
-                          defaultValue=""
-                        >
-                          <option value="">Replace...</option>
-                          {componentLibrary
-                            .filter((c) => c.id !== comp!.id) // Exclude current component
-                            .map((component) => (
-                              <option key={component.id} value={component.id}>
-                                {component.name}
-                                {formData.componentIds.includes(component.id) && ' (swap)'}
-                              </option>
-                            ))}
-                        </select>
-                        <button
-                          onClick={() => handleRemoveComponent(comp!.id)}
-                          className="text-red-500 hover:text-red-700 px-2 py-1 text-xs font-medium"
-                        >
-                          Remove
-                        </button>
-                      </div>
-                    )}
                   </div>
-                ))}
+                )}
+
+                {/* Components with gaps */}
+                {componentDetails.map((comp, index) => {
+                  const gapIndex = index + 1;
+                  const gap = formData.gaps?.[gapIndex] || 0;
+                  const isLast = index === componentDetails.length - 1;
+                  
+                  return (
+                    <div key={comp.id} className="space-y-2">
+                      {/* Component */}
+                      <div className="flex items-center justify-between text-sm p-2 bg-gray-50 rounded border border-gray-200">
+                        <div className="flex items-center gap-2 flex-1">
+                          <div
+                            className="w-3 h-3 rounded"
+                            style={{ backgroundColor: comp.color }}
+                          />
+                          <div>
+                            <span className="font-medium">{comp.name}</span>
+                            <span className="text-gray-500 ml-2">({comp.type})</span>
+                            <span className="text-gray-500 ml-2 text-xs">
+                              {comp.width} × {comp.height}mm
+                            </span>
+                          </div>
+                        </div>
+                        {isEditing && (
+                          <div className="flex gap-2">
+                            <select
+                              className="px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                              onChange={(e) => {
+                                if (e.target.value) {
+                                  handleReplaceComponent(comp.id, e.target.value);
+                                  e.target.value = ''; // Reset selection
+                                }
+                              }}
+                              defaultValue=""
+                            >
+                              <option value="">Replace...</option>
+                              {componentLibrary
+                                .filter((c) => c.id !== comp.id) // Exclude current component
+                                .map((component) => (
+                                  <option key={component.id} value={component.id}>
+                                    {component.name}
+                                    {formData.componentIds.includes(component.id) && ' (swap)'}
+                                  </option>
+                                ))}
+                            </select>
+                            <button
+                              onClick={() => handleRemoveComponent(comp.id)}
+                              className="text-red-500 hover:text-red-700 px-2 py-1 text-xs font-medium"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Gap after component */}
+                      {isEditing && !isLast && (
+                        <div className="p-2 bg-yellow-50 rounded-lg border border-yellow-200">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <div className="w-3 h-3 rounded bg-yellow-400 border border-yellow-600" />
+                              <span className="text-xs font-medium text-gray-800">
+                                Gap after {comp.name}
+                              </span>
+                            </div>
+                            <input
+                              type="number"
+                              value={gap}
+                              onChange={(e) => handleGapChange(gapIndex, parseFloat(e.target.value) || 0)}
+                              min="0"
+                              step="0.1"
+                              className="w-24 px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              placeholder="0"
+                            />
+                            <span className="text-xs text-gray-500 ml-1">mm</span>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Bottom gap for last component */}
+                      {isEditing && isLast && (
+                        <div className="p-2 bg-yellow-50 rounded-lg border border-yellow-200">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <div className="w-3 h-3 rounded bg-yellow-400 border border-yellow-600" />
+                              <span className="text-xs font-medium text-gray-800">Bottom Gap</span>
+                            </div>
+                            <input
+                              type="number"
+                              value={formData.gaps?.[formData.gaps?.length ? formData.gaps.length - 1 : 0] || 0}
+                              onChange={(e) => handleGapChange(formData.gaps?.length ? formData.gaps.length - 1 : 0, parseFloat(e.target.value) || 0)}
+                              min="0"
+                              step="0.1"
+                              className="w-24 px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              placeholder="0"
+                            />
+                            <span className="text-xs text-gray-500 ml-1">mm</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </>
           )}
         </div>
+
       </div>
     </div>
   );

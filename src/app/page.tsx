@@ -54,7 +54,7 @@ export default function Home() {
   useEffect(() => {
     if (rules.length > 0 && panels.length > 0) {
       // Evaluate rules for all panels
-      const violations = evaluateRules(rules, panels, components, componentLibrary);
+      const violations = evaluateRules(rules, panels, components, componentLibrary, combinatorsLibrary);
       setViolations(violations);
     } else {
       setViolations([]);

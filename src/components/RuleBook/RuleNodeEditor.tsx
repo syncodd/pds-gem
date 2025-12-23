@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Node } from '@xyflow/react';
 import { Rule, Constraint, RuleCondition, Panel, Component } from '@/types';
 import { getComponentTypes } from '@/lib/componentUtils';
@@ -152,6 +152,10 @@ export default function RuleNodeEditor({
           value: undefined,
           requiredComponentIds: undefined,
           targetComponentId: undefined,
+          placement: undefined,
+          size: undefined,
+          automatic: undefined,
+          height: undefined,
         };
       } else {
         updatedConstraint = { ...constraint, ...updates };
@@ -189,6 +193,8 @@ export default function RuleNodeEditor({
               className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
             >
               <option value="panelSizeMapping">Panel Size Mapping</option>
+              <option value="gap">Gap</option>
+              <option value="maxComponentHeight">Max Component Height</option>
             </select>
           </div>
 
@@ -269,6 +275,129 @@ export default function RuleNodeEditor({
                   Select the panel size for this constraint
                 </p>
               </div>
+            </>
+          )}
+
+          {constraint.type === 'gap' && (
+            <>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Placement <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={constraint.placement || 'top'}
+                  onChange={(e) =>
+                    updateConstraint({
+                      placement: e.target.value as 'top' | 'bottom',
+                    })
+                  }
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                >
+                  <option value="top">Top</option>
+                  <option value="bottom">Bottom</option>
+                </select>
+                <p className="text-xs text-gray-500 mt-1">
+                  Select where the gap should be placed. Only one gap per placement is allowed per panel.
+                </p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Size (mm) <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  value={constraint.size || 0}
+                  onChange={(e) =>
+                    updateConstraint({
+                      size: parseFloat(e.target.value) || 0,
+                    })
+                  }
+                  min="0"
+                  step="0.1"
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Gap size in millimeters
+                </p>
+              </div>
+            </>
+          )}
+
+          {constraint.type === 'maxComponentHeight' && (
+            <>
+              <div>
+                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1">
+                  <input
+                    type="checkbox"
+                    checked={constraint.automatic ?? true}
+                    onChange={(e) => {
+                      const automatic = e.target.checked;
+                      // Find panel for this constraint (from rule or connected panel node)
+                      let targetPanel: Panel | null = null;
+                      if (initialRule?.panelId) {
+                        targetPanel = panels.find((p) => p.id === initialRule.panelId) || null;
+                      } else if (panels.length > 0) {
+                        // Use first panel as default
+                        targetPanel = panels[0];
+                      }
+
+                      if (automatic && targetPanel) {
+                        // Calculate height: panel height - top gap - bottom gap
+                        // Need to find gap constraints - for now use 0 if not found
+                        // In practice, gaps should be set before maxComponentHeight
+                        const calculatedHeight = targetPanel.height;
+                        updateConstraint({
+                          automatic: true,
+                          height: calculatedHeight, // Will be recalculated when gaps are set
+                        });
+                      } else {
+                        updateConstraint({
+                          automatic: false,
+                          height: constraint.height || targetPanel?.height || 0,
+                        });
+                      }
+                    }}
+                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  />
+                  <span>Automatic</span>
+                </label>
+                <p className="text-xs text-gray-500 mt-1 ml-6">
+                  When enabled, max height is calculated as: panel height - top gap - bottom gap
+                </p>
+              </div>
+              {!constraint.automatic && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Height (mm) <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    value={constraint.height || 0}
+                    onChange={(e) =>
+                      updateConstraint({
+                        height: parseFloat(e.target.value) || 0,
+                      })
+                    }
+                    min="0"
+                    step="0.1"
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Maximum total height for all components in millimeters
+                  </p>
+                </div>
+              )}
+              {constraint.automatic && (
+                <div className="p-2 bg-blue-50 rounded border border-blue-200">
+                  <p className="text-xs text-blue-800">
+                    Height will be automatically calculated when gaps are configured. 
+                    Make sure to set gap constraints (top and/or bottom) before using this constraint.
+                  </p>
+                </div>
+              )}
             </>
           )}
 

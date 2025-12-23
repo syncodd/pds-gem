@@ -35,6 +35,7 @@ export interface Combinator {
   height: number; // in mm
   depth?: number; // in mm
   componentIds: string[]; // Array of component IDs contained in this combinator
+  gaps?: number[]; // Array of gaps: gaps[0] = top gap, gaps[1..n-1] = gaps between components, gaps[n] = bottom gap
   brand: string;
   series: string;
   currentA: string; // Current in Amperes
@@ -66,7 +67,7 @@ export interface MultiPanelDesign {
 
 // Rule System Types
 export interface Constraint {
-  type: 'dimension' | 'count' | 'spacing' | 'co-usage' | 'overlap' | 'bounds' | 'noIntersectWithPanelBounds' | 'panelSizeMapping';
+  type: 'dimension' | 'count' | 'spacing' | 'co-usage' | 'overlap' | 'bounds' | 'noIntersectWithPanelBounds' | 'panelSizeMapping' | 'gap' | 'maxComponentHeight';
   property?: string;
   min?: number;
   max?: number;
@@ -79,6 +80,10 @@ export interface Constraint {
   componentType?: string; // For panelSizeMapping: base component type (e.g., 'Pirinç Baralar') - DEPRECATED, use componentTypes
   componentTypes?: string[]; // For panelSizeMapping: array of component types to apply rule to (empty = all components)
   panelSize?: number; // For panelSizeMapping: panel size in cm (e.g., 60 for 600mm panel) - if specified, overrides panel width calculation
+  placement?: 'top' | 'bottom'; // For gap constraint: placement of gap (unique per panel)
+  size?: number; // For gap constraint: gap size in mm
+  automatic?: boolean; // For maxComponentHeight constraint: whether to auto-calculate height
+  height?: number; // For maxComponentHeight constraint: max height in mm (required if automatic is false)
 }
 
 export interface Rule {

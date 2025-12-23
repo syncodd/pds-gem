@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Component, Panel, CanvasComponent } from '@/types';
 import { usePanelStore } from '@/lib/store';
+import { validateComponentHeight, calculateAvailableHeight } from '@/lib/ruleEngine';
 import {
   getDropdownsForType,
   extractAValues,
@@ -22,9 +23,7 @@ interface ProjectComponentPropertiesProps {
   panelComponents: CanvasComponent[];
   onAddComponent: (componentId: string, aValue?: string, vValue?: string, pValue?: string) => void;
   onAddCombinator?: (combinatorId: string) => void;
-  onAddGap: (height: number) => void;
   onDeleteComponent: (componentId: string) => void;
-  onUpdateGap: (gapId: string, height: number) => void;
   onClose: () => void;
 }
 
@@ -35,9 +34,7 @@ export default function ProjectComponentProperties({
   panelComponents,
   onAddComponent,
   onAddCombinator,
-  onAddGap,
   onDeleteComponent,
-  onUpdateGap,
   onClose,
 }: ProjectComponentPropertiesProps) {
   const { componentLibrary, combinatorsLibrary, rules, panelsLibrary } = usePanelStore();
@@ -47,10 +44,6 @@ export default function ProjectComponentProperties({
   const [selectedAValue, setSelectedAValue] = useState<string>('');
   const [selectedVValue, setSelectedVValue] = useState<string>('');
   const [selectedPValue, setSelectedPValue] = useState<string>('');
-  const [gapHeight, setGapHeight] = useState<string>('10');
-  const [showGapInput, setShowGapInput] = useState(false);
-  const [editingGapId, setEditingGapId] = useState<string | null>(null);
-  const [editingGapHeight, setEditingGapHeight] = useState<string>('');
 
   // Sort components by order
   const sortedComponents = useMemo(() => {
@@ -205,6 +198,103 @@ export default function ProjectComponentProperties({
     return extractPValues(typeComponents);
   }, [filteredComponentLibrary, selectedType, dropdowns.showP]);
 
+  // Calculate available height (empty area)
+  // Filter rules to match panel (by ID or width for panels copied from library)
+  const availableHeightInfo = useMemo(() => {
+    if (!selectedPanel) return null;
+    
+    // Filter rules to match this panel (similar to how we filter in ProjectCanvas)
+    const matchingRules = rules.filter((rule) => {
+      if (rule.enabled === false) return false;
+      if (rule.type !== 'panel') return false;
+      
+      // Exact ID match
+      if (rule.panelId === selectedPanel.id) return true;
+      
+      // Width-based matching (for panels copied from library)
+      // This is the key: if rule.panelId points to a library panel with same width, it matches
+      if (rule.panelId && panelsLibrary) {
+        const libraryPanel = panelsLibrary.find((p) => p.id === rule.panelId);
+        if (libraryPanel) {
+          // Match by width - this handles panels copied from library
+          if (libraryPanel.width === selectedPanel.width) return true;
+          
+          // Also match by name if widths match (additional safety check)
+          if (libraryPanel.width === selectedPanel.width && 
+              libraryPanel.name === selectedPanel.name) return true;
+        }
+      }
+      
+      // Also check if selectedPanel is from library and matches by ID
+      if (panelsLibrary) {
+        const selectedPanelInLibrary = panelsLibrary.find((p) => p.id === selectedPanel.id);
+        if (selectedPanelInLibrary && rule.panelId === selectedPanelInLibrary.id) return true;
+      }
+      
+      return false;
+    });
+    
+    // If no rules found, try a more lenient match: check if any panel rule has constraints for maxComponentHeight
+    // This is a fallback in case the panelId matching isn't working
+    if (matchingRules.length === 0 && panelsLibrary) {
+      const fallbackRules = rules.filter((rule) => {
+        if (rule.enabled === false) return false;
+        if (rule.type !== 'panel') return false;
+        // Check if this rule has maxComponentHeight constraint
+        const hasMaxHeightConstraint = rule.constraints.some(c => c.type === 'maxComponentHeight');
+        if (!hasMaxHeightConstraint) return false;
+        
+        // Try to match by width
+        if (rule.panelId) {
+          const libraryPanel = panelsLibrary.find((p) => p.id === rule.panelId);
+          if (libraryPanel && libraryPanel.width === selectedPanel.width) return true;
+        }
+        return false;
+      });
+      
+      if (fallbackRules.length > 0) {
+        return calculateAvailableHeight(
+          selectedPanel,
+          panelComponents,
+          componentLibrary,
+          combinatorsLibrary,
+          fallbackRules
+        );
+      }
+    }
+    
+    return calculateAvailableHeight(
+      selectedPanel,
+      panelComponents,
+      componentLibrary,
+      combinatorsLibrary,
+      matchingRules
+    );
+  }, [selectedPanel, panelComponents, componentLibrary, combinatorsLibrary, rules, panelsLibrary]);
+
+  // Check if selected component/combinator fits in available space
+  const canAddSelected = useMemo(() => {
+    if (!availableHeightInfo) return true; // No constraint, allow addition
+    
+    if (addMode === 'combinator') {
+      if (!selectedCombinatorId) return false;
+      const combinator = combinatorsLibrary.find((c) => c.id === selectedCombinatorId);
+      if (!combinator) return false;
+      
+      const spacing = panelComponents.filter((c) => c.componentId !== 'gap').length > 0 ? 10 : 0;
+      const requiredHeight = combinator.height + spacing;
+      return requiredHeight <= availableHeightInfo.available;
+    } else {
+      if (!selectedType) return false;
+      const component = filteredComponentLibrary.find((c) => c.type === selectedType);
+      if (!component) return false;
+      
+      const spacing = panelComponents.filter((c) => c.componentId !== 'gap').length > 0 ? 10 : 0;
+      const requiredHeight = component.height + spacing;
+      return requiredHeight <= availableHeightInfo.available;
+    }
+  }, [addMode, selectedCombinatorId, selectedType, filteredComponentLibrary, combinatorsLibrary, panelComponents, availableHeightInfo]);
+
   // Reset form when panel changes or closes
   useEffect(() => {
     if (!isOpen || !selectedPanelId) {
@@ -225,13 +315,67 @@ export default function ProjectComponentProperties({
   }, [selectedType]);
 
   const handleAdd = () => {
-    if (!selectedPanelId) return;
+    if (!selectedPanelId || !selectedPanel) return;
 
     if (addMode === 'combinator') {
       if (!selectedCombinatorId) {
         alert('Please select a combinator');
         return;
       }
+      
+      const combinator = combinatorsLibrary.find((c) => c.id === selectedCombinatorId);
+      if (!combinator) {
+        alert('Combinator not found');
+        return;
+      }
+
+      // Check if combinator fits in available space
+      if (!canAddSelected) {
+        const spacing = panelComponents.filter((c) => c.componentId !== 'gap').length > 0 ? 10 : 0;
+        const required = combinator.height + spacing;
+        alert(
+          `Cannot add combinator: ${combinator.name} (${combinator.height}mm + ${spacing}mm spacing = ${required.toFixed(1)}mm)\n` +
+          (availableHeightInfo 
+            ? `Available space: ${availableHeightInfo.available.toFixed(1)}mm\n` +
+              `Used: ${availableHeightInfo.used.toFixed(1)}mm / Max: ${availableHeightInfo.maxHeight.toFixed(1)}mm`
+            : 'No space available')
+        );
+        return;
+      }
+
+      // Filter rules to match panel (by ID or width for panels copied from library)
+      const matchingRules = rules.filter((rule) => {
+        if (rule.enabled === false) return false;
+        if (rule.type !== 'panel') return false;
+        
+        // Exact ID match
+        if (rule.panelId === selectedPanel.id) return true;
+        
+        // Width-based matching (for panels copied from library)
+        if (rule.panelId && panelsLibrary) {
+          const libraryPanel = panelsLibrary.find((p) => p.id === rule.panelId);
+          if (libraryPanel && libraryPanel.width === selectedPanel.width) return true;
+        }
+        
+        return false;
+      });
+
+      // Validate against maxComponentHeight constraint
+      const validationError = validateComponentHeight(
+        selectedPanel,
+        panelComponents,
+        componentLibrary,
+        combinatorsLibrary,
+        matchingRules,
+        combinator.height,
+        true
+      );
+
+      if (validationError) {
+        alert(validationError);
+        return;
+      }
+
       if (onAddCombinator) {
         onAddCombinator(selectedCombinatorId);
         setSelectedCombinatorId('');
@@ -240,7 +384,7 @@ export default function ProjectComponentProperties({
     }
 
     // Component mode
-    if (!selectedType || !selectedPanel) return;
+    if (!selectedType) return;
 
     // Find component from filtered library (already filtered by rules)
     const component = filteredComponentLibrary.find((c) => c.type === selectedType);
@@ -268,6 +412,36 @@ export default function ProjectComponentProperties({
       return;
     }
 
+    // Check if component fits in available space
+    if (!canAddSelected) {
+      const spacing = panelComponents.filter((c) => c.componentId !== 'gap').length > 0 ? 10 : 0;
+      const required = component.height + spacing;
+      alert(
+        `Cannot add component: ${component.name} (${component.height}mm + ${spacing}mm spacing = ${required.toFixed(1)}mm)\n` +
+        (availableHeightInfo 
+          ? `Available space: ${availableHeightInfo.available.toFixed(1)}mm\n` +
+            `Used: ${availableHeightInfo.used.toFixed(1)}mm / Max: ${availableHeightInfo.maxHeight.toFixed(1)}mm`
+          : 'No space available')
+      );
+      return;
+    }
+
+    // Validate against maxComponentHeight constraint
+    const validationError = validateComponentHeight(
+      selectedPanel,
+      panelComponents,
+      componentLibrary,
+      combinatorsLibrary,
+      rules,
+      component.height,
+      false
+    );
+
+    if (validationError) {
+      alert(validationError);
+      return;
+    }
+
     // Add component with selected values
     onAddComponent(
       component.id,
@@ -283,37 +457,6 @@ export default function ProjectComponentProperties({
     setSelectedPValue('');
   };
 
-  const handleAddGap = () => {
-    const height = parseFloat(gapHeight);
-    if (isNaN(height) || height <= 0) {
-      alert('Please enter a valid height value');
-      return;
-    }
-    onAddGap(height);
-    setGapHeight('10');
-    setShowGapInput(false);
-  };
-
-  const handleEditGap = (gapId: string, currentHeight: number) => {
-    setEditingGapId(gapId);
-    setEditingGapHeight(currentHeight.toString());
-  };
-
-  const handleSaveGap = (gapId: string) => {
-    const height = parseFloat(editingGapHeight);
-    if (isNaN(height) || height <= 0) {
-      alert('Please enter a valid height value');
-      return;
-    }
-    onUpdateGap(gapId, height);
-    setEditingGapId(null);
-    setEditingGapHeight('');
-  };
-
-  const handleCancelEditGap = () => {
-    setEditingGapId(null);
-    setEditingGapHeight('');
-  };
 
   if (!isOpen || !selectedPanelId || !selectedPanel) return null;
 
@@ -358,9 +501,12 @@ export default function ProjectComponentProperties({
                   const compDef = componentLibrary.find((c) => c.id === canvasComp.componentId);
                   const combinatorDef = combinatorsLibrary.find((c) => c.id === canvasComp.componentId);
                   const props = canvasComp.properties || {};
-                  const isGap = canvasComp.componentId === 'gap';
                   const isCombinator = !!combinatorDef;
-                  const isEditing = editingGapId === canvasComp.id;
+                  
+                  // Skip gap components - they're now handled automatically from rules
+                  if (canvasComp.componentId === 'gap') {
+                    return null;
+                  }
                   
                   return (
                     <div
@@ -368,122 +514,43 @@ export default function ProjectComponentProperties({
                       className="text-xs p-2 bg-gray-50 rounded border border-gray-200 flex items-center justify-between gap-2"
                     >
                       <div className="flex-1">
-                        {isGap ? (
-                          isEditing ? (
-                            <div className="flex items-center gap-2">
-                              <input
-                                type="number"
-                                value={editingGapHeight}
-                                onChange={(e) => setEditingGapHeight(e.target.value)}
-                                placeholder="Height (mm)"
-                                min="1"
-                                className="w-20 px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                autoFocus
-                              />
-                              <button
-                                onClick={() => handleSaveGap(canvasComp.id)}
-                                className="px-2 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600"
-                              >
-                                Save
-                              </button>
-                              <button
-                                onClick={handleCancelEditGap}
-                                className="px-2 py-1 bg-gray-200 text-gray-700 rounded text-xs hover:bg-gray-300"
-                              >
-                                Cancel
-                              </button>
-                            </div>
+                        <div>
+                          <span className="font-medium">
+                            {isCombinator ? combinatorDef?.name : compDef?.name || 'Unknown'}
+                          </span>
+                          {isCombinator ? (
+                            <span className="text-gray-500 ml-2 text-xs">(Combinator)</span>
                           ) : (
-                            <div className="flex items-center gap-2">
-                              <span className="text-gray-600">Gap ({props.gapHeight || 0}mm)</span>
-                              <button
-                                onClick={() => handleEditGap(canvasComp.id, props.gapHeight || 10)}
-                                className="px-2 py-0.5 text-blue-600 hover:bg-blue-50 rounded text-xs"
-                                title="Edit gap height"
-                              >
-                                Edit
-                              </button>
-                            </div>
-                          )
-                        ) : (
-                          <div>
-                            <span className="font-medium">
-                              {isCombinator ? combinatorDef?.name : compDef?.name || 'Unknown'}
-                            </span>
-                            {isCombinator ? (
-                              <span className="text-gray-500 ml-2 text-xs">(Combinator)</span>
-                            ) : (
-                              (props.aValue || props.vValue || props.pValue) && (
-                                <span className="text-gray-500 ml-2">
-                                  ({[props.aValue && `A: ${props.aValue}`, props.vValue && `V: ${props.vValue}`, props.pValue && `P: ${props.pValue}`].filter(Boolean).join(', ')})
-                                </span>
-                              )
-                            )}
-                          </div>
-                        )}
+                            (props.aValue || props.vValue || props.pValue) && (
+                              <span className="text-gray-500 ml-2">
+                                ({[props.aValue && `A: ${props.aValue}`, props.vValue && `V: ${props.vValue}`, props.pValue && `P: ${props.pValue}`].filter(Boolean).join(', ')})
+                              </span>
+                            )
+                          )}
+                        </div>
                       </div>
-                      {!isEditing && (
-                        <button
-                          onClick={() => onDeleteComponent(canvasComp.id)}
-                          className="px-2 py-1 text-red-600 hover:bg-red-50 rounded text-xs transition-colors"
-                          title="Delete"
+                      <button
+                        onClick={() => onDeleteComponent(canvasComp.id)}
+                        className="px-2 py-1 text-red-600 hover:bg-red-50 rounded text-xs transition-colors"
+                        title="Delete"
+                      >
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
                         >
-                          <svg
-                            className="w-4 h-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                            />
-                          </svg>
-                        </button>
-                      )}
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                          />
+                        </svg>
+                      </button>
                     </div>
                   );
                 })
-              )}
-            </div>
-            
-            {/* Add Gap Button */}
-            <div className="mt-3">
-              {!showGapInput ? (
-                <button
-                  onClick={() => setShowGapInput(true)}
-                  className="w-full px-3 py-2 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 border border-gray-300"
-                >
-                  + Add Gap
-                </button>
-              ) : (
-                <div className="flex gap-2">
-                  <input
-                    type="number"
-                    value={gapHeight}
-                    onChange={(e) => setGapHeight(e.target.value)}
-                    placeholder="Height (mm)"
-                    min="1"
-                    className="flex-1 px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <button
-                    onClick={handleAddGap}
-                    className="px-3 py-1.5 text-sm bg-blue-500 text-white rounded-md hover:bg-blue-600"
-                  >
-                    Add
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowGapInput(false);
-                      setGapHeight('10');
-                    }}
-                    className="px-3 py-1.5 text-sm bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
-                  >
-                    Cancel
-                  </button>
-                </div>
               )}
             </div>
           </div>
@@ -491,6 +558,73 @@ export default function ProjectComponentProperties({
           {/* Component Adding Form */}
           <div className="flex-1 overflow-y-auto p-4">
             <h3 className="text-sm font-semibold text-gray-700 mb-3">Add {addMode === 'component' ? 'Component' : 'Combinator'}</h3>
+            
+            {/* Max Component Height Info - Always show if constraint exists */}
+            {availableHeightInfo ? (
+              <div className={`mb-4 p-3 rounded-lg border ${
+                availableHeightInfo.available > 0 
+                  ? 'bg-blue-50 border-blue-200' 
+                  : 'bg-red-50 border-red-200'
+              }`}>
+                <div className="text-xs font-medium mb-2">
+                  Max Component Height Constraint
+                </div>
+                <div className="text-xs text-gray-700 space-y-1">
+                  <div className="flex justify-between">
+                    <span>Max Component Height:</span>
+                    <span className="font-semibold">{availableHeightInfo.maxHeight.toFixed(1)}mm</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Used Height:</span>
+                    <span>{availableHeightInfo.used.toFixed(1)}mm</span>
+                  </div>
+                  <div className="flex justify-between border-t border-gray-300 pt-1 mt-1">
+                    <span className="font-medium">Remaining:</span>
+                    <span className={`font-semibold ${
+                      availableHeightInfo.available > 0 ? 'text-blue-700' : 'text-red-700'
+                    }`}>
+                      {availableHeightInfo.available.toFixed(1)}mm
+                    </span>
+                  </div>
+                  {addMode === 'combinator' && selectedCombinatorId && (
+                    (() => {
+                      const combinator = combinatorsLibrary.find((c) => c.id === selectedCombinatorId);
+                      if (!combinator) return null;
+                      const spacing = panelComponents.filter((c) => c.componentId !== 'gap').length > 0 ? 10 : 0;
+                      const required = combinator.height + spacing;
+                      const fits = required <= availableHeightInfo.available;
+                      return (
+                        <div className={`mt-2 text-xs ${fits ? 'text-green-700' : 'text-red-700'}`}>
+                          Selected combinator: {combinator.height}mm + {spacing}mm spacing = {required.toFixed(1)}mm {fits ? '✓ Fits' : '✗ Too large'}
+                        </div>
+                      );
+                    })()
+                  )}
+                  {addMode === 'component' && selectedType && (
+                    (() => {
+                      const component = filteredComponentLibrary.find((c) => c.type === selectedType);
+                      if (!component) return null;
+                      const spacing = panelComponents.filter((c) => c.componentId !== 'gap').length > 0 ? 10 : 0;
+                      const required = component.height + spacing;
+                      const fits = required <= availableHeightInfo.available;
+                      return (
+                        <div className={`mt-2 text-xs ${fits ? 'text-green-700' : 'text-red-700'}`}>
+                          Selected component: {component.height}mm + {spacing}mm spacing = {required.toFixed(1)}mm {fits ? '✓ Fits' : '✗ Too large'}
+                        </div>
+                      );
+                    })()
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="mb-4 p-3 rounded-lg border bg-gray-50 border-gray-200">
+                <div className="text-xs font-medium mb-1">No Max Component Height Constraint</div>
+                <div className="text-xs text-gray-600">
+                  No height limit is set for this panel. You can add components freely.
+                </div>
+              </div>
+            )}
+            
             <div className="space-y-4">
             {/* Add Mode Selection */}
             <div>
@@ -632,18 +766,28 @@ export default function ProjectComponentProperties({
           <button
             onClick={handleAdd}
             disabled={
-              addMode === 'combinator'
+              !canAddSelected ||
+              (addMode === 'combinator'
                 ? !selectedCombinatorId
-                : !selectedType || (dropdowns.showA && !selectedAValue) || (dropdowns.showV && !selectedVValue) || (dropdowns.showP && !selectedPValue)
+                : !selectedType || (dropdowns.showA && !selectedAValue) || (dropdowns.showV && !selectedVValue) || (dropdowns.showP && !selectedPValue))
             }
             className={`w-full px-4 py-2 rounded-md font-medium transition-colors ${
-              (addMode === 'combinator' && selectedCombinatorId) ||
-              (addMode === 'component' && selectedType && (!dropdowns.showA || selectedAValue) && (!dropdowns.showV || selectedVValue) && (!dropdowns.showP || selectedPValue))
+              canAddSelected &&
+              ((addMode === 'combinator' && selectedCombinatorId) ||
+              (addMode === 'component' && selectedType && (!dropdowns.showA || selectedAValue) && (!dropdowns.showV || selectedVValue) && (!dropdowns.showP || selectedPValue)))
                 ? 'bg-blue-500 text-white hover:bg-blue-600'
                 : 'bg-gray-200 text-gray-400 cursor-not-allowed'
             }`}
+            title={
+              !canAddSelected && availableHeightInfo
+                ? `Not enough space. Available: ${availableHeightInfo.available.toFixed(1)}mm`
+                : undefined
+            }
           >
             Add {addMode === 'component' ? 'Component' : 'Combinator'}
+            {!canAddSelected && availableHeightInfo && (
+              <span className="ml-2 text-xs">(No space)</span>
+            )}
           </button>
         </div>
       </div>

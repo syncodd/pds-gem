@@ -179,3 +179,24 @@ export function filterComponentsByPanelWidth(
   // Filter by panel size only
   return getComponentsByPanelSize(components, panelSize);
 }
+
+/**
+ * Calculates combinator dimensions from components and gaps
+ * Width = max component width
+ * Height = sum of component heights + sum of gaps
+ */
+export function calculateCombinatorDimensions(
+  components: Component[],
+  gaps: number[] = []
+): { width: number; height: number } {
+  if (components.length === 0) {
+    return { width: 0, height: 0 };
+  }
+  
+  const width = Math.max(...components.map((c) => c.width), 0);
+  const componentHeightSum = components.reduce((sum, c) => sum + c.height, 0);
+  const gapSum = gaps.reduce((sum, g) => sum + g, 0);
+  const height = componentHeightSum + gapSum;
+  
+  return { width, height };
+}
