@@ -40,6 +40,7 @@ export interface Combinator {
   series: string;
   currentA: string; // Current in Amperes
   pole: string;
+  panelSize?: number; // Panel size in cm (e.g., 60 for 600mm panel)
 }
 
 export interface CanvasComponent {
@@ -67,7 +68,7 @@ export interface MultiPanelDesign {
 
 // Rule System Types
 export interface Constraint {
-  type: 'dimension' | 'count' | 'spacing' | 'co-usage' | 'overlap' | 'bounds' | 'noIntersectWithPanelBounds' | 'panelSizeMapping' | 'gap' | 'maxComponentHeight';
+  type: 'dimension' | 'count' | 'spacing' | 'co-usage' | 'overlap' | 'bounds' | 'noIntersectWithPanelBounds' | 'panelSizeMapping' | 'combinatorPanelSizeMapping' | 'gap' | 'maxComponentHeight';
   property?: string;
   min?: number;
   max?: number;
@@ -79,7 +80,8 @@ export interface Constraint {
   panelIds?: string[]; // For noIntersectWithPanelBounds: panel IDs to check intersection with
   componentType?: string; // For panelSizeMapping: base component type (e.g., 'Pirinç Baralar') - DEPRECATED, use componentTypes
   componentTypes?: string[]; // For panelSizeMapping: array of component types to apply rule to (empty = all components)
-  panelSize?: number; // For panelSizeMapping: panel size in cm (e.g., 60 for 600mm panel) - if specified, overrides panel width calculation
+  combinatorTypes?: string[]; // For combinatorPanelSizeMapping: array of combinator types to apply rule to (empty = all combinators)
+  panelSize?: number; // For panelSizeMapping and combinatorPanelSizeMapping: panel size in cm (e.g., 60 for 600mm panel) - if specified, overrides panel width calculation
   placement?: 'top' | 'bottom'; // For gap constraint: placement of gap (unique per panel)
   size?: number; // For gap constraint: gap size in mm
   automatic?: boolean; // For maxComponentHeight constraint: whether to auto-calculate height

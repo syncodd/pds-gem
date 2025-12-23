@@ -1,4 +1,4 @@
-import { Component } from '@/types';
+import { Component, Combinator } from '@/types';
 
 /**
  * Determines which dropdowns (A/V/P) should be shown based on component type
@@ -199,4 +199,101 @@ export function calculateCombinatorDimensions(
   const height = componentHeightSum + gapSum;
   
   return { width, height };
+}
+
+/**
+ * Gets combinators that match a specific panel size
+ */
+export function getCombinatorsByPanelSize(combinators: Combinator[], panelSize: number): Combinator[] {
+  return combinators.filter((comb) => {
+    return comb.panelSize !== undefined && Number(comb.panelSize) === panelSize;
+  });
+}
+
+/**
+ * Gets combinators of a specific type that match panel size
+ */
+export function getCombinatorsByTypeAndPanelSize(
+  combinators: Combinator[],
+  combinatorType: string,
+  panelSize: number
+): Combinator[] {
+  return combinators.filter((comb) => {
+    // For now, we'll match by name (could be extended to have a type field)
+    return comb.name === combinatorType && comb.panelSize !== undefined && Number(comb.panelSize) === panelSize;
+  });
+}
+
+/**
+ * Extracts unique brand values from combinators
+ */
+export function extractBrandValues(combinators: Combinator[]): string[] {
+  const values = new Set<string>();
+  combinators.forEach((comb) => {
+    if (comb.brand) {
+      values.add(comb.brand);
+    }
+  });
+  return Array.from(values).sort();
+}
+
+/**
+ * Extracts unique series values from combinators
+ */
+export function extractSeriesValues(combinators: Combinator[]): string[] {
+  const values = new Set<string>();
+  combinators.forEach((comb) => {
+    if (comb.series) {
+      values.add(comb.series);
+    }
+  });
+  return Array.from(values).sort();
+}
+
+/**
+ * Extracts unique current (A) values from combinators
+ */
+export function extractCurrentAValues(combinators: Combinator[]): string[] {
+  const values = new Set<string>();
+  combinators.forEach((comb) => {
+    if (comb.currentA) {
+      values.add(comb.currentA);
+    }
+  });
+  return Array.from(values).sort((a, b) => {
+    // Sort numerically if possible
+    const numA = parseFloat(a);
+    const numB = parseFloat(b);
+    if (!isNaN(numA) && !isNaN(numB)) {
+      return numA - numB;
+    }
+    return a.localeCompare(b);
+  });
+}
+
+/**
+ * Extracts unique pole values from combinators
+ */
+export function extractPoleValues(combinators: Combinator[]): string[] {
+  const values = new Set<string>();
+  combinators.forEach((comb) => {
+    if (comb.pole) {
+      values.add(comb.pole);
+    }
+  });
+  return Array.from(values).sort();
+}
+
+/**
+ * Gets unique combinator types from combinator library
+ * For now, uses combinator names as types (could be extended with a type field)
+ */
+export function getCombinatorTypes(combinators: Combinator[]): string[] {
+  const types = new Set<string>();
+  combinators.forEach((comb) => {
+    if (comb.name) {
+      types.add(comb.name);
+    }
+  });
+  return Array.from(types).sort();
 }

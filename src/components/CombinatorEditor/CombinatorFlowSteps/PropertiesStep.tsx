@@ -69,6 +69,24 @@ export default function PropertiesStep({ combinator, onChange }: PropertiesStepP
             className="w-full px-4 py-3 border border-gray-300 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Panel Size (cm)
+          </label>
+          <input
+            type="number"
+            value={combinator.panelSize || ''}
+            onChange={(e) => onChange({ panelSize: e.target.value ? parseFloat(e.target.value) : undefined })}
+            placeholder="e.g., 60"
+            min="0"
+            step="1"
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            Panel size in cm (e.g., 60 for 600mm panel)
+          </p>
+        </div>
       </div>
     </div>
   );

@@ -508,6 +508,50 @@ export const defaultComponents: Component[] = [
     model2D: '/components/sr_90.svg',
   },
 
+  // DIM Rayları (dr_)
+  {
+    id: 'dr_60',
+    name: 'DIM Rayları 60',
+    type: 'DIM Rayları',
+    category: 'dim-rails',
+    width: 510,
+    height: 95,
+    depth: 20,
+    color: '#3498db',
+    specs: {
+      panelSize: 60,
+    },
+    model2D: '/components/dr_60.svg',
+  },
+  {
+    id: 'dr_80',
+    name: 'DIM Rayları 80',
+    type: 'DIM Rayları',
+    category: 'dim-rails',
+    width: 710,
+    height: 95,
+    depth: 20,
+    color: '#3498db',
+    specs: {
+      panelSize: 80,
+    },
+    model2D: '/components/dr_80.svg',
+  },
+  {
+    id: 'dr_120',
+    name: 'DIM Rayları 120',
+    type: 'DIM Rayları',
+    category: 'dim-rails',
+    width: 1124,
+    height: 95,
+    depth: 20,
+    color: '#3498db',
+    specs: {
+      panelSize: 120,
+    },
+    model2D: '/components/dr_120.svg',
+  },
+
   // Kompak Paneli (kp_)
   {
     id: 'kp_50',
@@ -587,6 +631,7 @@ export const componentCategories = [
   'load-breaker-panels',
   'terminal-rails',
   'fuse-rails',
+  'dim-rails',
   'compact-panels',
 ] as const;
 

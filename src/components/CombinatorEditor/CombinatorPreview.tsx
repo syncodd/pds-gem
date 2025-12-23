@@ -300,6 +300,22 @@ export default function CombinatorPreview({ combinator, onUpdate, onSave }: Comb
                 <span className="ml-2 font-medium">{formData.pole || '—'}</span>
               )}
             </div>
+            <div>
+              <span className="text-gray-500">Panel Size (cm):</span>
+              {isEditing ? (
+                <input
+                  type="number"
+                  value={formData.panelSize || ''}
+                  onChange={(e) => handleUpdate({ panelSize: e.target.value ? parseFloat(e.target.value) : undefined })}
+                  placeholder="e.g., 60"
+                  min="0"
+                  step="1"
+                  className="ml-2 flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
+                />
+              ) : (
+                <span className="ml-2 font-medium">{formData.panelSize ? `${formData.panelSize} cm` : '—'}</span>
+              )}
+            </div>
           </div>
         </div>
 
@@ -324,8 +340,8 @@ export default function CombinatorPreview({ combinator, onUpdate, onSave }: Comb
         <div className="mt-4 pt-4 border-t border-gray-200">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-semibold text-gray-700">
-              Components ({formData.componentIds.length})
-            </h3>
+            Components ({formData.componentIds.length})
+          </h3>
             <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
               <input
                 type="checkbox"
@@ -423,50 +439,50 @@ export default function CombinatorPreview({ combinator, onUpdate, onSave }: Comb
                     <div key={comp.id} className="space-y-2">
                       {/* Component */}
                       <div className="flex items-center justify-between text-sm p-2 bg-gray-50 rounded border border-gray-200">
-                        <div className="flex items-center gap-2 flex-1">
-                          <div
-                            className="w-3 h-3 rounded"
+                    <div className="flex items-center gap-2 flex-1">
+                      <div
+                        className="w-3 h-3 rounded"
                             style={{ backgroundColor: comp.color }}
-                          />
-                          <div>
+                      />
+                      <div>
                             <span className="font-medium">{comp.name}</span>
                             <span className="text-gray-500 ml-2">({comp.type})</span>
-                            <span className="text-gray-500 ml-2 text-xs">
+                        <span className="text-gray-500 ml-2 text-xs">
                               {comp.width} × {comp.height}mm
-                            </span>
-                          </div>
-                        </div>
-                        {isEditing && (
-                          <div className="flex gap-2">
-                            <select
-                              className="px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                              onChange={(e) => {
-                                if (e.target.value) {
-                                  handleReplaceComponent(comp.id, e.target.value);
-                                  e.target.value = ''; // Reset selection
-                                }
-                              }}
-                              defaultValue=""
-                            >
-                              <option value="">Replace...</option>
-                              {componentLibrary
-                                .filter((c) => c.id !== comp.id) // Exclude current component
-                                .map((component) => (
-                                  <option key={component.id} value={component.id}>
-                                    {component.name}
-                                    {formData.componentIds.includes(component.id) && ' (swap)'}
-                                  </option>
-                                ))}
-                            </select>
-                            <button
-                              onClick={() => handleRemoveComponent(comp.id)}
-                              className="text-red-500 hover:text-red-700 px-2 py-1 text-xs font-medium"
-                            >
-                              Remove
-                            </button>
-                          </div>
-                        )}
+                        </span>
                       </div>
+                    </div>
+                    {isEditing && (
+                      <div className="flex gap-2">
+                        <select
+                          className="px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          onChange={(e) => {
+                            if (e.target.value) {
+                                  handleReplaceComponent(comp.id, e.target.value);
+                              e.target.value = ''; // Reset selection
+                            }
+                          }}
+                          defaultValue=""
+                        >
+                          <option value="">Replace...</option>
+                          {componentLibrary
+                                .filter((c) => c.id !== comp.id) // Exclude current component
+                            .map((component) => (
+                              <option key={component.id} value={component.id}>
+                                {component.name}
+                                {formData.componentIds.includes(component.id) && ' (swap)'}
+                              </option>
+                            ))}
+                        </select>
+                        <button
+                              onClick={() => handleRemoveComponent(comp.id)}
+                          className="text-red-500 hover:text-red-700 px-2 py-1 text-xs font-medium"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    )}
+                  </div>
                       
                       {/* Gap after component */}
                       {isEditing && !isLast && (

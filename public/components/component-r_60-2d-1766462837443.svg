@@ -1,0 +1,1223 @@
+<?xml version="1.0"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:lc="http://www.librecad.org" xmlns:xlink="http://www.w3.org/1999/xlink" width="500mm" height="85mm" viewBox="0 0 500 85">
+    <g lc:layername="0" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1">
+        <g lc:blockname="z18-0">
+            <g lc:layername="0" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1">
+                <line x1="-14895.65083051" y1="-978.30856339" x2="-14935.65083051" y2="-978.30856339"/>
+                <line x1="-14895.65083051" y1="-973.30856339" x2="-14935.65083051" y2="-973.30856339"/>
+                <line x1="-14895.65083051" y1="-1003.3085634" x2="-14935.65083051" y2="-1003.3085634"/>
+                <line x1="-14895.65083051" y1="-1008.30856339" x2="-14935.65083051" y2="-1008.30856339"/>
+                <path d="M-14915.96333051,-988.30856339 A2.5,2.5 0 0,0 -14915.96333051,-993.30856339 "/>
+                <path d="M-14925.33833051,-993.30856339 A2.5,2.5 0 0,0 -14925.33833051,-988.30856339 "/>
+                <line x1="-14925.33833051" y1="-993.30856339" x2="-14915.96333051" y2="-993.30856339"/>
+                <line x1="-14925.33833051" y1="-988.30856339" x2="-14915.96333051" y2="-988.30856339"/>
+                <path d="M-14455.33833051,-993.30856339 A2.5,2.5 0 0,0 -14455.33833051,-988.30856339 "/>
+                <path d="M-14445.96333051,-988.30856339 A2.5,2.5 0 0,0 -14445.96333051,-993.30856339 "/>
+                <line x1="-14445.96333051" y1="-993.30856339" x2="-14455.33833051" y2="-993.30856339"/>
+                <line x1="-14445.96333051" y1="-988.30856339" x2="-14455.33833051" y2="-988.30856339"/>
+                <path d="M-14895.65083051,-968.30856339 L-14843.15083051,-968.30856339 L-14843.15083051,-1007.75042149 L-14895.65083051,-1007.75042149 L-14895.65083051,-968.30856339 Z "/>
+                <path d="M-14895.65083051,-948.30856339 L-14843.15083051,-948.30856339 L-14843.15083051,-1033.30856339 L-14895.65083051,-1033.30856339 L-14895.65083051,-948.30856339 Z "/>
+                <line x1="-14895.65083051" y1="-1013.30856339" x2="-14843.15083051" y2="-1013.30856339"/>
+                <path d="M-14843.15083051,-968.30856339 L-14790.65083051,-968.30856339 L-14790.65083051,-1007.75042149 L-14843.15083051,-1007.75042149 L-14843.15083051,-968.30856339 Z "/>
+                <path d="M-14843.15083051,-948.30856339 L-14790.65083051,-948.30856339 L-14790.65083051,-1033.30856339 L-14843.15083051,-1033.30856339 L-14843.15083051,-948.30856339 Z "/>
+                <line x1="-14843.15083051" y1="-1013.30856339" x2="-14790.65083051" y2="-1013.30856339"/>
+                <path d="M-14790.65083051,-968.30856339 L-14738.15083051,-968.30856339 L-14738.15083051,-1007.75042149 L-14790.65083051,-1007.75042149 L-14790.65083051,-968.30856339 Z "/>
+                <path d="M-14790.65083051,-948.30856339 L-14738.15083051,-948.30856339 L-14738.15083051,-1033.30856339 L-14790.65083051,-1033.30856339 L-14790.65083051,-948.30856339 Z "/>
+                <line x1="-14790.65083051" y1="-1013.30856339" x2="-14738.15083051" y2="-1013.30856339"/>
+                <path d="M-14738.15083051,-968.30856339 L-14685.65083051,-968.30856339 L-14685.65083051,-1007.75042149 L-14738.15083051,-1007.75042149 L-14738.15083051,-968.30856339 Z "/>
+                <path d="M-14738.15083051,-948.30856339 L-14685.65083051,-948.30856339 L-14685.65083051,-1033.30856339 L-14738.15083051,-1033.30856339 L-14738.15083051,-948.30856339 Z "/>
+                <line x1="-14738.15083051" y1="-1013.30856339" x2="-14685.65083051" y2="-1013.30856339"/>
+                <path d="M-14685.65083051,-968.30856339 L-14633.15083051,-968.30856339 L-14633.15083051,-1007.75042149 L-14685.65083051,-1007.75042149 L-14685.65083051,-968.30856339 Z "/>
+                <path d="M-14685.65083051,-948.30856339 L-14633.15083051,-948.30856339 L-14633.15083051,-1033.30856339 L-14685.65083051,-1033.30856339 L-14685.65083051,-948.30856339 Z "/>
+                <line x1="-14685.65083051" y1="-1013.30856339" x2="-14633.15083051" y2="-1013.30856339"/>
+                <path d="M-14633.15083051,-968.30856339 L-14580.65083051,-968.30856339 L-14580.65083051,-1007.75042149 L-14633.15083051,-1007.75042149 L-14633.15083051,-968.30856339 Z "/>
+                <path d="M-14633.15083051,-948.30856339 L-14580.65083051,-948.30856339 L-14580.65083051,-1033.30856339 L-14633.15083051,-1033.30856339 L-14633.15083051,-948.30856339 Z "/>
+                <line x1="-14633.15083051" y1="-1013.30856339" x2="-14580.65083051" y2="-1013.30856339"/>
+                <line x1="-14475.65083051" y1="-978.30856339" x2="-14435.65083051" y2="-978.30856339"/>
+                <line x1="-14475.65083051" y1="-973.30856339" x2="-14435.65083051" y2="-973.30856339"/>
+                <line x1="-14475.65083051" y1="-1003.3085634" x2="-14435.65083051" y2="-1003.3085634"/>
+                <line x1="-14475.65083051" y1="-1008.30856339" x2="-14435.65083051" y2="-1008.30856339"/>
+                <path d="M-14580.65083051,-968.30856339 L-14528.15083051,-968.30856339 L-14528.15083051,-1007.75042149 L-14580.65083051,-1007.75042149 L-14580.65083051,-968.30856339 Z "/>
+                <path d="M-14580.65083051,-948.30856339 L-14528.15083051,-948.30856339 L-14528.15083051,-1033.30856339 L-14580.65083051,-1033.30856339 L-14580.65083051,-948.30856339 Z "/>
+                <line x1="-14580.65083051" y1="-1013.30856339" x2="-14528.15083051" y2="-1013.30856339"/>
+                <path d="M-14528.15083051,-968.30856339 L-14475.65083051,-968.30856339 L-14475.65083051,-1007.75042149 L-14528.15083051,-1007.75042149 L-14528.15083051,-968.30856339 Z "/>
+                <path d="M-14528.15083051,-948.30856339 L-14475.65083051,-948.30856339 L-14475.65083051,-1033.30856339 L-14528.15083051,-1033.30856339 L-14528.15083051,-948.30856339 Z "/>
+                <line x1="-14528.15083051" y1="-1013.30856339" x2="-14475.65083051" y2="-1013.30856339"/>
+                <line x1="-14895.65083051" y1="-1013.30856339" x2="-14475.65083051" y2="-1013.30856339"/>
+                <line x1="-14475.65083051" y1="-1013.30856339" x2="-14475.65083051" y2="-968.30856339"/>
+                <line x1="-14475.65083051" y1="-968.30856339" x2="-14895.65083051" y2="-968.30856339"/>
+                <line x1="-14895.65083051" y1="-968.30856339" x2="-14895.65083051" y2="-1013.30856339"/>
+            </g>
+            <g lc:layername="02_�rt�" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="1" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="14" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="A-2Y3" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="A4ANTET" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="ACIHAZ" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="AHAT" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="ALPHA" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="AM_4" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="AM_5" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="AM_6" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="AM_7" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="AM_9" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="APPAREILLAGE" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="ARMATUR" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="ASHADE" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="AXE" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="AXIS" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="AYD" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="AYDINL" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="AYDINLATMA" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="Anted_yazi" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="Antet" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="BASIC DEVICE" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="CB_T1-3P" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="CB_T1-3P_DETAIL" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="CER" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="CERCEVE" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="CONNECTIONS" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="CONSTRUCTION" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="CONTACT" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="COTATION1" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="COTATION2" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="COTATION3" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="COTATION4" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="ConnectionPoints" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="DEVICE_FIXING_HOLES" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="DISDETAY" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="DOLGU" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="DRAWING" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="DUVAR" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="Defpoints" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="E-1BLOK" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="E-EKIPMAN" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="E-POWER CIR." lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="E-SEMBOL" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="E-TEKHAT" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="E-TEKYED" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="E-YAZI" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="E3" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="E7" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="EAYD" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="EE-I�IK  TOPRAK" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="EL2" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="EL3" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="ELECTRONIC CASE" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="ELK-DIST-BOARD" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="ELKYAZI" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="EPLAN451" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="ET�KET" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="EYAZI" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="E_ANTET" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="E_Elk_Yazi(Turk)" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="FDP_CARTOUCHE" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="FDP_FDP" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="FDP_LOGO_MG" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="FDP_LOGO_SCH" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="FDP_TEXTES" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="FMULT" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="FRAME 025" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="FRAME 050" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="FRAME 070" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="G-ALTLIK" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="G-ANTET" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="H" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="HACHURES1" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="HACHURES2" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="HACHURES3" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="HACHURES4" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="HAT" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="HAT-1" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="HATGEN" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="HATKUV" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="HATTOPRAK" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="HB-ARA-HATT" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="HB-SEMBOL" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="HB-UPS-DAGITIM-TOPRAK" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="ICDETAY" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="IC_DETAY" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="IZUST" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="KAFES" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="KAPI" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="KASKAT" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="KESIT" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="KES�K" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="KLM" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="KOLTAR" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="KUVVET" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="LAM-H" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="LAYER1" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="LAYER252" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="LAYER4" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="LEJAND" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="LEJANT" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="LINYE" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="MAHAL ADI" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="MAHALISMI" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="MALZEME" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="MARKA" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="MBS_ANTET" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="MBS_Antet_Yaz�" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="MBS_CERCEVE" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="MBS_E-TEKHAT" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="MBS_EKIPMAN" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="MBS_ELK _YAZI" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="MBS_ELK_ YAZI" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="MBS_ELK_YAZI" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="MBS_E_EK�PMAN" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="MBS_E_ELK_YAZ�" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="MBS_HAT" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="MBS_HAT_AYD" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="MBS_HAT_TOPRAK" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="MBS_Hat_Kuvvet" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="MBS_LINYE" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="MBS_LOGO" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="MBS_PANO" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="MBS_TOPRAK" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="MOTOR" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="NOKTA" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="OLCU" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="OPERATORS" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="ORTU_SACI" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="Object" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="PANO" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="PATTE DE FIXATION" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="PENCERE" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="PHANTOM" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="PLOTRAHMEN" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="POINT D'ACCROCHAGE" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="POINTILLE_COURT" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="POINTILLE_LONG" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="POINTILLE_MOYEN" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="REVIZYON" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="S" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="SALT" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="SEMBOL" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="SEMBOLLER" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="SH-ELEKTRIK" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="SIEMENS- Motor tahrik mekanizmas�(biriktirilmi� yay enerjili)" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="SIVA" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="SONDERTEXT" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="SYMBOL" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="T2BUSBAR" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="TEKHAT" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="TERMINAL" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="TERMINAL SCHROUD" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="TEXTE" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="TOPRAKLAMA" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="TextInce @8" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="Y" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="Y-CEILING MALL CORRIDOR" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="YAZI" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="YAZI-1" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="Yazd�rma Aral���" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="Yaz�" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="e-hat" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="kapak" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="kolon" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="recep" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="taban_sac�" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1">
+                <line x1="-14860.65083051" y1="-982.45281541" x2="-14860.65083051" y2="-948.30856339"/>
+                <line x1="-14878.15083051" y1="-982.45281541" x2="-14878.15083051" y2="-948.30856339"/>
+                <circle cx="-14886.90083051" cy="-956.31285476" r="4.26519171"/>
+                <circle cx="-14869.40083051" cy="-956.31285476" r="4.26519171"/>
+                <circle cx="-14851.90083051" cy="-956.31285476" r="4.26519171"/>
+                <circle cx="-14886.90083051" cy="-1025.30946657" r="4.26519171"/>
+                <circle cx="-14869.40083051" cy="-1025.30946657" r="4.26519171"/>
+                <circle cx="-14851.90083051" cy="-1025.30946657" r="4.26519171"/>
+                <line x1="-14855.21171794" y1="-1022.65949692" x2="-14852.63784594" y2="-1025.23336892"/>
+                <line x1="-14854.41976594" y1="-1021.86754492" x2="-14851.84589394" y2="-1024.44141692"/>
+                <line x1="-14851.84589394" y1="-1026.02532092" x2="-14849.37102994" y2="-1028.50018492"/>
+                <line x1="-14851.05394194" y1="-1025.23336892" x2="-14848.48006994" y2="-1027.80724092"/>
+                <line x1="-14849.76700594" y1="-1023.94643292" x2="-14851.05394194" y2="-1025.23336892"/>
+                <line x1="-14850.55895794" y1="-1023.15448092" x2="-14851.74688594" y2="-1024.34240892"/>
+                <line x1="-14849.76700594" y1="-1023.94643292" x2="-14850.55895794" y2="-1023.15448092"/>
+                <line x1="-14851.84589394" y1="-1026.02532092" x2="-14853.13282994" y2="-1027.31225692"/>
+                <line x1="-14853.92478194" y1="-1026.52030492" x2="-14853.13282994" y2="-1027.31225692"/>
+                <line x1="-14852.63784594" y1="-1025.23336892" x2="-14853.92478194" y2="-1026.52030492"/>
+                <line x1="-14872.71171794" y1="-1022.65949692" x2="-14870.13784594" y2="-1025.23336892"/>
+                <line x1="-14871.91976594" y1="-1021.86754492" x2="-14869.34589394" y2="-1024.44141692"/>
+                <line x1="-14869.34589394" y1="-1026.02532092" x2="-14866.87102994" y2="-1028.50018492"/>
+                <line x1="-14868.55394194" y1="-1025.23336892" x2="-14865.98006994" y2="-1027.80724092"/>
+                <line x1="-14867.26700594" y1="-1023.94643292" x2="-14868.55394194" y2="-1025.23336892"/>
+                <line x1="-14868.05895794" y1="-1023.15448092" x2="-14869.24688594" y2="-1024.34240892"/>
+                <line x1="-14867.26700594" y1="-1023.94643292" x2="-14868.05895794" y2="-1023.15448092"/>
+                <line x1="-14869.34589394" y1="-1026.02532092" x2="-14870.63282994" y2="-1027.31225692"/>
+                <line x1="-14871.42478194" y1="-1026.52030492" x2="-14870.63282994" y2="-1027.31225692"/>
+                <line x1="-14870.13784594" y1="-1025.23336892" x2="-14871.42478194" y2="-1026.52030492"/>
+                <line x1="-14890.21171794" y1="-1022.65949692" x2="-14887.63784594" y2="-1025.23336892"/>
+                <line x1="-14889.41976594" y1="-1021.86754492" x2="-14886.84589394" y2="-1024.44141692"/>
+                <line x1="-14886.84589394" y1="-1026.02532092" x2="-14884.37102994" y2="-1028.50018492"/>
+                <line x1="-14886.05394194" y1="-1025.23336892" x2="-14883.48006994" y2="-1027.80724092"/>
+                <line x1="-14884.76700594" y1="-1023.94643292" x2="-14886.05394194" y2="-1025.23336892"/>
+                <line x1="-14885.55895794" y1="-1023.15448092" x2="-14886.74688594" y2="-1024.34240892"/>
+                <line x1="-14884.76700594" y1="-1023.94643292" x2="-14885.55895794" y2="-1023.15448092"/>
+                <line x1="-14886.84589394" y1="-1026.02532092" x2="-14888.13282994" y2="-1027.31225692"/>
+                <line x1="-14888.92478194" y1="-1026.52030492" x2="-14888.13282994" y2="-1027.31225692"/>
+                <line x1="-14887.63784594" y1="-1025.23336892" x2="-14888.92478194" y2="-1026.52030492"/>
+                <line x1="-14890.21171794" y1="-953.66288511" x2="-14887.63784594" y2="-956.23675711"/>
+                <line x1="-14889.41976594" y1="-952.87093311" x2="-14886.84589394" y2="-955.44480511"/>
+                <line x1="-14886.84589394" y1="-957.02870911" x2="-14884.37102994" y2="-959.50357311"/>
+                <line x1="-14886.05394194" y1="-956.23675711" x2="-14883.48006994" y2="-958.81062911"/>
+                <line x1="-14884.76700594" y1="-954.94982111" x2="-14886.05394194" y2="-956.23675711"/>
+                <line x1="-14885.55895794" y1="-954.15786911" x2="-14886.74688594" y2="-955.34579711"/>
+                <line x1="-14884.76700594" y1="-954.94982111" x2="-14885.55895794" y2="-954.15786911"/>
+                <line x1="-14886.84589394" y1="-957.02870911" x2="-14888.13282994" y2="-958.31564511"/>
+                <line x1="-14888.92478194" y1="-957.52369311" x2="-14888.13282994" y2="-958.31564511"/>
+                <line x1="-14887.63784594" y1="-956.23675711" x2="-14888.92478194" y2="-957.52369311"/>
+                <line x1="-14872.71171794" y1="-953.66288511" x2="-14870.13784594" y2="-956.23675711"/>
+                <line x1="-14871.91976594" y1="-952.87093311" x2="-14869.34589394" y2="-955.44480511"/>
+                <line x1="-14869.34589394" y1="-957.02870911" x2="-14866.87102994" y2="-959.50357311"/>
+                <line x1="-14868.55394194" y1="-956.23675711" x2="-14865.98006994" y2="-958.81062911"/>
+                <line x1="-14867.26700594" y1="-954.94982111" x2="-14868.55394194" y2="-956.23675711"/>
+                <line x1="-14868.05895794" y1="-954.15786911" x2="-14869.24688594" y2="-955.34579711"/>
+                <line x1="-14867.26700594" y1="-954.94982111" x2="-14868.05895794" y2="-954.15786911"/>
+                <line x1="-14869.34589394" y1="-957.02870911" x2="-14870.63282994" y2="-958.31564511"/>
+                <line x1="-14871.42478194" y1="-957.52369311" x2="-14870.63282994" y2="-958.31564511"/>
+                <line x1="-14870.13784594" y1="-956.23675711" x2="-14871.42478194" y2="-957.52369311"/>
+                <line x1="-14855.21171794" y1="-953.66288511" x2="-14852.63784594" y2="-956.23675711"/>
+                <line x1="-14854.41976594" y1="-952.87093311" x2="-14851.84589394" y2="-955.44480511"/>
+                <line x1="-14851.84589394" y1="-957.02870911" x2="-14849.37102994" y2="-959.50357311"/>
+                <line x1="-14851.05394194" y1="-956.23675711" x2="-14848.48006994" y2="-958.81062911"/>
+                <line x1="-14849.76700594" y1="-954.94982111" x2="-14851.05394194" y2="-956.23675711"/>
+                <line x1="-14850.55895794" y1="-954.15786911" x2="-14851.74688594" y2="-955.34579711"/>
+                <line x1="-14849.76700594" y1="-954.94982111" x2="-14850.55895794" y2="-954.15786911"/>
+                <line x1="-14851.84589394" y1="-957.02870911" x2="-14853.13282994" y2="-958.31564511"/>
+                <line x1="-14853.92478194" y1="-957.52369311" x2="-14853.13282994" y2="-958.31564511"/>
+                <line x1="-14852.63784594" y1="-956.23675711" x2="-14853.92478194" y2="-957.52369311"/>
+                <line x1="-14808.15083051" y1="-982.45281541" x2="-14808.15083051" y2="-948.30856339"/>
+                <line x1="-14825.65083051" y1="-982.45281541" x2="-14825.65083051" y2="-948.30856339"/>
+                <circle cx="-14834.40083051" cy="-956.31285476" r="4.26519171"/>
+                <circle cx="-14816.90083051" cy="-956.31285476" r="4.26519171"/>
+                <circle cx="-14799.40083051" cy="-956.31285476" r="4.26519171"/>
+                <circle cx="-14834.40083051" cy="-1025.30946657" r="4.26519171"/>
+                <circle cx="-14816.90083051" cy="-1025.30946657" r="4.26519171"/>
+                <circle cx="-14799.40083051" cy="-1025.30946657" r="4.26519171"/>
+                <line x1="-14802.71171794" y1="-1022.65949692" x2="-14800.13784594" y2="-1025.23336892"/>
+                <line x1="-14801.91976594" y1="-1021.86754492" x2="-14799.34589394" y2="-1024.44141692"/>
+                <line x1="-14799.34589394" y1="-1026.02532092" x2="-14796.87102994" y2="-1028.50018492"/>
+                <line x1="-14798.55394194" y1="-1025.23336892" x2="-14795.98006994" y2="-1027.80724092"/>
+                <line x1="-14797.26700594" y1="-1023.94643292" x2="-14798.55394194" y2="-1025.23336892"/>
+                <line x1="-14798.05895794" y1="-1023.15448092" x2="-14799.24688594" y2="-1024.34240892"/>
+                <line x1="-14797.26700594" y1="-1023.94643292" x2="-14798.05895794" y2="-1023.15448092"/>
+                <line x1="-14799.34589394" y1="-1026.02532092" x2="-14800.63282994" y2="-1027.31225692"/>
+                <line x1="-14801.42478194" y1="-1026.52030492" x2="-14800.63282994" y2="-1027.31225692"/>
+                <line x1="-14800.13784594" y1="-1025.23336892" x2="-14801.42478194" y2="-1026.52030492"/>
+                <line x1="-14820.21171794" y1="-1022.65949692" x2="-14817.63784594" y2="-1025.23336892"/>
+                <line x1="-14819.41976594" y1="-1021.86754492" x2="-14816.84589394" y2="-1024.44141692"/>
+                <line x1="-14816.84589394" y1="-1026.02532092" x2="-14814.37102994" y2="-1028.50018492"/>
+                <line x1="-14816.05394194" y1="-1025.23336892" x2="-14813.48006994" y2="-1027.80724092"/>
+                <line x1="-14814.76700594" y1="-1023.94643292" x2="-14816.05394194" y2="-1025.23336892"/>
+                <line x1="-14815.55895794" y1="-1023.15448092" x2="-14816.74688594" y2="-1024.34240892"/>
+                <line x1="-14814.76700594" y1="-1023.94643292" x2="-14815.55895794" y2="-1023.15448092"/>
+                <line x1="-14816.84589394" y1="-1026.02532092" x2="-14818.13282994" y2="-1027.31225692"/>
+                <line x1="-14818.92478194" y1="-1026.52030492" x2="-14818.13282994" y2="-1027.31225692"/>
+                <line x1="-14817.63784594" y1="-1025.23336892" x2="-14818.92478194" y2="-1026.52030492"/>
+                <line x1="-14837.71171794" y1="-1022.65949692" x2="-14835.13784594" y2="-1025.23336892"/>
+                <line x1="-14836.91976594" y1="-1021.86754492" x2="-14834.34589394" y2="-1024.44141692"/>
+                <line x1="-14834.34589394" y1="-1026.02532092" x2="-14831.87102994" y2="-1028.50018492"/>
+                <line x1="-14833.55394194" y1="-1025.23336892" x2="-14830.98006994" y2="-1027.80724092"/>
+                <line x1="-14832.26700594" y1="-1023.94643292" x2="-14833.55394194" y2="-1025.23336892"/>
+                <line x1="-14833.05895794" y1="-1023.15448092" x2="-14834.24688594" y2="-1024.34240892"/>
+                <line x1="-14832.26700594" y1="-1023.94643292" x2="-14833.05895794" y2="-1023.15448092"/>
+                <line x1="-14834.34589394" y1="-1026.02532092" x2="-14835.63282994" y2="-1027.31225692"/>
+                <line x1="-14836.42478194" y1="-1026.52030492" x2="-14835.63282994" y2="-1027.31225692"/>
+                <line x1="-14835.13784594" y1="-1025.23336892" x2="-14836.42478194" y2="-1026.52030492"/>
+                <line x1="-14837.71171794" y1="-953.66288511" x2="-14835.13784594" y2="-956.23675711"/>
+                <line x1="-14836.91976594" y1="-952.87093311" x2="-14834.34589394" y2="-955.44480511"/>
+                <line x1="-14834.34589394" y1="-957.02870911" x2="-14831.87102994" y2="-959.50357311"/>
+                <line x1="-14833.55394194" y1="-956.23675711" x2="-14830.98006994" y2="-958.81062911"/>
+                <line x1="-14832.26700594" y1="-954.94982111" x2="-14833.55394194" y2="-956.23675711"/>
+                <line x1="-14833.05895794" y1="-954.15786911" x2="-14834.24688594" y2="-955.34579711"/>
+                <line x1="-14832.26700594" y1="-954.94982111" x2="-14833.05895794" y2="-954.15786911"/>
+                <line x1="-14834.34589394" y1="-957.02870911" x2="-14835.63282994" y2="-958.31564511"/>
+                <line x1="-14836.42478194" y1="-957.52369311" x2="-14835.63282994" y2="-958.31564511"/>
+                <line x1="-14835.13784594" y1="-956.23675711" x2="-14836.42478194" y2="-957.52369311"/>
+                <line x1="-14820.21171794" y1="-953.66288511" x2="-14817.63784594" y2="-956.23675711"/>
+                <line x1="-14819.41976594" y1="-952.87093311" x2="-14816.84589394" y2="-955.44480511"/>
+                <line x1="-14816.84589394" y1="-957.02870911" x2="-14814.37102994" y2="-959.50357311"/>
+                <line x1="-14816.05394194" y1="-956.23675711" x2="-14813.48006994" y2="-958.81062911"/>
+                <line x1="-14814.76700594" y1="-954.94982111" x2="-14816.05394194" y2="-956.23675711"/>
+                <line x1="-14815.55895794" y1="-954.15786911" x2="-14816.74688594" y2="-955.34579711"/>
+                <line x1="-14814.76700594" y1="-954.94982111" x2="-14815.55895794" y2="-954.15786911"/>
+                <line x1="-14816.84589394" y1="-957.02870911" x2="-14818.13282994" y2="-958.31564511"/>
+                <line x1="-14818.92478194" y1="-957.52369311" x2="-14818.13282994" y2="-958.31564511"/>
+                <line x1="-14817.63784594" y1="-956.23675711" x2="-14818.92478194" y2="-957.52369311"/>
+                <line x1="-14802.71171794" y1="-953.66288511" x2="-14800.13784594" y2="-956.23675711"/>
+                <line x1="-14801.91976594" y1="-952.87093311" x2="-14799.34589394" y2="-955.44480511"/>
+                <line x1="-14799.34589394" y1="-957.02870911" x2="-14796.87102994" y2="-959.50357311"/>
+                <line x1="-14798.55394194" y1="-956.23675711" x2="-14795.98006994" y2="-958.81062911"/>
+                <line x1="-14797.26700594" y1="-954.94982111" x2="-14798.55394194" y2="-956.23675711"/>
+                <line x1="-14798.05895794" y1="-954.15786911" x2="-14799.24688594" y2="-955.34579711"/>
+                <line x1="-14797.26700594" y1="-954.94982111" x2="-14798.05895794" y2="-954.15786911"/>
+                <line x1="-14799.34589394" y1="-957.02870911" x2="-14800.63282994" y2="-958.31564511"/>
+                <line x1="-14801.42478194" y1="-957.52369311" x2="-14800.63282994" y2="-958.31564511"/>
+                <line x1="-14800.13784594" y1="-956.23675711" x2="-14801.42478194" y2="-957.52369311"/>
+                <line x1="-14755.65083051" y1="-982.45281541" x2="-14755.65083051" y2="-948.30856339"/>
+                <line x1="-14773.15083051" y1="-982.45281541" x2="-14773.15083051" y2="-948.30856339"/>
+                <circle cx="-14781.90083051" cy="-956.31285476" r="4.26519171"/>
+                <circle cx="-14764.40083051" cy="-956.31285476" r="4.26519171"/>
+                <circle cx="-14746.90083051" cy="-956.31285476" r="4.26519171"/>
+                <circle cx="-14781.90083051" cy="-1025.30946657" r="4.26519171"/>
+                <circle cx="-14764.40083051" cy="-1025.30946657" r="4.26519171"/>
+                <circle cx="-14746.90083051" cy="-1025.30946657" r="4.26519171"/>
+                <line x1="-14750.21171794" y1="-1022.65949692" x2="-14747.63784594" y2="-1025.23336892"/>
+                <line x1="-14749.41976594" y1="-1021.86754492" x2="-14746.84589394" y2="-1024.44141692"/>
+                <line x1="-14746.84589394" y1="-1026.02532092" x2="-14744.37102994" y2="-1028.50018492"/>
+                <line x1="-14746.05394194" y1="-1025.23336892" x2="-14743.48006994" y2="-1027.80724092"/>
+                <line x1="-14744.76700594" y1="-1023.94643292" x2="-14746.05394194" y2="-1025.23336892"/>
+                <line x1="-14745.55895794" y1="-1023.15448092" x2="-14746.74688594" y2="-1024.34240892"/>
+                <line x1="-14744.76700594" y1="-1023.94643292" x2="-14745.55895794" y2="-1023.15448092"/>
+                <line x1="-14746.84589394" y1="-1026.02532092" x2="-14748.13282994" y2="-1027.31225692"/>
+                <line x1="-14748.92478194" y1="-1026.52030492" x2="-14748.13282994" y2="-1027.31225692"/>
+                <line x1="-14747.63784594" y1="-1025.23336892" x2="-14748.92478194" y2="-1026.52030492"/>
+                <line x1="-14767.71171794" y1="-1022.65949692" x2="-14765.13784594" y2="-1025.23336892"/>
+                <line x1="-14766.91976594" y1="-1021.86754492" x2="-14764.34589394" y2="-1024.44141692"/>
+                <line x1="-14764.34589394" y1="-1026.02532092" x2="-14761.87102994" y2="-1028.50018492"/>
+                <line x1="-14763.55394194" y1="-1025.23336892" x2="-14760.98006994" y2="-1027.80724092"/>
+                <line x1="-14762.26700594" y1="-1023.94643292" x2="-14763.55394194" y2="-1025.23336892"/>
+                <line x1="-14763.05895794" y1="-1023.15448092" x2="-14764.24688594" y2="-1024.34240892"/>
+                <line x1="-14762.26700594" y1="-1023.94643292" x2="-14763.05895794" y2="-1023.15448092"/>
+                <line x1="-14764.34589394" y1="-1026.02532092" x2="-14765.63282994" y2="-1027.31225692"/>
+                <line x1="-14766.42478194" y1="-1026.52030492" x2="-14765.63282994" y2="-1027.31225692"/>
+                <line x1="-14765.13784594" y1="-1025.23336892" x2="-14766.42478194" y2="-1026.52030492"/>
+                <line x1="-14785.21171794" y1="-1022.65949692" x2="-14782.63784594" y2="-1025.23336892"/>
+                <line x1="-14784.41976594" y1="-1021.86754492" x2="-14781.84589394" y2="-1024.44141692"/>
+                <line x1="-14781.84589394" y1="-1026.02532092" x2="-14779.37102994" y2="-1028.50018492"/>
+                <line x1="-14781.05394194" y1="-1025.23336892" x2="-14778.48006994" y2="-1027.80724092"/>
+                <line x1="-14779.76700594" y1="-1023.94643292" x2="-14781.05394194" y2="-1025.23336892"/>
+                <line x1="-14780.55895794" y1="-1023.15448092" x2="-14781.74688594" y2="-1024.34240892"/>
+                <line x1="-14779.76700594" y1="-1023.94643292" x2="-14780.55895794" y2="-1023.15448092"/>
+                <line x1="-14781.84589394" y1="-1026.02532092" x2="-14783.13282994" y2="-1027.31225692"/>
+                <line x1="-14783.92478194" y1="-1026.52030492" x2="-14783.13282994" y2="-1027.31225692"/>
+                <line x1="-14782.63784594" y1="-1025.23336892" x2="-14783.92478194" y2="-1026.52030492"/>
+                <line x1="-14785.21171794" y1="-953.66288511" x2="-14782.63784594" y2="-956.23675711"/>
+                <line x1="-14784.41976594" y1="-952.87093311" x2="-14781.84589394" y2="-955.44480511"/>
+                <line x1="-14781.84589394" y1="-957.02870911" x2="-14779.37102994" y2="-959.50357311"/>
+                <line x1="-14781.05394194" y1="-956.23675711" x2="-14778.48006994" y2="-958.81062911"/>
+                <line x1="-14779.76700594" y1="-954.94982111" x2="-14781.05394194" y2="-956.23675711"/>
+                <line x1="-14780.55895794" y1="-954.15786911" x2="-14781.74688594" y2="-955.34579711"/>
+                <line x1="-14779.76700594" y1="-954.94982111" x2="-14780.55895794" y2="-954.15786911"/>
+                <line x1="-14781.84589394" y1="-957.02870911" x2="-14783.13282994" y2="-958.31564511"/>
+                <line x1="-14783.92478194" y1="-957.52369311" x2="-14783.13282994" y2="-958.31564511"/>
+                <line x1="-14782.63784594" y1="-956.23675711" x2="-14783.92478194" y2="-957.52369311"/>
+                <line x1="-14767.71171794" y1="-953.66288511" x2="-14765.13784594" y2="-956.23675711"/>
+                <line x1="-14766.91976594" y1="-952.87093311" x2="-14764.34589394" y2="-955.44480511"/>
+                <line x1="-14764.34589394" y1="-957.02870911" x2="-14761.87102994" y2="-959.50357311"/>
+                <line x1="-14763.55394194" y1="-956.23675711" x2="-14760.98006994" y2="-958.81062911"/>
+                <line x1="-14762.26700594" y1="-954.94982111" x2="-14763.55394194" y2="-956.23675711"/>
+                <line x1="-14763.05895794" y1="-954.15786911" x2="-14764.24688594" y2="-955.34579711"/>
+                <line x1="-14762.26700594" y1="-954.94982111" x2="-14763.05895794" y2="-954.15786911"/>
+                <line x1="-14764.34589394" y1="-957.02870911" x2="-14765.63282994" y2="-958.31564511"/>
+                <line x1="-14766.42478194" y1="-957.52369311" x2="-14765.63282994" y2="-958.31564511"/>
+                <line x1="-14765.13784594" y1="-956.23675711" x2="-14766.42478194" y2="-957.52369311"/>
+                <line x1="-14750.21171794" y1="-953.66288511" x2="-14747.63784594" y2="-956.23675711"/>
+                <line x1="-14749.41976594" y1="-952.87093311" x2="-14746.84589394" y2="-955.44480511"/>
+                <line x1="-14746.84589394" y1="-957.02870911" x2="-14744.37102994" y2="-959.50357311"/>
+                <line x1="-14746.05394194" y1="-956.23675711" x2="-14743.48006994" y2="-958.81062911"/>
+                <line x1="-14744.76700594" y1="-954.94982111" x2="-14746.05394194" y2="-956.23675711"/>
+                <line x1="-14745.55895794" y1="-954.15786911" x2="-14746.74688594" y2="-955.34579711"/>
+                <line x1="-14744.76700594" y1="-954.94982111" x2="-14745.55895794" y2="-954.15786911"/>
+                <line x1="-14746.84589394" y1="-957.02870911" x2="-14748.13282994" y2="-958.31564511"/>
+                <line x1="-14748.92478194" y1="-957.52369311" x2="-14748.13282994" y2="-958.31564511"/>
+                <line x1="-14747.63784594" y1="-956.23675711" x2="-14748.92478194" y2="-957.52369311"/>
+                <line x1="-14703.15083051" y1="-982.45281541" x2="-14703.15083051" y2="-948.30856339"/>
+                <line x1="-14720.65083051" y1="-982.45281541" x2="-14720.65083051" y2="-948.30856339"/>
+                <circle cx="-14729.40083051" cy="-956.31285476" r="4.26519171"/>
+                <circle cx="-14711.90083051" cy="-956.31285476" r="4.26519171"/>
+                <circle cx="-14694.40083051" cy="-956.31285476" r="4.26519171"/>
+                <circle cx="-14729.40083051" cy="-1025.30946657" r="4.26519171"/>
+                <circle cx="-14711.90083051" cy="-1025.30946657" r="4.26519171"/>
+                <circle cx="-14694.40083051" cy="-1025.30946657" r="4.26519171"/>
+                <line x1="-14697.71171794" y1="-1022.65949692" x2="-14695.13784594" y2="-1025.23336892"/>
+                <line x1="-14696.91976594" y1="-1021.86754492" x2="-14694.34589394" y2="-1024.44141692"/>
+                <line x1="-14694.34589394" y1="-1026.02532092" x2="-14691.87102994" y2="-1028.50018492"/>
+                <line x1="-14693.55394194" y1="-1025.23336892" x2="-14690.98006994" y2="-1027.80724092"/>
+                <line x1="-14692.26700594" y1="-1023.94643292" x2="-14693.55394194" y2="-1025.23336892"/>
+                <line x1="-14693.05895794" y1="-1023.15448092" x2="-14694.24688594" y2="-1024.34240892"/>
+                <line x1="-14692.26700594" y1="-1023.94643292" x2="-14693.05895794" y2="-1023.15448092"/>
+                <line x1="-14694.34589394" y1="-1026.02532092" x2="-14695.63282994" y2="-1027.31225692"/>
+                <line x1="-14696.42478194" y1="-1026.52030492" x2="-14695.63282994" y2="-1027.31225692"/>
+                <line x1="-14695.13784594" y1="-1025.23336892" x2="-14696.42478194" y2="-1026.52030492"/>
+                <line x1="-14715.21171794" y1="-1022.65949692" x2="-14712.63784594" y2="-1025.23336892"/>
+                <line x1="-14714.41976594" y1="-1021.86754492" x2="-14711.84589394" y2="-1024.44141692"/>
+                <line x1="-14711.84589394" y1="-1026.02532092" x2="-14709.37102994" y2="-1028.50018492"/>
+                <line x1="-14711.05394194" y1="-1025.23336892" x2="-14708.48006994" y2="-1027.80724092"/>
+                <line x1="-14709.76700594" y1="-1023.94643292" x2="-14711.05394194" y2="-1025.23336892"/>
+                <line x1="-14710.55895794" y1="-1023.15448092" x2="-14711.74688594" y2="-1024.34240892"/>
+                <line x1="-14709.76700594" y1="-1023.94643292" x2="-14710.55895794" y2="-1023.15448092"/>
+                <line x1="-14711.84589394" y1="-1026.02532092" x2="-14713.13282994" y2="-1027.31225692"/>
+                <line x1="-14713.92478194" y1="-1026.52030492" x2="-14713.13282994" y2="-1027.31225692"/>
+                <line x1="-14712.63784594" y1="-1025.23336892" x2="-14713.92478194" y2="-1026.52030492"/>
+                <line x1="-14732.71171794" y1="-1022.65949692" x2="-14730.13784594" y2="-1025.23336892"/>
+                <line x1="-14731.91976594" y1="-1021.86754492" x2="-14729.34589394" y2="-1024.44141692"/>
+                <line x1="-14729.34589394" y1="-1026.02532092" x2="-14726.87102994" y2="-1028.50018492"/>
+                <line x1="-14728.55394194" y1="-1025.23336892" x2="-14725.98006994" y2="-1027.80724092"/>
+                <line x1="-14727.26700594" y1="-1023.94643292" x2="-14728.55394194" y2="-1025.23336892"/>
+                <line x1="-14728.05895794" y1="-1023.15448092" x2="-14729.24688594" y2="-1024.34240892"/>
+                <line x1="-14727.26700594" y1="-1023.94643292" x2="-14728.05895794" y2="-1023.15448092"/>
+                <line x1="-14729.34589394" y1="-1026.02532092" x2="-14730.63282994" y2="-1027.31225692"/>
+                <line x1="-14731.42478194" y1="-1026.52030492" x2="-14730.63282994" y2="-1027.31225692"/>
+                <line x1="-14730.13784594" y1="-1025.23336892" x2="-14731.42478194" y2="-1026.52030492"/>
+                <line x1="-14732.71171794" y1="-953.66288511" x2="-14730.13784594" y2="-956.23675711"/>
+                <line x1="-14731.91976594" y1="-952.87093311" x2="-14729.34589394" y2="-955.44480511"/>
+                <line x1="-14729.34589394" y1="-957.02870911" x2="-14726.87102994" y2="-959.50357311"/>
+                <line x1="-14728.55394194" y1="-956.23675711" x2="-14725.98006994" y2="-958.81062911"/>
+                <line x1="-14727.26700594" y1="-954.94982111" x2="-14728.55394194" y2="-956.23675711"/>
+                <line x1="-14728.05895794" y1="-954.15786911" x2="-14729.24688594" y2="-955.34579711"/>
+                <line x1="-14727.26700594" y1="-954.94982111" x2="-14728.05895794" y2="-954.15786911"/>
+                <line x1="-14729.34589394" y1="-957.02870911" x2="-14730.63282994" y2="-958.31564511"/>
+                <line x1="-14731.42478194" y1="-957.52369311" x2="-14730.63282994" y2="-958.31564511"/>
+                <line x1="-14730.13784594" y1="-956.23675711" x2="-14731.42478194" y2="-957.52369311"/>
+                <line x1="-14715.21171794" y1="-953.66288511" x2="-14712.63784594" y2="-956.23675711"/>
+                <line x1="-14714.41976594" y1="-952.87093311" x2="-14711.84589394" y2="-955.44480511"/>
+                <line x1="-14711.84589394" y1="-957.02870911" x2="-14709.37102994" y2="-959.50357311"/>
+                <line x1="-14711.05394194" y1="-956.23675711" x2="-14708.48006994" y2="-958.81062911"/>
+                <line x1="-14709.76700594" y1="-954.94982111" x2="-14711.05394194" y2="-956.23675711"/>
+                <line x1="-14710.55895794" y1="-954.15786911" x2="-14711.74688594" y2="-955.34579711"/>
+                <line x1="-14709.76700594" y1="-954.94982111" x2="-14710.55895794" y2="-954.15786911"/>
+                <line x1="-14711.84589394" y1="-957.02870911" x2="-14713.13282994" y2="-958.31564511"/>
+                <line x1="-14713.92478194" y1="-957.52369311" x2="-14713.13282994" y2="-958.31564511"/>
+                <line x1="-14712.63784594" y1="-956.23675711" x2="-14713.92478194" y2="-957.52369311"/>
+                <line x1="-14697.71171794" y1="-953.66288511" x2="-14695.13784594" y2="-956.23675711"/>
+                <line x1="-14696.91976594" y1="-952.87093311" x2="-14694.34589394" y2="-955.44480511"/>
+                <line x1="-14694.34589394" y1="-957.02870911" x2="-14691.87102994" y2="-959.50357311"/>
+                <line x1="-14693.55394194" y1="-956.23675711" x2="-14690.98006994" y2="-958.81062911"/>
+                <line x1="-14692.26700594" y1="-954.94982111" x2="-14693.55394194" y2="-956.23675711"/>
+                <line x1="-14693.05895794" y1="-954.15786911" x2="-14694.24688594" y2="-955.34579711"/>
+                <line x1="-14692.26700594" y1="-954.94982111" x2="-14693.05895794" y2="-954.15786911"/>
+                <line x1="-14694.34589394" y1="-957.02870911" x2="-14695.63282994" y2="-958.31564511"/>
+                <line x1="-14696.42478194" y1="-957.52369311" x2="-14695.63282994" y2="-958.31564511"/>
+                <line x1="-14695.13784594" y1="-956.23675711" x2="-14696.42478194" y2="-957.52369311"/>
+                <line x1="-14650.65083051" y1="-982.45281541" x2="-14650.65083051" y2="-948.30856339"/>
+                <line x1="-14668.15083051" y1="-982.45281541" x2="-14668.15083051" y2="-948.30856339"/>
+                <circle cx="-14676.90083051" cy="-956.31285476" r="4.26519171"/>
+                <circle cx="-14659.40083051" cy="-956.31285476" r="4.26519171"/>
+                <circle cx="-14641.90083051" cy="-956.31285476" r="4.26519171"/>
+                <circle cx="-14676.90083051" cy="-1025.30946657" r="4.26519171"/>
+                <circle cx="-14659.40083051" cy="-1025.30946657" r="4.26519171"/>
+                <circle cx="-14641.90083051" cy="-1025.30946657" r="4.26519171"/>
+                <line x1="-14645.21171794" y1="-1022.65949692" x2="-14642.63784594" y2="-1025.23336892"/>
+                <line x1="-14644.41976594" y1="-1021.86754492" x2="-14641.84589394" y2="-1024.44141692"/>
+                <line x1="-14641.84589394" y1="-1026.02532092" x2="-14639.37102994" y2="-1028.50018492"/>
+                <line x1="-14641.05394194" y1="-1025.23336892" x2="-14638.48006994" y2="-1027.80724092"/>
+                <line x1="-14639.76700594" y1="-1023.94643292" x2="-14641.05394194" y2="-1025.23336892"/>
+                <line x1="-14640.55895794" y1="-1023.15448092" x2="-14641.74688594" y2="-1024.34240892"/>
+                <line x1="-14639.76700594" y1="-1023.94643292" x2="-14640.55895794" y2="-1023.15448092"/>
+                <line x1="-14641.84589394" y1="-1026.02532092" x2="-14643.13282994" y2="-1027.31225692"/>
+                <line x1="-14643.92478194" y1="-1026.52030492" x2="-14643.13282994" y2="-1027.31225692"/>
+                <line x1="-14642.63784594" y1="-1025.23336892" x2="-14643.92478194" y2="-1026.52030492"/>
+                <line x1="-14662.71171794" y1="-1022.65949692" x2="-14660.13784594" y2="-1025.23336892"/>
+                <line x1="-14661.91976594" y1="-1021.86754492" x2="-14659.34589394" y2="-1024.44141692"/>
+                <line x1="-14659.34589394" y1="-1026.02532092" x2="-14656.87102994" y2="-1028.50018492"/>
+                <line x1="-14658.55394194" y1="-1025.23336892" x2="-14655.98006994" y2="-1027.80724092"/>
+                <line x1="-14657.26700594" y1="-1023.94643292" x2="-14658.55394194" y2="-1025.23336892"/>
+                <line x1="-14658.05895794" y1="-1023.15448092" x2="-14659.24688594" y2="-1024.34240892"/>
+                <line x1="-14657.26700594" y1="-1023.94643292" x2="-14658.05895794" y2="-1023.15448092"/>
+                <line x1="-14659.34589394" y1="-1026.02532092" x2="-14660.63282994" y2="-1027.31225692"/>
+                <line x1="-14661.42478194" y1="-1026.52030492" x2="-14660.63282994" y2="-1027.31225692"/>
+                <line x1="-14660.13784594" y1="-1025.23336892" x2="-14661.42478194" y2="-1026.52030492"/>
+                <line x1="-14680.21171794" y1="-1022.65949692" x2="-14677.63784594" y2="-1025.23336892"/>
+                <line x1="-14679.41976594" y1="-1021.86754492" x2="-14676.84589394" y2="-1024.44141692"/>
+                <line x1="-14676.84589394" y1="-1026.02532092" x2="-14674.37102994" y2="-1028.50018492"/>
+                <line x1="-14676.05394194" y1="-1025.23336892" x2="-14673.48006994" y2="-1027.80724092"/>
+                <line x1="-14674.76700594" y1="-1023.94643292" x2="-14676.05394194" y2="-1025.23336892"/>
+                <line x1="-14675.55895794" y1="-1023.15448092" x2="-14676.74688594" y2="-1024.34240892"/>
+                <line x1="-14674.76700594" y1="-1023.94643292" x2="-14675.55895794" y2="-1023.15448092"/>
+                <line x1="-14676.84589394" y1="-1026.02532092" x2="-14678.13282994" y2="-1027.31225692"/>
+                <line x1="-14678.92478194" y1="-1026.52030492" x2="-14678.13282994" y2="-1027.31225692"/>
+                <line x1="-14677.63784594" y1="-1025.23336892" x2="-14678.92478194" y2="-1026.52030492"/>
+                <line x1="-14680.21171794" y1="-953.66288511" x2="-14677.63784594" y2="-956.23675711"/>
+                <line x1="-14679.41976594" y1="-952.87093311" x2="-14676.84589394" y2="-955.44480511"/>
+                <line x1="-14676.84589394" y1="-957.02870911" x2="-14674.37102994" y2="-959.50357311"/>
+                <line x1="-14676.05394194" y1="-956.23675711" x2="-14673.48006994" y2="-958.81062911"/>
+                <line x1="-14674.76700594" y1="-954.94982111" x2="-14676.05394194" y2="-956.23675711"/>
+                <line x1="-14675.55895794" y1="-954.15786911" x2="-14676.74688594" y2="-955.34579711"/>
+                <line x1="-14674.76700594" y1="-954.94982111" x2="-14675.55895794" y2="-954.15786911"/>
+                <line x1="-14676.84589394" y1="-957.02870911" x2="-14678.13282994" y2="-958.31564511"/>
+                <line x1="-14678.92478194" y1="-957.52369311" x2="-14678.13282994" y2="-958.31564511"/>
+                <line x1="-14677.63784594" y1="-956.23675711" x2="-14678.92478194" y2="-957.52369311"/>
+                <line x1="-14662.71171794" y1="-953.66288511" x2="-14660.13784594" y2="-956.23675711"/>
+                <line x1="-14661.91976594" y1="-952.87093311" x2="-14659.34589394" y2="-955.44480511"/>
+                <line x1="-14659.34589394" y1="-957.02870911" x2="-14656.87102994" y2="-959.50357311"/>
+                <line x1="-14658.55394194" y1="-956.23675711" x2="-14655.98006994" y2="-958.81062911"/>
+                <line x1="-14657.26700594" y1="-954.94982111" x2="-14658.55394194" y2="-956.23675711"/>
+                <line x1="-14658.05895794" y1="-954.15786911" x2="-14659.24688594" y2="-955.34579711"/>
+                <line x1="-14657.26700594" y1="-954.94982111" x2="-14658.05895794" y2="-954.15786911"/>
+                <line x1="-14659.34589394" y1="-957.02870911" x2="-14660.63282994" y2="-958.31564511"/>
+                <line x1="-14661.42478194" y1="-957.52369311" x2="-14660.63282994" y2="-958.31564511"/>
+                <line x1="-14660.13784594" y1="-956.23675711" x2="-14661.42478194" y2="-957.52369311"/>
+                <line x1="-14645.21171794" y1="-953.66288511" x2="-14642.63784594" y2="-956.23675711"/>
+                <line x1="-14644.41976594" y1="-952.87093311" x2="-14641.84589394" y2="-955.44480511"/>
+                <line x1="-14641.84589394" y1="-957.02870911" x2="-14639.37102994" y2="-959.50357311"/>
+                <line x1="-14641.05394194" y1="-956.23675711" x2="-14638.48006994" y2="-958.81062911"/>
+                <line x1="-14639.76700594" y1="-954.94982111" x2="-14641.05394194" y2="-956.23675711"/>
+                <line x1="-14640.55895794" y1="-954.15786911" x2="-14641.74688594" y2="-955.34579711"/>
+                <line x1="-14639.76700594" y1="-954.94982111" x2="-14640.55895794" y2="-954.15786911"/>
+                <line x1="-14641.84589394" y1="-957.02870911" x2="-14643.13282994" y2="-958.31564511"/>
+                <line x1="-14643.92478194" y1="-957.52369311" x2="-14643.13282994" y2="-958.31564511"/>
+                <line x1="-14642.63784594" y1="-956.23675711" x2="-14643.92478194" y2="-957.52369311"/>
+                <line x1="-14598.15083051" y1="-982.45281541" x2="-14598.15083051" y2="-948.30856339"/>
+                <line x1="-14615.65083051" y1="-982.45281541" x2="-14615.65083051" y2="-948.30856339"/>
+                <circle cx="-14624.40083051" cy="-956.31285476" r="4.26519171"/>
+                <circle cx="-14606.90083051" cy="-956.31285476" r="4.26519171"/>
+                <circle cx="-14589.40083051" cy="-956.31285476" r="4.26519171"/>
+                <circle cx="-14624.40083051" cy="-1025.30946657" r="4.26519171"/>
+                <circle cx="-14606.90083051" cy="-1025.30946657" r="4.26519171"/>
+                <circle cx="-14589.40083051" cy="-1025.30946657" r="4.26519171"/>
+                <line x1="-14592.71171794" y1="-1022.65949692" x2="-14590.13784594" y2="-1025.23336892"/>
+                <line x1="-14591.91976594" y1="-1021.86754492" x2="-14589.34589394" y2="-1024.44141692"/>
+                <line x1="-14589.34589394" y1="-1026.02532092" x2="-14586.87102994" y2="-1028.50018492"/>
+                <line x1="-14588.55394194" y1="-1025.23336892" x2="-14585.98006994" y2="-1027.80724092"/>
+                <line x1="-14587.26700594" y1="-1023.94643292" x2="-14588.55394194" y2="-1025.23336892"/>
+                <line x1="-14588.05895794" y1="-1023.15448092" x2="-14589.24688594" y2="-1024.34240892"/>
+                <line x1="-14587.26700594" y1="-1023.94643292" x2="-14588.05895794" y2="-1023.15448092"/>
+                <line x1="-14589.34589394" y1="-1026.02532092" x2="-14590.63282994" y2="-1027.31225692"/>
+                <line x1="-14591.42478194" y1="-1026.52030492" x2="-14590.63282994" y2="-1027.31225692"/>
+                <line x1="-14590.13784594" y1="-1025.23336892" x2="-14591.42478194" y2="-1026.52030492"/>
+                <line x1="-14610.21171794" y1="-1022.65949692" x2="-14607.63784594" y2="-1025.23336892"/>
+                <line x1="-14609.41976594" y1="-1021.86754492" x2="-14606.84589394" y2="-1024.44141692"/>
+                <line x1="-14606.84589394" y1="-1026.02532092" x2="-14604.37102994" y2="-1028.50018492"/>
+                <line x1="-14606.05394194" y1="-1025.23336892" x2="-14603.48006994" y2="-1027.80724092"/>
+                <line x1="-14604.76700594" y1="-1023.94643292" x2="-14606.05394194" y2="-1025.23336892"/>
+                <line x1="-14605.55895794" y1="-1023.15448092" x2="-14606.74688594" y2="-1024.34240892"/>
+                <line x1="-14604.76700594" y1="-1023.94643292" x2="-14605.55895794" y2="-1023.15448092"/>
+                <line x1="-14606.84589394" y1="-1026.02532092" x2="-14608.13282994" y2="-1027.31225692"/>
+                <line x1="-14608.92478194" y1="-1026.52030492" x2="-14608.13282994" y2="-1027.31225692"/>
+                <line x1="-14607.63784594" y1="-1025.23336892" x2="-14608.92478194" y2="-1026.52030492"/>
+                <line x1="-14627.71171794" y1="-1022.65949692" x2="-14625.13784594" y2="-1025.23336892"/>
+                <line x1="-14626.91976594" y1="-1021.86754492" x2="-14624.34589394" y2="-1024.44141692"/>
+                <line x1="-14624.34589394" y1="-1026.02532092" x2="-14621.87102994" y2="-1028.50018492"/>
+                <line x1="-14623.55394194" y1="-1025.23336892" x2="-14620.98006994" y2="-1027.80724092"/>
+                <line x1="-14622.26700594" y1="-1023.94643292" x2="-14623.55394194" y2="-1025.23336892"/>
+                <line x1="-14623.05895794" y1="-1023.15448092" x2="-14624.24688594" y2="-1024.34240892"/>
+                <line x1="-14622.26700594" y1="-1023.94643292" x2="-14623.05895794" y2="-1023.15448092"/>
+                <line x1="-14624.34589394" y1="-1026.02532092" x2="-14625.63282994" y2="-1027.31225692"/>
+                <line x1="-14626.42478194" y1="-1026.52030492" x2="-14625.63282994" y2="-1027.31225692"/>
+                <line x1="-14625.13784594" y1="-1025.23336892" x2="-14626.42478194" y2="-1026.52030492"/>
+                <line x1="-14627.71171794" y1="-953.66288511" x2="-14625.13784594" y2="-956.23675711"/>
+                <line x1="-14626.91976594" y1="-952.87093311" x2="-14624.34589394" y2="-955.44480511"/>
+                <line x1="-14624.34589394" y1="-957.02870911" x2="-14621.87102994" y2="-959.50357311"/>
+                <line x1="-14623.55394194" y1="-956.23675711" x2="-14620.98006994" y2="-958.81062911"/>
+                <line x1="-14622.26700594" y1="-954.94982111" x2="-14623.55394194" y2="-956.23675711"/>
+                <line x1="-14623.05895794" y1="-954.15786911" x2="-14624.24688594" y2="-955.34579711"/>
+                <line x1="-14622.26700594" y1="-954.94982111" x2="-14623.05895794" y2="-954.15786911"/>
+                <line x1="-14624.34589394" y1="-957.02870911" x2="-14625.63282994" y2="-958.31564511"/>
+                <line x1="-14626.42478194" y1="-957.52369311" x2="-14625.63282994" y2="-958.31564511"/>
+                <line x1="-14625.13784594" y1="-956.23675711" x2="-14626.42478194" y2="-957.52369311"/>
+                <line x1="-14610.21171794" y1="-953.66288511" x2="-14607.63784594" y2="-956.23675711"/>
+                <line x1="-14609.41976594" y1="-952.87093311" x2="-14606.84589394" y2="-955.44480511"/>
+                <line x1="-14606.84589394" y1="-957.02870911" x2="-14604.37102994" y2="-959.50357311"/>
+                <line x1="-14606.05394194" y1="-956.23675711" x2="-14603.48006994" y2="-958.81062911"/>
+                <line x1="-14604.76700594" y1="-954.94982111" x2="-14606.05394194" y2="-956.23675711"/>
+                <line x1="-14605.55895794" y1="-954.15786911" x2="-14606.74688594" y2="-955.34579711"/>
+                <line x1="-14604.76700594" y1="-954.94982111" x2="-14605.55895794" y2="-954.15786911"/>
+                <line x1="-14606.84589394" y1="-957.02870911" x2="-14608.13282994" y2="-958.31564511"/>
+                <line x1="-14608.92478194" y1="-957.52369311" x2="-14608.13282994" y2="-958.31564511"/>
+                <line x1="-14607.63784594" y1="-956.23675711" x2="-14608.92478194" y2="-957.52369311"/>
+                <line x1="-14592.71171794" y1="-953.66288511" x2="-14590.13784594" y2="-956.23675711"/>
+                <line x1="-14591.91976594" y1="-952.87093311" x2="-14589.34589394" y2="-955.44480511"/>
+                <line x1="-14589.34589394" y1="-957.02870911" x2="-14586.87102994" y2="-959.50357311"/>
+                <line x1="-14588.55394194" y1="-956.23675711" x2="-14585.98006994" y2="-958.81062911"/>
+                <line x1="-14587.26700594" y1="-954.94982111" x2="-14588.55394194" y2="-956.23675711"/>
+                <line x1="-14588.05895794" y1="-954.15786911" x2="-14589.24688594" y2="-955.34579711"/>
+                <line x1="-14587.26700594" y1="-954.94982111" x2="-14588.05895794" y2="-954.15786911"/>
+                <line x1="-14589.34589394" y1="-957.02870911" x2="-14590.63282994" y2="-958.31564511"/>
+                <line x1="-14591.42478194" y1="-957.52369311" x2="-14590.63282994" y2="-958.31564511"/>
+                <line x1="-14590.13784594" y1="-956.23675711" x2="-14591.42478194" y2="-957.52369311"/>
+                <line x1="-14545.65083051" y1="-982.45281541" x2="-14545.65083051" y2="-948.30856339"/>
+                <line x1="-14563.15083051" y1="-982.45281541" x2="-14563.15083051" y2="-948.30856339"/>
+                <circle cx="-14571.90083051" cy="-956.31285476" r="4.26519171"/>
+                <circle cx="-14554.40083051" cy="-956.31285476" r="4.26519171"/>
+                <circle cx="-14536.90083051" cy="-956.31285476" r="4.26519171"/>
+                <circle cx="-14571.90083051" cy="-1025.30946657" r="4.26519171"/>
+                <circle cx="-14554.40083051" cy="-1025.30946657" r="4.26519171"/>
+                <circle cx="-14536.90083051" cy="-1025.30946657" r="4.26519171"/>
+                <line x1="-14540.21171794" y1="-1022.65949692" x2="-14537.63784594" y2="-1025.23336892"/>
+                <line x1="-14539.41976594" y1="-1021.86754492" x2="-14536.84589394" y2="-1024.44141692"/>
+                <line x1="-14536.84589394" y1="-1026.02532092" x2="-14534.37102994" y2="-1028.50018492"/>
+                <line x1="-14536.05394194" y1="-1025.23336892" x2="-14533.48006994" y2="-1027.80724092"/>
+                <line x1="-14534.76700594" y1="-1023.94643292" x2="-14536.05394194" y2="-1025.23336892"/>
+                <line x1="-14535.55895794" y1="-1023.15448092" x2="-14536.74688594" y2="-1024.34240892"/>
+                <line x1="-14534.76700594" y1="-1023.94643292" x2="-14535.55895794" y2="-1023.15448092"/>
+                <line x1="-14536.84589394" y1="-1026.02532092" x2="-14538.13282994" y2="-1027.31225692"/>
+                <line x1="-14538.92478194" y1="-1026.52030492" x2="-14538.13282994" y2="-1027.31225692"/>
+                <line x1="-14537.63784594" y1="-1025.23336892" x2="-14538.92478194" y2="-1026.52030492"/>
+                <line x1="-14557.71171794" y1="-1022.65949692" x2="-14555.13784594" y2="-1025.23336892"/>
+                <line x1="-14556.91976594" y1="-1021.86754492" x2="-14554.34589394" y2="-1024.44141692"/>
+                <line x1="-14554.34589394" y1="-1026.02532092" x2="-14551.87102994" y2="-1028.50018492"/>
+                <line x1="-14553.55394194" y1="-1025.23336892" x2="-14550.98006994" y2="-1027.80724092"/>
+                <line x1="-14552.26700594" y1="-1023.94643292" x2="-14553.55394194" y2="-1025.23336892"/>
+                <line x1="-14553.05895794" y1="-1023.15448092" x2="-14554.24688594" y2="-1024.34240892"/>
+                <line x1="-14552.26700594" y1="-1023.94643292" x2="-14553.05895794" y2="-1023.15448092"/>
+                <line x1="-14554.34589394" y1="-1026.02532092" x2="-14555.63282994" y2="-1027.31225692"/>
+                <line x1="-14556.42478194" y1="-1026.52030492" x2="-14555.63282994" y2="-1027.31225692"/>
+                <line x1="-14555.13784594" y1="-1025.23336892" x2="-14556.42478194" y2="-1026.52030492"/>
+                <line x1="-14575.21171794" y1="-1022.65949692" x2="-14572.63784594" y2="-1025.23336892"/>
+                <line x1="-14574.41976594" y1="-1021.86754492" x2="-14571.84589394" y2="-1024.44141692"/>
+                <line x1="-14571.84589394" y1="-1026.02532092" x2="-14569.37102994" y2="-1028.50018492"/>
+                <line x1="-14571.05394194" y1="-1025.23336892" x2="-14568.48006994" y2="-1027.80724092"/>
+                <line x1="-14569.76700594" y1="-1023.94643292" x2="-14571.05394194" y2="-1025.23336892"/>
+                <line x1="-14570.55895794" y1="-1023.15448092" x2="-14571.74688594" y2="-1024.34240892"/>
+                <line x1="-14569.76700594" y1="-1023.94643292" x2="-14570.55895794" y2="-1023.15448092"/>
+                <line x1="-14571.84589394" y1="-1026.02532092" x2="-14573.13282994" y2="-1027.31225692"/>
+                <line x1="-14573.92478194" y1="-1026.52030492" x2="-14573.13282994" y2="-1027.31225692"/>
+                <line x1="-14572.63784594" y1="-1025.23336892" x2="-14573.92478194" y2="-1026.52030492"/>
+                <line x1="-14575.21171794" y1="-953.66288511" x2="-14572.63784594" y2="-956.23675711"/>
+                <line x1="-14574.41976594" y1="-952.87093311" x2="-14571.84589394" y2="-955.44480511"/>
+                <line x1="-14571.84589394" y1="-957.02870911" x2="-14569.37102994" y2="-959.50357311"/>
+                <line x1="-14571.05394194" y1="-956.23675711" x2="-14568.48006994" y2="-958.81062911"/>
+                <line x1="-14569.76700594" y1="-954.94982111" x2="-14571.05394194" y2="-956.23675711"/>
+                <line x1="-14570.55895794" y1="-954.15786911" x2="-14571.74688594" y2="-955.34579711"/>
+                <line x1="-14569.76700594" y1="-954.94982111" x2="-14570.55895794" y2="-954.15786911"/>
+                <line x1="-14571.84589394" y1="-957.02870911" x2="-14573.13282994" y2="-958.31564511"/>
+                <line x1="-14573.92478194" y1="-957.52369311" x2="-14573.13282994" y2="-958.31564511"/>
+                <line x1="-14572.63784594" y1="-956.23675711" x2="-14573.92478194" y2="-957.52369311"/>
+                <line x1="-14557.71171794" y1="-953.66288511" x2="-14555.13784594" y2="-956.23675711"/>
+                <line x1="-14556.91976594" y1="-952.87093311" x2="-14554.34589394" y2="-955.44480511"/>
+                <line x1="-14554.34589394" y1="-957.02870911" x2="-14551.87102994" y2="-959.50357311"/>
+                <line x1="-14553.55394194" y1="-956.23675711" x2="-14550.98006994" y2="-958.81062911"/>
+                <line x1="-14552.26700594" y1="-954.94982111" x2="-14553.55394194" y2="-956.23675711"/>
+                <line x1="-14553.05895794" y1="-954.15786911" x2="-14554.24688594" y2="-955.34579711"/>
+                <line x1="-14552.26700594" y1="-954.94982111" x2="-14553.05895794" y2="-954.15786911"/>
+                <line x1="-14554.34589394" y1="-957.02870911" x2="-14555.63282994" y2="-958.31564511"/>
+                <line x1="-14556.42478194" y1="-957.52369311" x2="-14555.63282994" y2="-958.31564511"/>
+                <line x1="-14555.13784594" y1="-956.23675711" x2="-14556.42478194" y2="-957.52369311"/>
+                <line x1="-14540.21171794" y1="-953.66288511" x2="-14537.63784594" y2="-956.23675711"/>
+                <line x1="-14539.41976594" y1="-952.87093311" x2="-14536.84589394" y2="-955.44480511"/>
+                <line x1="-14536.84589394" y1="-957.02870911" x2="-14534.37102994" y2="-959.50357311"/>
+                <line x1="-14536.05394194" y1="-956.23675711" x2="-14533.48006994" y2="-958.81062911"/>
+                <line x1="-14534.76700594" y1="-954.94982111" x2="-14536.05394194" y2="-956.23675711"/>
+                <line x1="-14535.55895794" y1="-954.15786911" x2="-14536.74688594" y2="-955.34579711"/>
+                <line x1="-14534.76700594" y1="-954.94982111" x2="-14535.55895794" y2="-954.15786911"/>
+                <line x1="-14536.84589394" y1="-957.02870911" x2="-14538.13282994" y2="-958.31564511"/>
+                <line x1="-14538.92478194" y1="-957.52369311" x2="-14538.13282994" y2="-958.31564511"/>
+                <line x1="-14537.63784594" y1="-956.23675711" x2="-14538.92478194" y2="-957.52369311"/>
+                <line x1="-14493.15083051" y1="-982.45281541" x2="-14493.15083051" y2="-948.30856339"/>
+                <line x1="-14510.65083051" y1="-982.45281541" x2="-14510.65083051" y2="-948.30856339"/>
+                <circle cx="-14519.40083051" cy="-956.31285476" r="4.26519171"/>
+                <circle cx="-14501.90083051" cy="-956.31285476" r="4.26519171"/>
+                <circle cx="-14484.40083051" cy="-956.31285476" r="4.26519171"/>
+                <circle cx="-14519.40083051" cy="-1025.30946657" r="4.26519171"/>
+                <circle cx="-14501.90083051" cy="-1025.30946657" r="4.26519171"/>
+                <circle cx="-14484.40083051" cy="-1025.30946657" r="4.26519171"/>
+                <line x1="-14487.71171794" y1="-1022.65949692" x2="-14485.13784594" y2="-1025.23336892"/>
+                <line x1="-14486.91976594" y1="-1021.86754492" x2="-14484.34589394" y2="-1024.44141692"/>
+                <line x1="-14484.34589394" y1="-1026.02532092" x2="-14481.87102994" y2="-1028.50018492"/>
+                <line x1="-14483.55394194" y1="-1025.23336892" x2="-14480.98006994" y2="-1027.80724092"/>
+                <line x1="-14482.26700594" y1="-1023.94643292" x2="-14483.55394194" y2="-1025.23336892"/>
+                <line x1="-14483.05895794" y1="-1023.15448092" x2="-14484.24688594" y2="-1024.34240892"/>
+                <line x1="-14482.26700594" y1="-1023.94643292" x2="-14483.05895794" y2="-1023.15448092"/>
+                <line x1="-14484.34589394" y1="-1026.02532092" x2="-14485.63282994" y2="-1027.31225692"/>
+                <line x1="-14486.42478194" y1="-1026.52030492" x2="-14485.63282994" y2="-1027.31225692"/>
+                <line x1="-14485.13784594" y1="-1025.23336892" x2="-14486.42478194" y2="-1026.52030492"/>
+                <line x1="-14505.21171794" y1="-1022.65949692" x2="-14502.63784594" y2="-1025.23336892"/>
+                <line x1="-14504.41976594" y1="-1021.86754492" x2="-14501.84589394" y2="-1024.44141692"/>
+                <line x1="-14501.84589394" y1="-1026.02532092" x2="-14499.37102994" y2="-1028.50018492"/>
+                <line x1="-14501.05394194" y1="-1025.23336892" x2="-14498.48006994" y2="-1027.80724092"/>
+                <line x1="-14499.76700594" y1="-1023.94643292" x2="-14501.05394194" y2="-1025.23336892"/>
+                <line x1="-14500.55895794" y1="-1023.15448092" x2="-14501.74688594" y2="-1024.34240892"/>
+                <line x1="-14499.76700594" y1="-1023.94643292" x2="-14500.55895794" y2="-1023.15448092"/>
+                <line x1="-14501.84589394" y1="-1026.02532092" x2="-14503.13282994" y2="-1027.31225692"/>
+                <line x1="-14503.92478194" y1="-1026.52030492" x2="-14503.13282994" y2="-1027.31225692"/>
+                <line x1="-14502.63784594" y1="-1025.23336892" x2="-14503.92478194" y2="-1026.52030492"/>
+                <line x1="-14522.71171794" y1="-1022.65949692" x2="-14520.13784594" y2="-1025.23336892"/>
+                <line x1="-14521.91976594" y1="-1021.86754492" x2="-14519.34589394" y2="-1024.44141692"/>
+                <line x1="-14519.34589394" y1="-1026.02532092" x2="-14516.87102994" y2="-1028.50018492"/>
+                <line x1="-14518.55394194" y1="-1025.23336892" x2="-14515.98006994" y2="-1027.80724092"/>
+                <line x1="-14517.26700594" y1="-1023.94643292" x2="-14518.55394194" y2="-1025.23336892"/>
+                <line x1="-14518.05895794" y1="-1023.15448092" x2="-14519.24688594" y2="-1024.34240892"/>
+                <line x1="-14517.26700594" y1="-1023.94643292" x2="-14518.05895794" y2="-1023.15448092"/>
+                <line x1="-14519.34589394" y1="-1026.02532092" x2="-14520.63282994" y2="-1027.31225692"/>
+                <line x1="-14521.42478194" y1="-1026.52030492" x2="-14520.63282994" y2="-1027.31225692"/>
+                <line x1="-14520.13784594" y1="-1025.23336892" x2="-14521.42478194" y2="-1026.52030492"/>
+                <line x1="-14522.71171794" y1="-953.66288511" x2="-14520.13784594" y2="-956.23675711"/>
+                <line x1="-14521.91976594" y1="-952.87093311" x2="-14519.34589394" y2="-955.44480511"/>
+                <line x1="-14519.34589394" y1="-957.02870911" x2="-14516.87102994" y2="-959.50357311"/>
+                <line x1="-14518.55394194" y1="-956.23675711" x2="-14515.98006994" y2="-958.81062911"/>
+                <line x1="-14517.26700594" y1="-954.94982111" x2="-14518.55394194" y2="-956.23675711"/>
+                <line x1="-14518.05895794" y1="-954.15786911" x2="-14519.24688594" y2="-955.34579711"/>
+                <line x1="-14517.26700594" y1="-954.94982111" x2="-14518.05895794" y2="-954.15786911"/>
+                <line x1="-14519.34589394" y1="-957.02870911" x2="-14520.63282994" y2="-958.31564511"/>
+                <line x1="-14521.42478194" y1="-957.52369311" x2="-14520.63282994" y2="-958.31564511"/>
+                <line x1="-14520.13784594" y1="-956.23675711" x2="-14521.42478194" y2="-957.52369311"/>
+                <line x1="-14505.21171794" y1="-953.66288511" x2="-14502.63784594" y2="-956.23675711"/>
+                <line x1="-14504.41976594" y1="-952.87093311" x2="-14501.84589394" y2="-955.44480511"/>
+                <line x1="-14501.84589394" y1="-957.02870911" x2="-14499.37102994" y2="-959.50357311"/>
+                <line x1="-14501.05394194" y1="-956.23675711" x2="-14498.48006994" y2="-958.81062911"/>
+                <line x1="-14499.76700594" y1="-954.94982111" x2="-14501.05394194" y2="-956.23675711"/>
+                <line x1="-14500.55895794" y1="-954.15786911" x2="-14501.74688594" y2="-955.34579711"/>
+                <line x1="-14499.76700594" y1="-954.94982111" x2="-14500.55895794" y2="-954.15786911"/>
+                <line x1="-14501.84589394" y1="-957.02870911" x2="-14503.13282994" y2="-958.31564511"/>
+                <line x1="-14503.92478194" y1="-957.52369311" x2="-14503.13282994" y2="-958.31564511"/>
+                <line x1="-14502.63784594" y1="-956.23675711" x2="-14503.92478194" y2="-957.52369311"/>
+                <line x1="-14487.71171794" y1="-953.66288511" x2="-14485.13784594" y2="-956.23675711"/>
+                <line x1="-14486.91976594" y1="-952.87093311" x2="-14484.34589394" y2="-955.44480511"/>
+                <line x1="-14484.34589394" y1="-957.02870911" x2="-14481.87102994" y2="-959.50357311"/>
+                <line x1="-14483.55394194" y1="-956.23675711" x2="-14480.98006994" y2="-958.81062911"/>
+                <line x1="-14482.26700594" y1="-954.94982111" x2="-14483.55394194" y2="-956.23675711"/>
+                <line x1="-14483.05895794" y1="-954.15786911" x2="-14484.24688594" y2="-955.34579711"/>
+                <line x1="-14482.26700594" y1="-954.94982111" x2="-14483.05895794" y2="-954.15786911"/>
+                <line x1="-14484.34589394" y1="-957.02870911" x2="-14485.63282994" y2="-958.31564511"/>
+                <line x1="-14486.42478194" y1="-957.52369311" x2="-14485.63282994" y2="-958.31564511"/>
+                <line x1="-14485.13784594" y1="-956.23675711" x2="-14486.42478194" y2="-957.52369311"/>
+            </g>
+            <g lc:layername="tefris" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="�NY�Z" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="�alt Malzeme" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="�l��" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+            <g lc:layername="�rt�_sac�" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1">
+                <line x1="-14844.92042278" y1="-988.55846647" x2="-14844.18489561" y2="-988.55846647"/>
+                <line x1="-14844.18489561" y1="-988.55846647" x2="-14844.18489561" y2="-982.45281541"/>
+                <line x1="-14844.18489561" y1="-983.80856339" x2="-14843.15083051" y2="-983.80856339"/>
+                <line x1="-14844.92042278" y1="-995.45557683" x2="-14844.92042278" y2="-988.55846647"/>
+                <line x1="-14858.88123824" y1="-988.55846647" x2="-14859.61676541" y2="-988.55846647"/>
+                <line x1="-14861.68489561" y1="-988.55846647" x2="-14859.61676541" y2="-988.55846647"/>
+                <line x1="-14858.88123824" y1="-995.45557683" x2="-14858.88123824" y2="-988.55846647"/>
+                <line x1="-14862.42042278" y1="-995.45557683" x2="-14862.42042278" y2="-988.55846647"/>
+                <line x1="-14862.42042278" y1="-988.55846647" x2="-14861.68489561" y2="-988.55846647"/>
+                <line x1="-14894.61676541" y1="-982.45281541" x2="-14844.18489561" y2="-982.45281541"/>
+                <line x1="-14894.61676541" y1="-988.55846647" x2="-14894.61676541" y2="-982.45281541"/>
+                <line x1="-14893.88123824" y1="-988.55846647" x2="-14894.61676541" y2="-988.55846647"/>
+                <line x1="-14893.88123824" y1="-995.45557683" x2="-14893.88123824" y2="-988.55846647"/>
+                <line x1="-14895.65083051" y1="-983.80856339" x2="-14894.61676541" y2="-983.80856339"/>
+                <line x1="-14876.38123824" y1="-995.45557683" x2="-14876.38123824" y2="-988.55846647"/>
+                <line x1="-14879.92042278" y1="-988.55846647" x2="-14879.18489561" y2="-988.55846647"/>
+                <line x1="-14879.18489561" y1="-988.55846647" x2="-14877.11676541" y2="-988.55846647"/>
+                <line x1="-14876.38123824" y1="-988.55846647" x2="-14877.11676541" y2="-988.55846647"/>
+                <line x1="-14879.92042278" y1="-995.45557683" x2="-14879.92042278" y2="-988.55846647"/>
+                <path d="M-14893.88123824,-995.45557683 L-14879.92042278,-995.45557683 L-14879.92042278,-992.85502175 L-14893.88123824,-992.85502175 L-14893.88123824,-995.45557683 Z "/>
+                <path d="M-14893.88123824,-988.55846647 L-14879.90622201,-988.55846647 L-14879.90622201,-989.29340595 L-14893.88123824,-989.29340595 L-14893.88123824,-988.55846647 Z "/>
+                <path d="M-14893.88123824,-992.85502175 L-14879.92042278,-992.85502175 L-14879.92042278,-988.55846647 L-14893.88123824,-988.55846647 L-14893.88123824,-992.85502175 Z "/>
+                <path d="M-14876.38123824,-992.85502175 L-14862.42042278,-992.85502175 L-14862.42042278,-988.55846647 L-14876.38123824,-988.55846647 L-14876.38123824,-992.85502175 Z "/>
+                <path d="M-14876.38123824,-988.55846647 L-14862.42042278,-988.55846647 L-14862.42042278,-989.29340595 L-14876.38123824,-989.29340595 L-14876.38123824,-988.55846647 Z "/>
+                <path d="M-14876.38123824,-995.45557683 L-14862.42042278,-995.45557683 L-14862.42042278,-992.85502175 L-14876.38123824,-992.85502175 L-14876.38123824,-995.45557683 Z "/>
+                <line x1="-14895.65083051" y1="-997.80856339" x2="-14843.15083051" y2="-997.80856339"/>
+                <path d="M-14858.88123824,-995.45557683 L-14844.92042278,-995.45557683 L-14844.92042278,-992.85502175 L-14858.88123824,-992.85502175 L-14858.88123824,-995.45557683 Z "/>
+                <path d="M-14858.88123824,-988.55846647 L-14844.90622201,-988.55846647 L-14844.90622201,-989.29340595 L-14858.88123824,-989.29340595 L-14858.88123824,-988.55846647 Z "/>
+                <path d="M-14858.88123824,-992.85502175 L-14844.92042278,-992.85502175 L-14844.92042278,-988.55846647 L-14858.88123824,-988.55846647 L-14858.88123824,-992.85502175 Z "/>
+                <path d="M-14893.88123824,-985.1099043 L-14844.92042278,-985.1099043 L-14844.92042278,-984.31843101 L-14893.88123824,-984.31843101 L-14893.88123824,-985.1099043 Z "/>
+                <line x1="-14860.65083051" y1="-1007.75042149" x2="-14860.65083051" y2="-988.55846647"/>
+                <line x1="-14878.15083051" y1="-1007.75042149" x2="-14878.15083051" y2="-988.55846647"/>
+                <line x1="-14878.15083051" y1="-988.55846647" x2="-14878.15083051" y2="-1033.30856339"/>
+                <line x1="-14860.65083051" y1="-988.55846647" x2="-14860.65083051" y2="-1033.30856339"/>
+                <line x1="-14792.42042278" y1="-988.55846647" x2="-14791.68489561" y2="-988.55846647"/>
+                <line x1="-14791.68489561" y1="-988.55846647" x2="-14791.68489561" y2="-982.45281541"/>
+                <line x1="-14791.68489561" y1="-983.80856339" x2="-14790.65083051" y2="-983.80856339"/>
+                <line x1="-14792.42042278" y1="-995.45557683" x2="-14792.42042278" y2="-988.55846647"/>
+                <line x1="-14806.38123824" y1="-988.55846647" x2="-14807.11676541" y2="-988.55846647"/>
+                <line x1="-14809.18489561" y1="-988.55846647" x2="-14807.11676541" y2="-988.55846647"/>
+                <line x1="-14806.38123824" y1="-995.45557683" x2="-14806.38123824" y2="-988.55846647"/>
+                <line x1="-14809.92042278" y1="-995.45557683" x2="-14809.92042278" y2="-988.55846647"/>
+                <line x1="-14809.92042278" y1="-988.55846647" x2="-14809.18489561" y2="-988.55846647"/>
+                <line x1="-14842.11676541" y1="-982.45281541" x2="-14791.68489561" y2="-982.45281541"/>
+                <line x1="-14842.11676541" y1="-988.55846647" x2="-14842.11676541" y2="-982.45281541"/>
+                <line x1="-14841.38123824" y1="-988.55846647" x2="-14842.11676541" y2="-988.55846647"/>
+                <line x1="-14841.38123824" y1="-995.45557683" x2="-14841.38123824" y2="-988.55846647"/>
+                <line x1="-14843.15083051" y1="-983.80856339" x2="-14842.11676541" y2="-983.80856339"/>
+                <line x1="-14823.88123824" y1="-995.45557683" x2="-14823.88123824" y2="-988.55846647"/>
+                <line x1="-14827.42042278" y1="-988.55846647" x2="-14826.68489561" y2="-988.55846647"/>
+                <line x1="-14826.68489561" y1="-988.55846647" x2="-14824.61676541" y2="-988.55846647"/>
+                <line x1="-14823.88123824" y1="-988.55846647" x2="-14824.61676541" y2="-988.55846647"/>
+                <line x1="-14827.42042278" y1="-995.45557683" x2="-14827.42042278" y2="-988.55846647"/>
+                <path d="M-14841.38123824,-995.45557683 L-14827.42042278,-995.45557683 L-14827.42042278,-992.85502175 L-14841.38123824,-992.85502175 L-14841.38123824,-995.45557683 Z "/>
+                <path d="M-14841.38123824,-988.55846647 L-14827.40622201,-988.55846647 L-14827.40622201,-989.29340595 L-14841.38123824,-989.29340595 L-14841.38123824,-988.55846647 Z "/>
+                <path d="M-14841.38123824,-992.85502175 L-14827.42042278,-992.85502175 L-14827.42042278,-988.55846647 L-14841.38123824,-988.55846647 L-14841.38123824,-992.85502175 Z "/>
+                <path d="M-14823.88123824,-992.85502175 L-14809.92042278,-992.85502175 L-14809.92042278,-988.55846647 L-14823.88123824,-988.55846647 L-14823.88123824,-992.85502175 Z "/>
+                <path d="M-14823.88123824,-988.55846647 L-14809.92042278,-988.55846647 L-14809.92042278,-989.29340595 L-14823.88123824,-989.29340595 L-14823.88123824,-988.55846647 Z "/>
+                <path d="M-14823.88123824,-995.45557683 L-14809.92042278,-995.45557683 L-14809.92042278,-992.85502175 L-14823.88123824,-992.85502175 L-14823.88123824,-995.45557683 Z "/>
+                <line x1="-14843.15083051" y1="-997.80856339" x2="-14790.65083051" y2="-997.80856339"/>
+                <path d="M-14806.38123824,-995.45557683 L-14792.42042278,-995.45557683 L-14792.42042278,-992.85502175 L-14806.38123824,-992.85502175 L-14806.38123824,-995.45557683 Z "/>
+                <path d="M-14806.38123824,-988.55846647 L-14792.40622201,-988.55846647 L-14792.40622201,-989.29340595 L-14806.38123824,-989.29340595 L-14806.38123824,-988.55846647 Z "/>
+                <path d="M-14806.38123824,-992.85502175 L-14792.42042278,-992.85502175 L-14792.42042278,-988.55846647 L-14806.38123824,-988.55846647 L-14806.38123824,-992.85502175 Z "/>
+                <path d="M-14841.38123824,-985.1099043 L-14792.42042278,-985.1099043 L-14792.42042278,-984.31843101 L-14841.38123824,-984.31843101 L-14841.38123824,-985.1099043 Z "/>
+                <line x1="-14808.15083051" y1="-1007.75042149" x2="-14808.15083051" y2="-988.55846647"/>
+                <line x1="-14825.65083051" y1="-1007.75042149" x2="-14825.65083051" y2="-988.55846647"/>
+                <line x1="-14825.65083051" y1="-988.55846647" x2="-14825.65083051" y2="-1033.30856339"/>
+                <line x1="-14808.15083051" y1="-988.55846647" x2="-14808.15083051" y2="-1033.30856339"/>
+                <line x1="-14739.92042278" y1="-988.55846647" x2="-14739.18489561" y2="-988.55846647"/>
+                <line x1="-14739.18489561" y1="-988.55846647" x2="-14739.18489561" y2="-982.45281541"/>
+                <line x1="-14739.18489561" y1="-983.80856339" x2="-14738.15083051" y2="-983.80856339"/>
+                <line x1="-14739.92042278" y1="-995.45557683" x2="-14739.92042278" y2="-988.55846647"/>
+                <line x1="-14753.88123824" y1="-988.55846647" x2="-14754.61676541" y2="-988.55846647"/>
+                <line x1="-14756.68489561" y1="-988.55846647" x2="-14754.61676541" y2="-988.55846647"/>
+                <line x1="-14753.88123824" y1="-995.45557683" x2="-14753.88123824" y2="-988.55846647"/>
+                <line x1="-14757.42042278" y1="-995.45557683" x2="-14757.42042278" y2="-988.55846647"/>
+                <line x1="-14757.42042278" y1="-988.55846647" x2="-14756.68489561" y2="-988.55846647"/>
+                <line x1="-14789.61676541" y1="-982.45281541" x2="-14739.18489561" y2="-982.45281541"/>
+                <line x1="-14789.61676541" y1="-988.55846647" x2="-14789.61676541" y2="-982.45281541"/>
+                <line x1="-14788.88123824" y1="-988.55846647" x2="-14789.61676541" y2="-988.55846647"/>
+                <line x1="-14788.88123824" y1="-995.45557683" x2="-14788.88123824" y2="-988.55846647"/>
+                <line x1="-14790.65083051" y1="-983.80856339" x2="-14789.61676541" y2="-983.80856339"/>
+                <line x1="-14771.38123824" y1="-995.45557683" x2="-14771.38123824" y2="-988.55846647"/>
+                <line x1="-14774.92042278" y1="-988.55846647" x2="-14774.18489561" y2="-988.55846647"/>
+                <line x1="-14774.18489561" y1="-988.55846647" x2="-14772.11676541" y2="-988.55846647"/>
+                <line x1="-14771.38123824" y1="-988.55846647" x2="-14772.11676541" y2="-988.55846647"/>
+                <line x1="-14774.92042278" y1="-995.45557683" x2="-14774.92042278" y2="-988.55846647"/>
+                <path d="M-14788.88123824,-995.45557683 L-14774.92042278,-995.45557683 L-14774.92042278,-992.85502175 L-14788.88123824,-992.85502175 L-14788.88123824,-995.45557683 Z "/>
+                <path d="M-14788.88123824,-988.55846647 L-14774.90622201,-988.55846647 L-14774.90622201,-989.29340595 L-14788.88123824,-989.29340595 L-14788.88123824,-988.55846647 Z "/>
+                <path d="M-14788.88123824,-992.85502175 L-14774.92042278,-992.85502175 L-14774.92042278,-988.55846647 L-14788.88123824,-988.55846647 L-14788.88123824,-992.85502175 Z "/>
+                <path d="M-14771.38123824,-992.85502175 L-14757.42042278,-992.85502175 L-14757.42042278,-988.55846647 L-14771.38123824,-988.55846647 L-14771.38123824,-992.85502175 Z "/>
+                <path d="M-14771.38123824,-988.55846647 L-14757.42042278,-988.55846647 L-14757.42042278,-989.29340595 L-14771.38123824,-989.29340595 L-14771.38123824,-988.55846647 Z "/>
+                <path d="M-14771.38123824,-995.45557683 L-14757.42042278,-995.45557683 L-14757.42042278,-992.85502175 L-14771.38123824,-992.85502175 L-14771.38123824,-995.45557683 Z "/>
+                <line x1="-14790.65083051" y1="-997.80856339" x2="-14738.15083051" y2="-997.80856339"/>
+                <path d="M-14753.88123824,-995.45557683 L-14739.92042278,-995.45557683 L-14739.92042278,-992.85502175 L-14753.88123824,-992.85502175 L-14753.88123824,-995.45557683 Z "/>
+                <path d="M-14753.88123824,-988.55846647 L-14739.90622201,-988.55846647 L-14739.90622201,-989.29340595 L-14753.88123824,-989.29340595 L-14753.88123824,-988.55846647 Z "/>
+                <path d="M-14753.88123824,-992.85502175 L-14739.92042278,-992.85502175 L-14739.92042278,-988.55846647 L-14753.88123824,-988.55846647 L-14753.88123824,-992.85502175 Z "/>
+                <path d="M-14788.88123824,-985.1099043 L-14739.92042278,-985.1099043 L-14739.92042278,-984.31843101 L-14788.88123824,-984.31843101 L-14788.88123824,-985.1099043 Z "/>
+                <line x1="-14755.65083051" y1="-1007.75042149" x2="-14755.65083051" y2="-988.55846647"/>
+                <line x1="-14773.15083051" y1="-1007.75042149" x2="-14773.15083051" y2="-988.55846647"/>
+                <line x1="-14773.15083051" y1="-988.55846647" x2="-14773.15083051" y2="-1033.30856339"/>
+                <line x1="-14755.65083051" y1="-988.55846647" x2="-14755.65083051" y2="-1033.30856339"/>
+                <line x1="-14687.42042278" y1="-988.55846647" x2="-14686.68489561" y2="-988.55846647"/>
+                <line x1="-14686.68489561" y1="-988.55846647" x2="-14686.68489561" y2="-982.45281541"/>
+                <line x1="-14686.68489561" y1="-983.80856339" x2="-14685.65083051" y2="-983.80856339"/>
+                <line x1="-14687.42042278" y1="-995.45557683" x2="-14687.42042278" y2="-988.55846647"/>
+                <line x1="-14701.38123824" y1="-988.55846647" x2="-14702.11676541" y2="-988.55846647"/>
+                <line x1="-14704.18489561" y1="-988.55846647" x2="-14702.11676541" y2="-988.55846647"/>
+                <line x1="-14701.38123824" y1="-995.45557683" x2="-14701.38123824" y2="-988.55846647"/>
+                <line x1="-14704.92042278" y1="-995.45557683" x2="-14704.92042278" y2="-988.55846647"/>
+                <line x1="-14704.92042278" y1="-988.55846647" x2="-14704.18489561" y2="-988.55846647"/>
+                <line x1="-14737.11676541" y1="-982.45281541" x2="-14686.68489561" y2="-982.45281541"/>
+                <line x1="-14737.11676541" y1="-988.55846647" x2="-14737.11676541" y2="-982.45281541"/>
+                <line x1="-14736.38123824" y1="-988.55846647" x2="-14737.11676541" y2="-988.55846647"/>
+                <line x1="-14736.38123824" y1="-995.45557683" x2="-14736.38123824" y2="-988.55846647"/>
+                <line x1="-14738.15083051" y1="-983.80856339" x2="-14737.11676541" y2="-983.80856339"/>
+                <line x1="-14718.88123824" y1="-995.45557683" x2="-14718.88123824" y2="-988.55846647"/>
+                <line x1="-14722.42042278" y1="-988.55846647" x2="-14721.68489561" y2="-988.55846647"/>
+                <line x1="-14721.68489561" y1="-988.55846647" x2="-14719.61676541" y2="-988.55846647"/>
+                <line x1="-14718.88123824" y1="-988.55846647" x2="-14719.61676541" y2="-988.55846647"/>
+                <line x1="-14722.42042278" y1="-995.45557683" x2="-14722.42042278" y2="-988.55846647"/>
+                <path d="M-14736.38123824,-995.45557683 L-14722.42042278,-995.45557683 L-14722.42042278,-992.85502175 L-14736.38123824,-992.85502175 L-14736.38123824,-995.45557683 Z "/>
+                <path d="M-14736.38123824,-988.55846647 L-14722.40622201,-988.55846647 L-14722.40622201,-989.29340595 L-14736.38123824,-989.29340595 L-14736.38123824,-988.55846647 Z "/>
+                <path d="M-14736.38123824,-992.85502175 L-14722.42042278,-992.85502175 L-14722.42042278,-988.55846647 L-14736.38123824,-988.55846647 L-14736.38123824,-992.85502175 Z "/>
+                <path d="M-14718.88123824,-992.85502175 L-14704.92042278,-992.85502175 L-14704.92042278,-988.55846647 L-14718.88123824,-988.55846647 L-14718.88123824,-992.85502175 Z "/>
+                <path d="M-14718.88123824,-988.55846647 L-14704.92042278,-988.55846647 L-14704.92042278,-989.29340595 L-14718.88123824,-989.29340595 L-14718.88123824,-988.55846647 Z "/>
+                <path d="M-14718.88123824,-995.45557683 L-14704.92042278,-995.45557683 L-14704.92042278,-992.85502175 L-14718.88123824,-992.85502175 L-14718.88123824,-995.45557683 Z "/>
+                <line x1="-14738.15083051" y1="-997.80856339" x2="-14685.65083051" y2="-997.80856339"/>
+                <path d="M-14701.38123824,-995.45557683 L-14687.42042278,-995.45557683 L-14687.42042278,-992.85502175 L-14701.38123824,-992.85502175 L-14701.38123824,-995.45557683 Z "/>
+                <path d="M-14701.38123824,-988.55846647 L-14687.40622201,-988.55846647 L-14687.40622201,-989.29340595 L-14701.38123824,-989.29340595 L-14701.38123824,-988.55846647 Z "/>
+                <path d="M-14701.38123824,-992.85502175 L-14687.42042278,-992.85502175 L-14687.42042278,-988.55846647 L-14701.38123824,-988.55846647 L-14701.38123824,-992.85502175 Z "/>
+                <path d="M-14736.38123824,-985.1099043 L-14687.42042278,-985.1099043 L-14687.42042278,-984.31843101 L-14736.38123824,-984.31843101 L-14736.38123824,-985.1099043 Z "/>
+                <line x1="-14703.15083051" y1="-1007.75042149" x2="-14703.15083051" y2="-988.55846647"/>
+                <line x1="-14720.65083051" y1="-1007.75042149" x2="-14720.65083051" y2="-988.55846647"/>
+                <line x1="-14720.65083051" y1="-988.55846647" x2="-14720.65083051" y2="-1033.30856339"/>
+                <line x1="-14703.15083051" y1="-988.55846647" x2="-14703.15083051" y2="-1033.30856339"/>
+                <line x1="-14634.92042278" y1="-988.55846647" x2="-14634.18489561" y2="-988.55846647"/>
+                <line x1="-14634.18489561" y1="-988.55846647" x2="-14634.18489561" y2="-982.45281541"/>
+                <line x1="-14634.18489561" y1="-983.80856339" x2="-14633.15083051" y2="-983.80856339"/>
+                <line x1="-14634.92042278" y1="-995.45557683" x2="-14634.92042278" y2="-988.55846647"/>
+                <line x1="-14648.88123824" y1="-988.55846647" x2="-14649.61676541" y2="-988.55846647"/>
+                <line x1="-14651.68489561" y1="-988.55846647" x2="-14649.61676541" y2="-988.55846647"/>
+                <line x1="-14648.88123824" y1="-995.45557683" x2="-14648.88123824" y2="-988.55846647"/>
+                <line x1="-14652.42042278" y1="-995.45557683" x2="-14652.42042278" y2="-988.55846647"/>
+                <line x1="-14652.42042278" y1="-988.55846647" x2="-14651.68489561" y2="-988.55846647"/>
+                <line x1="-14684.61676541" y1="-982.45281541" x2="-14634.18489561" y2="-982.45281541"/>
+                <line x1="-14684.61676541" y1="-988.55846647" x2="-14684.61676541" y2="-982.45281541"/>
+                <line x1="-14683.88123824" y1="-988.55846647" x2="-14684.61676541" y2="-988.55846647"/>
+                <line x1="-14683.88123824" y1="-995.45557683" x2="-14683.88123824" y2="-988.55846647"/>
+                <line x1="-14685.65083051" y1="-983.80856339" x2="-14684.61676541" y2="-983.80856339"/>
+                <line x1="-14666.38123824" y1="-995.45557683" x2="-14666.38123824" y2="-988.55846647"/>
+                <line x1="-14669.92042278" y1="-988.55846647" x2="-14669.18489561" y2="-988.55846647"/>
+                <line x1="-14669.18489561" y1="-988.55846647" x2="-14667.11676541" y2="-988.55846647"/>
+                <line x1="-14666.38123824" y1="-988.55846647" x2="-14667.11676541" y2="-988.55846647"/>
+                <line x1="-14669.92042278" y1="-995.45557683" x2="-14669.92042278" y2="-988.55846647"/>
+                <path d="M-14683.88123824,-995.45557683 L-14669.92042278,-995.45557683 L-14669.92042278,-992.85502175 L-14683.88123824,-992.85502175 L-14683.88123824,-995.45557683 Z "/>
+                <path d="M-14683.88123824,-988.55846647 L-14669.90622201,-988.55846647 L-14669.90622201,-989.29340595 L-14683.88123824,-989.29340595 L-14683.88123824,-988.55846647 Z "/>
+                <path d="M-14683.88123824,-992.85502175 L-14669.92042278,-992.85502175 L-14669.92042278,-988.55846647 L-14683.88123824,-988.55846647 L-14683.88123824,-992.85502175 Z "/>
+                <path d="M-14666.38123824,-992.85502175 L-14652.42042278,-992.85502175 L-14652.42042278,-988.55846647 L-14666.38123824,-988.55846647 L-14666.38123824,-992.85502175 Z "/>
+                <path d="M-14666.38123824,-988.55846647 L-14652.42042278,-988.55846647 L-14652.42042278,-989.29340595 L-14666.38123824,-989.29340595 L-14666.38123824,-988.55846647 Z "/>
+                <path d="M-14666.38123824,-995.45557683 L-14652.42042278,-995.45557683 L-14652.42042278,-992.85502175 L-14666.38123824,-992.85502175 L-14666.38123824,-995.45557683 Z "/>
+                <line x1="-14685.65083051" y1="-997.80856339" x2="-14633.15083051" y2="-997.80856339"/>
+                <path d="M-14648.88123824,-995.45557683 L-14634.92042278,-995.45557683 L-14634.92042278,-992.85502175 L-14648.88123824,-992.85502175 L-14648.88123824,-995.45557683 Z "/>
+                <path d="M-14648.88123824,-988.55846647 L-14634.90622201,-988.55846647 L-14634.90622201,-989.29340595 L-14648.88123824,-989.29340595 L-14648.88123824,-988.55846647 Z "/>
+                <path d="M-14648.88123824,-992.85502175 L-14634.92042278,-992.85502175 L-14634.92042278,-988.55846647 L-14648.88123824,-988.55846647 L-14648.88123824,-992.85502175 Z "/>
+                <path d="M-14683.88123824,-985.1099043 L-14634.92042278,-985.1099043 L-14634.92042278,-984.31843101 L-14683.88123824,-984.31843101 L-14683.88123824,-985.1099043 Z "/>
+                <line x1="-14650.65083051" y1="-1007.75042149" x2="-14650.65083051" y2="-988.55846647"/>
+                <line x1="-14668.15083051" y1="-1007.75042149" x2="-14668.15083051" y2="-988.55846647"/>
+                <line x1="-14668.15083051" y1="-988.55846647" x2="-14668.15083051" y2="-1033.30856339"/>
+                <line x1="-14650.65083051" y1="-988.55846647" x2="-14650.65083051" y2="-1033.30856339"/>
+                <line x1="-14582.42042278" y1="-988.55846647" x2="-14581.68489561" y2="-988.55846647"/>
+                <line x1="-14581.68489561" y1="-988.55846647" x2="-14581.68489561" y2="-982.45281541"/>
+                <line x1="-14581.68489561" y1="-983.80856339" x2="-14580.65083051" y2="-983.80856339"/>
+                <line x1="-14582.42042278" y1="-995.45557683" x2="-14582.42042278" y2="-988.55846647"/>
+                <line x1="-14596.38123824" y1="-988.55846647" x2="-14597.11676541" y2="-988.55846647"/>
+                <line x1="-14599.18489561" y1="-988.55846647" x2="-14597.11676541" y2="-988.55846647"/>
+                <line x1="-14596.38123824" y1="-995.45557683" x2="-14596.38123824" y2="-988.55846647"/>
+                <line x1="-14599.92042278" y1="-995.45557683" x2="-14599.92042278" y2="-988.55846647"/>
+                <line x1="-14599.92042278" y1="-988.55846647" x2="-14599.18489561" y2="-988.55846647"/>
+                <line x1="-14632.11676541" y1="-982.45281541" x2="-14581.68489561" y2="-982.45281541"/>
+                <line x1="-14632.11676541" y1="-988.55846647" x2="-14632.11676541" y2="-982.45281541"/>
+                <line x1="-14631.38123824" y1="-988.55846647" x2="-14632.11676541" y2="-988.55846647"/>
+                <line x1="-14631.38123824" y1="-995.45557683" x2="-14631.38123824" y2="-988.55846647"/>
+                <line x1="-14633.15083051" y1="-983.80856339" x2="-14632.11676541" y2="-983.80856339"/>
+                <line x1="-14613.88123824" y1="-995.45557683" x2="-14613.88123824" y2="-988.55846647"/>
+                <line x1="-14617.42042278" y1="-988.55846647" x2="-14616.68489561" y2="-988.55846647"/>
+                <line x1="-14616.68489561" y1="-988.55846647" x2="-14614.61676541" y2="-988.55846647"/>
+                <line x1="-14613.88123824" y1="-988.55846647" x2="-14614.61676541" y2="-988.55846647"/>
+                <line x1="-14617.42042278" y1="-995.45557683" x2="-14617.42042278" y2="-988.55846647"/>
+                <path d="M-14631.38123824,-995.45557683 L-14617.42042278,-995.45557683 L-14617.42042278,-992.85502175 L-14631.38123824,-992.85502175 L-14631.38123824,-995.45557683 Z "/>
+                <path d="M-14631.38123824,-988.55846647 L-14617.40622201,-988.55846647 L-14617.40622201,-989.29340595 L-14631.38123824,-989.29340595 L-14631.38123824,-988.55846647 Z "/>
+                <path d="M-14631.38123824,-992.85502175 L-14617.42042278,-992.85502175 L-14617.42042278,-988.55846647 L-14631.38123824,-988.55846647 L-14631.38123824,-992.85502175 Z "/>
+                <path d="M-14613.88123824,-992.85502175 L-14599.92042278,-992.85502175 L-14599.92042278,-988.55846647 L-14613.88123824,-988.55846647 L-14613.88123824,-992.85502175 Z "/>
+                <path d="M-14613.88123824,-988.55846647 L-14599.92042278,-988.55846647 L-14599.92042278,-989.29340595 L-14613.88123824,-989.29340595 L-14613.88123824,-988.55846647 Z "/>
+                <path d="M-14613.88123824,-995.45557683 L-14599.92042278,-995.45557683 L-14599.92042278,-992.85502175 L-14613.88123824,-992.85502175 L-14613.88123824,-995.45557683 Z "/>
+                <line x1="-14633.15083051" y1="-997.80856339" x2="-14580.65083051" y2="-997.80856339"/>
+                <path d="M-14596.38123824,-995.45557683 L-14582.42042278,-995.45557683 L-14582.42042278,-992.85502175 L-14596.38123824,-992.85502175 L-14596.38123824,-995.45557683 Z "/>
+                <path d="M-14596.38123824,-988.55846647 L-14582.40622201,-988.55846647 L-14582.40622201,-989.29340595 L-14596.38123824,-989.29340595 L-14596.38123824,-988.55846647 Z "/>
+                <path d="M-14596.38123824,-992.85502175 L-14582.42042278,-992.85502175 L-14582.42042278,-988.55846647 L-14596.38123824,-988.55846647 L-14596.38123824,-992.85502175 Z "/>
+                <path d="M-14631.38123824,-985.1099043 L-14582.42042278,-985.1099043 L-14582.42042278,-984.31843101 L-14631.38123824,-984.31843101 L-14631.38123824,-985.1099043 Z "/>
+                <line x1="-14598.15083051" y1="-1007.75042149" x2="-14598.15083051" y2="-988.55846647"/>
+                <line x1="-14615.65083051" y1="-1007.75042149" x2="-14615.65083051" y2="-988.55846647"/>
+                <line x1="-14615.65083051" y1="-988.55846647" x2="-14615.65083051" y2="-1033.30856339"/>
+                <line x1="-14598.15083051" y1="-988.55846647" x2="-14598.15083051" y2="-1033.30856339"/>
+                <line x1="-14529.92042278" y1="-988.55846647" x2="-14529.18489561" y2="-988.55846647"/>
+                <line x1="-14529.18489561" y1="-988.55846647" x2="-14529.18489561" y2="-982.45281541"/>
+                <line x1="-14529.18489561" y1="-983.80856339" x2="-14528.15083051" y2="-983.80856339"/>
+                <line x1="-14529.92042278" y1="-995.45557683" x2="-14529.92042278" y2="-988.55846647"/>
+                <line x1="-14543.88123824" y1="-988.55846647" x2="-14544.61676541" y2="-988.55846647"/>
+                <line x1="-14546.68489561" y1="-988.55846647" x2="-14544.61676541" y2="-988.55846647"/>
+                <line x1="-14543.88123824" y1="-995.45557683" x2="-14543.88123824" y2="-988.55846647"/>
+                <line x1="-14547.42042278" y1="-995.45557683" x2="-14547.42042278" y2="-988.55846647"/>
+                <line x1="-14547.42042278" y1="-988.55846647" x2="-14546.68489561" y2="-988.55846647"/>
+                <line x1="-14579.61676541" y1="-982.45281541" x2="-14529.18489561" y2="-982.45281541"/>
+                <line x1="-14579.61676541" y1="-988.55846647" x2="-14579.61676541" y2="-982.45281541"/>
+                <line x1="-14578.88123824" y1="-988.55846647" x2="-14579.61676541" y2="-988.55846647"/>
+                <line x1="-14578.88123824" y1="-995.45557683" x2="-14578.88123824" y2="-988.55846647"/>
+                <line x1="-14580.65083051" y1="-983.80856339" x2="-14579.61676541" y2="-983.80856339"/>
+                <line x1="-14561.38123824" y1="-995.45557683" x2="-14561.38123824" y2="-988.55846647"/>
+                <line x1="-14564.92042278" y1="-988.55846647" x2="-14564.18489561" y2="-988.55846647"/>
+                <line x1="-14564.18489561" y1="-988.55846647" x2="-14562.11676541" y2="-988.55846647"/>
+                <line x1="-14561.38123824" y1="-988.55846647" x2="-14562.11676541" y2="-988.55846647"/>
+                <line x1="-14564.92042278" y1="-995.45557683" x2="-14564.92042278" y2="-988.55846647"/>
+                <path d="M-14578.88123824,-995.45557683 L-14564.92042278,-995.45557683 L-14564.92042278,-992.85502175 L-14578.88123824,-992.85502175 L-14578.88123824,-995.45557683 Z "/>
+                <path d="M-14578.88123824,-988.55846647 L-14564.90622201,-988.55846647 L-14564.90622201,-989.29340595 L-14578.88123824,-989.29340595 L-14578.88123824,-988.55846647 Z "/>
+                <path d="M-14578.88123824,-992.85502175 L-14564.92042278,-992.85502175 L-14564.92042278,-988.55846647 L-14578.88123824,-988.55846647 L-14578.88123824,-992.85502175 Z "/>
+                <path d="M-14561.38123824,-992.85502175 L-14547.42042278,-992.85502175 L-14547.42042278,-988.55846647 L-14561.38123824,-988.55846647 L-14561.38123824,-992.85502175 Z "/>
+                <path d="M-14561.38123824,-988.55846647 L-14547.42042278,-988.55846647 L-14547.42042278,-989.29340595 L-14561.38123824,-989.29340595 L-14561.38123824,-988.55846647 Z "/>
+                <path d="M-14561.38123824,-995.45557683 L-14547.42042278,-995.45557683 L-14547.42042278,-992.85502175 L-14561.38123824,-992.85502175 L-14561.38123824,-995.45557683 Z "/>
+                <line x1="-14580.65083051" y1="-997.80856339" x2="-14528.15083051" y2="-997.80856339"/>
+                <path d="M-14543.88123824,-995.45557683 L-14529.92042278,-995.45557683 L-14529.92042278,-992.85502175 L-14543.88123824,-992.85502175 L-14543.88123824,-995.45557683 Z "/>
+                <path d="M-14543.88123824,-988.55846647 L-14529.90622201,-988.55846647 L-14529.90622201,-989.29340595 L-14543.88123824,-989.29340595 L-14543.88123824,-988.55846647 Z "/>
+                <path d="M-14543.88123824,-992.85502175 L-14529.92042278,-992.85502175 L-14529.92042278,-988.55846647 L-14543.88123824,-988.55846647 L-14543.88123824,-992.85502175 Z "/>
+                <path d="M-14578.88123824,-985.1099043 L-14529.92042278,-985.1099043 L-14529.92042278,-984.31843101 L-14578.88123824,-984.31843101 L-14578.88123824,-985.1099043 Z "/>
+                <line x1="-14545.65083051" y1="-1007.75042149" x2="-14545.65083051" y2="-988.55846647"/>
+                <line x1="-14563.15083051" y1="-1007.75042149" x2="-14563.15083051" y2="-988.55846647"/>
+                <line x1="-14563.15083051" y1="-988.55846647" x2="-14563.15083051" y2="-1033.30856339"/>
+                <line x1="-14545.65083051" y1="-988.55846647" x2="-14545.65083051" y2="-1033.30856339"/>
+                <line x1="-14477.42042278" y1="-988.55846647" x2="-14476.68489561" y2="-988.55846647"/>
+                <line x1="-14476.68489561" y1="-988.55846647" x2="-14476.68489561" y2="-982.45281541"/>
+                <line x1="-14476.68489561" y1="-983.80856339" x2="-14475.65083051" y2="-983.80856339"/>
+                <line x1="-14477.42042278" y1="-995.45557683" x2="-14477.42042278" y2="-988.55846647"/>
+                <line x1="-14491.38123824" y1="-988.55846647" x2="-14492.11676541" y2="-988.55846647"/>
+                <line x1="-14494.18489561" y1="-988.55846647" x2="-14492.11676541" y2="-988.55846647"/>
+                <line x1="-14491.38123824" y1="-995.45557683" x2="-14491.38123824" y2="-988.55846647"/>
+                <line x1="-14494.92042278" y1="-995.45557683" x2="-14494.92042278" y2="-988.55846647"/>
+                <line x1="-14494.92042278" y1="-988.55846647" x2="-14494.18489561" y2="-988.55846647"/>
+                <line x1="-14527.11676541" y1="-982.45281541" x2="-14476.68489561" y2="-982.45281541"/>
+                <line x1="-14527.11676541" y1="-988.55846647" x2="-14527.11676541" y2="-982.45281541"/>
+                <line x1="-14526.38123824" y1="-988.55846647" x2="-14527.11676541" y2="-988.55846647"/>
+                <line x1="-14526.38123824" y1="-995.45557683" x2="-14526.38123824" y2="-988.55846647"/>
+                <line x1="-14528.15083051" y1="-983.80856339" x2="-14527.11676541" y2="-983.80856339"/>
+                <line x1="-14508.88123824" y1="-995.45557683" x2="-14508.88123824" y2="-988.55846647"/>
+                <line x1="-14512.42042278" y1="-988.55846647" x2="-14511.68489561" y2="-988.55846647"/>
+                <line x1="-14511.68489561" y1="-988.55846647" x2="-14509.61676541" y2="-988.55846647"/>
+                <line x1="-14508.88123824" y1="-988.55846647" x2="-14509.61676541" y2="-988.55846647"/>
+                <line x1="-14512.42042278" y1="-995.45557683" x2="-14512.42042278" y2="-988.55846647"/>
+                <path d="M-14526.38123824,-995.45557683 L-14512.42042278,-995.45557683 L-14512.42042278,-992.85502175 L-14526.38123824,-992.85502175 L-14526.38123824,-995.45557683 Z "/>
+                <path d="M-14526.38123824,-988.55846647 L-14512.40622201,-988.55846647 L-14512.40622201,-989.29340595 L-14526.38123824,-989.29340595 L-14526.38123824,-988.55846647 Z "/>
+                <path d="M-14526.38123824,-992.85502175 L-14512.42042278,-992.85502175 L-14512.42042278,-988.55846647 L-14526.38123824,-988.55846647 L-14526.38123824,-992.85502175 Z "/>
+                <path d="M-14508.88123824,-992.85502175 L-14494.92042278,-992.85502175 L-14494.92042278,-988.55846647 L-14508.88123824,-988.55846647 L-14508.88123824,-992.85502175 Z "/>
+                <path d="M-14508.88123824,-988.55846647 L-14494.92042278,-988.55846647 L-14494.92042278,-989.29340595 L-14508.88123824,-989.29340595 L-14508.88123824,-988.55846647 Z "/>
+                <path d="M-14508.88123824,-995.45557683 L-14494.92042278,-995.45557683 L-14494.92042278,-992.85502175 L-14508.88123824,-992.85502175 L-14508.88123824,-995.45557683 Z "/>
+                <line x1="-14528.15083051" y1="-997.80856339" x2="-14475.65083051" y2="-997.80856339"/>
+                <path d="M-14491.38123824,-995.45557683 L-14477.42042278,-995.45557683 L-14477.42042278,-992.85502175 L-14491.38123824,-992.85502175 L-14491.38123824,-995.45557683 Z "/>
+                <path d="M-14491.38123824,-988.55846647 L-14477.40622201,-988.55846647 L-14477.40622201,-989.29340595 L-14491.38123824,-989.29340595 L-14491.38123824,-988.55846647 Z "/>
+                <path d="M-14491.38123824,-992.85502175 L-14477.42042278,-992.85502175 L-14477.42042278,-988.55846647 L-14491.38123824,-988.55846647 L-14491.38123824,-992.85502175 Z "/>
+                <path d="M-14526.38123824,-985.1099043 L-14477.42042278,-985.1099043 L-14477.42042278,-984.31843101 L-14526.38123824,-984.31843101 L-14526.38123824,-985.1099043 Z "/>
+                <line x1="-14493.15083051" y1="-1007.75042149" x2="-14493.15083051" y2="-988.55846647"/>
+                <line x1="-14510.65083051" y1="-1007.75042149" x2="-14510.65083051" y2="-988.55846647"/>
+                <line x1="-14510.65083051" y1="-988.55846647" x2="-14510.65083051" y2="-1033.30856339"/>
+                <line x1="-14493.15083051" y1="-988.55846647" x2="-14493.15083051" y2="-1033.30856339"/>
+            </g>
+            <g lc:layername="�� �L��" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+        </g>
+    </g>
+    <g lc:layername="02_�rt�" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="1" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="14" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="A-2Y3" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="A4ANTET" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="ACIHAZ" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="AHAT" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="ALPHA" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="AM_4" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="AM_5" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="AM_6" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="AM_7" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="AM_9" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="APPAREILLAGE" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="ARMATUR" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="ASHADE" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="AXE" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="AXIS" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="AYD" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="AYDINL" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="AYDINLATMA" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="Anted_yazi" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="Antet" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="BASIC DEVICE" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="CB_T1-3P" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="CB_T1-3P_DETAIL" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="CER" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="CERCEVE" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="CONNECTIONS" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="CONSTRUCTION" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="CONTACT" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="COTATION1" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="COTATION2" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="COTATION3" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="COTATION4" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="ConnectionPoints" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="DEVICE_FIXING_HOLES" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="DISDETAY" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="DOLGU" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="DRAWING" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="DUVAR" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="Defpoints" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="E-1BLOK" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="E-EKIPMAN" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="E-POWER CIR." lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="E-SEMBOL" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="E-TEKHAT" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="E-TEKYED" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="E-YAZI" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="E3" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="E7" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="EAYD" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="EE-I�IK  TOPRAK" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="EL2" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="EL3" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="ELECTRONIC CASE" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="ELK-DIST-BOARD" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="ELKYAZI" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="EPLAN451" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="ET�KET" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="EYAZI" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="E_ANTET" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="E_Elk_Yazi(Turk)" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="FDP_CARTOUCHE" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="FDP_FDP" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="FDP_LOGO_MG" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="FDP_LOGO_SCH" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="FDP_TEXTES" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="FMULT" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="FRAME 025" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="FRAME 050" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="FRAME 070" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="G-ALTLIK" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="G-ANTET" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="H" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="HACHURES1" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="HACHURES2" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="HACHURES3" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="HACHURES4" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="HAT" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="HAT-1" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="HATGEN" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="HATKUV" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="HATTOPRAK" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="HB-ARA-HATT" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="HB-SEMBOL" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="HB-UPS-DAGITIM-TOPRAK" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="ICDETAY" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="IC_DETAY" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="IZUST" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="KAFES" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="KAPI" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="KASKAT" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="KESIT" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="KES�K" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="KLM" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="KOLTAR" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="KUVVET" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="LAM-H" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="LAYER1" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="LAYER252" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="LAYER4" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="LEJAND" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="LEJANT" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="LINYE" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="MAHAL ADI" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="MAHALISMI" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="MALZEME" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="MARKA" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="MBS_ANTET" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="MBS_Antet_Yaz�" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="MBS_CERCEVE" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="MBS_E-TEKHAT" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="MBS_EKIPMAN" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="MBS_ELK _YAZI" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="MBS_ELK_ YAZI" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="MBS_ELK_YAZI" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="MBS_E_EK�PMAN" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="MBS_E_ELK_YAZ�" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="MBS_HAT" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="MBS_HAT_AYD" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="MBS_HAT_TOPRAK" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="MBS_Hat_Kuvvet" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="MBS_LINYE" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="MBS_LOGO" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="MBS_PANO" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="MBS_TOPRAK" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="MOTOR" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="NOKTA" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="OLCU" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="OPERATORS" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="ORTU_SACI" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="Object" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="PANO" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="PATTE DE FIXATION" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="PENCERE" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="PHANTOM" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="PLOTRAHMEN" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="POINT D'ACCROCHAGE" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="POINTILLE_COURT" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="POINTILLE_LONG" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="POINTILLE_MOYEN" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="REVIZYON" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="S" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="SALT" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="SEMBOL" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="SEMBOLLER" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="SH-ELEKTRIK" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="SIEMENS- Motor tahrik mekanizmas�(biriktirilmi� yay enerjili)" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="SIVA" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="SONDERTEXT" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="SYMBOL" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="T2BUSBAR" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="TEKHAT" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="TERMINAL" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="TERMINAL SCHROUD" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="TEXTE" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="TOPRAKLAMA" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="TextInce @8" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="Y" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="Y-CEILING MALL CORRIDOR" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="YAZI" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="YAZI-1" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="Yazd�rma Aral���" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="Yaz�" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="e-hat" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="kapak" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="kolon" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="recep" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="taban_sac�" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="tefris" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="�NY�Z" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="�alt Malzeme" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="�l��" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="�rt�_sac�" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+    <g lc:layername="�� �L��" lc:is_locked="false" lc:is_construction="false" fill="none" stroke="black" stroke-width="1"/>
+</svg>

@@ -78,6 +78,7 @@ export default function CustomRuleNode({ data, selected }: NodeProps<CustomRuleN
     const getConstraintLabel = () => {
       switch (constraint.type) {
         case 'panelSizeMapping': return 'Panel Size Mapping';
+        case 'combinatorPanelSizeMapping': return 'Combinator Panel Size Mapping';
         case 'overlap': return 'No Overlaps';
         case 'bounds': return 'Within Bounds';
         case 'spacing': return 'Minimum Spacing';
@@ -99,6 +100,22 @@ export default function CustomRuleNode({ data, selected }: NodeProps<CustomRuleN
           details.push(`Types: ${constraint.componentTypes.join(', ')}`);
         } else {
           details.push('All component types');
+        }
+        
+        if (constraint.panelSize) {
+          details.push(`Panel: ${constraint.panelSize}cm`);
+        }
+        
+        return details;
+      }
+      
+      if (constraint.type === 'combinatorPanelSizeMapping') {
+        const details: string[] = [];
+        
+        if (constraint.combinatorTypes && constraint.combinatorTypes.length > 0) {
+          details.push(`Types: ${constraint.combinatorTypes.join(', ')}`);
+        } else {
+          details.push('All combinator types');
         }
         
         if (constraint.panelSize) {

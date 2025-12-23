@@ -14,6 +14,12 @@ import {
   getPanelSizeFromWidth,
   filterComponentsByPanelWidth,
   getComponentsByTypeAndPanelSize,
+  getCombinatorsByPanelSize,
+  getCombinatorsByTypeAndPanelSize,
+  extractBrandValues,
+  extractSeriesValues,
+  extractCurrentAValues,
+  extractPoleValues,
 } from '@/lib/componentUtils';
 
 interface ProjectComponentPropertiesProps {
@@ -24,6 +30,7 @@ interface ProjectComponentPropertiesProps {
   onAddComponent: (componentId: string, aValue?: string, vValue?: string, pValue?: string) => void;
   onAddCombinator?: (combinatorId: string) => void;
   onDeleteComponent: (componentId: string) => void;
+  onDuplicateComponent?: (componentId: string) => void;
   onClose: () => void;
 }
 
@@ -35,12 +42,18 @@ export default function ProjectComponentProperties({
   onAddComponent,
   onAddCombinator,
   onDeleteComponent,
+  onDuplicateComponent,
   onClose,
 }: ProjectComponentPropertiesProps) {
   const { componentLibrary, combinatorsLibrary, rules, panelsLibrary } = usePanelStore();
   const [addMode, setAddMode] = useState<'component' | 'combinator'>('component');
   const [selectedType, setSelectedType] = useState<string>('');
+  // Keep selectedCombinatorId for backward compatibility but it's not used for selection anymore
   const [selectedCombinatorId, setSelectedCombinatorId] = useState<string>('');
+  const [selectedBrand, setSelectedBrand] = useState<string>('');
+  const [selectedSeries, setSelectedSeries] = useState<string>('');
+  const [selectedCurrentA, setSelectedCurrentA] = useState<string>('');
+  const [selectedPole, setSelectedPole] = useState<string>('');
   const [selectedAValue, setSelectedAValue] = useState<string>('');
   const [selectedVValue, setSelectedVValue] = useState<string>('');
   const [selectedPValue, setSelectedPValue] = useState<string>('');
@@ -171,6 +184,91 @@ export default function ProjectComponentProperties({
   // Get component types from filtered library (only types that have variants for this panel size)
   const componentTypes = useMemo(() => getComponentTypes(filteredComponentLibrary), [filteredComponentLibrary]);
 
+  // Get applicable combinator panel size mapping rules for this panel
+  const applicableCombinatorRules = useMemo(() => {
+    if (!selectedPanel || !rules || rules.length === 0) return [];
+    
+    return rules
+      .filter((rule) => {
+        // Rule must be enabled
+        if (rule.enabled === false) return false;
+        
+        // Rule must have combinatorPanelSizeMapping constraint
+        const hasCombinatorPanelSizeMapping = rule.constraints.some(
+          (constraint) => constraint.type === 'combinatorPanelSizeMapping'
+        );
+        if (!hasCombinatorPanelSizeMapping) return false;
+        
+        // Check if rule applies to this panel:
+        // - Global rules apply to all panels
+        // - Panel rules apply if:
+        //   a) panelId matches (exact match)
+        //   b) OR panel width matches the library panel that the rule was created for
+        if (rule.type === 'global') return true;
+        if (rule.type === 'panel') {
+          // First try exact ID match
+          if (rule.panelId === selectedPanel.id) return true;
+          
+          // Then try width-based matching (for panels copied from library)
+          if (rule.panelId && panelsLibrary) {
+            const libraryPanel = panelsLibrary.find((p) => p.id === rule.panelId);
+            if (libraryPanel && libraryPanel.width === selectedPanel.width) return true;
+          }
+          
+          return false;
+        }
+        
+        return false;
+      })
+      .flatMap((rule) => 
+        rule.constraints
+          .filter((c) => c.type === 'combinatorPanelSizeMapping')
+          .map((constraint) => ({ rule, constraint }))
+      );
+  }, [rules, selectedPanel, panelsLibrary]);
+
+  // Filter combinator library based on applicable rules
+  const filteredCombinatorsLibrary = useMemo(() => {
+    // If no panel selected, show all
+    if (!selectedPanel) return combinatorsLibrary;
+    
+    // If no rules defined for this panel, show nothing (empty array)
+    if (applicableCombinatorRules.length === 0) {
+      return [];
+    }
+    
+    // Get the first applicable rule's constraint (we'll use the first one)
+    const firstRule = applicableCombinatorRules[0];
+    const constraint = firstRule.constraint;
+    
+    // Determine panel size: use constraint.panelSize if specified, otherwise calculate from panel width
+    const panelSize = constraint.panelSize !== undefined 
+      ? constraint.panelSize 
+      : getPanelSizeFromWidth(selectedPanel.width);
+    
+    // Get combinator types from constraint
+    const allowedCombinatorTypes = constraint.combinatorTypes || [];
+    
+    // Filter combinators
+    let filtered = combinatorsLibrary.filter((comb) => {
+      // Must match panel size
+      if (comb.panelSize === undefined || Number(comb.panelSize) !== panelSize) {
+        return false;
+      }
+      
+      // If combinator types are specified, must match one of them
+      if (allowedCombinatorTypes.length > 0) {
+        // For now, match by name (could be extended with a type field)
+        return allowedCombinatorTypes.includes(comb.name);
+      }
+      
+      // If no combinator types specified, allow all
+      return true;
+    });
+    
+    return filtered;
+  }, [combinatorsLibrary, selectedPanel, applicableCombinatorRules]);
+
   // Get dropdown visibility based on selected type
   const dropdowns = useMemo(() => {
     if (!selectedType) return { showA: false, showV: false, showP: false };
@@ -197,6 +295,67 @@ export default function ProjectComponentProperties({
     const typeComponents = filteredComponentLibrary.filter((c) => c.type === selectedType);
     return extractPValues(typeComponents);
   }, [filteredComponentLibrary, selectedType, dropdowns.showP]);
+
+  // Progressive filtering for combinators based on selected properties
+  const filteredCombinatorsByProperties = useMemo(() => {
+    let filtered = filteredCombinatorsLibrary;
+    
+    if (selectedBrand) {
+      filtered = filtered.filter((c) => c.brand === selectedBrand);
+    }
+    if (selectedSeries) {
+      filtered = filtered.filter((c) => c.series === selectedSeries);
+    }
+    if (selectedCurrentA) {
+      filtered = filtered.filter((c) => c.currentA === selectedCurrentA);
+    }
+    if (selectedPole) {
+      filtered = filtered.filter((c) => c.pole === selectedPole);
+    }
+    
+    return filtered;
+  }, [filteredCombinatorsLibrary, selectedBrand, selectedSeries, selectedCurrentA, selectedPole]);
+
+  // Get available brand values (from filtered library)
+  const brandValues = useMemo(() => {
+    return extractBrandValues(filteredCombinatorsLibrary);
+  }, [filteredCombinatorsLibrary]);
+
+  // Get available series values (from filtered library, further filtered by brand if selected)
+  const seriesValues = useMemo(() => {
+    let filtered = filteredCombinatorsLibrary;
+    if (selectedBrand) {
+      filtered = filtered.filter((c) => c.brand === selectedBrand);
+    }
+    return extractSeriesValues(filtered);
+  }, [filteredCombinatorsLibrary, selectedBrand]);
+
+  // Get available current (A) values (from filtered library, further filtered by brand and series if selected)
+  const currentAValues = useMemo(() => {
+    let filtered = filteredCombinatorsLibrary;
+    if (selectedBrand) {
+      filtered = filtered.filter((c) => c.brand === selectedBrand);
+    }
+    if (selectedSeries) {
+      filtered = filtered.filter((c) => c.series === selectedSeries);
+    }
+    return extractCurrentAValues(filtered);
+  }, [filteredCombinatorsLibrary, selectedBrand, selectedSeries]);
+
+  // Get available pole values (from filtered library, further filtered by brand, series, and current if selected)
+  const poleValues = useMemo(() => {
+    let filtered = filteredCombinatorsLibrary;
+    if (selectedBrand) {
+      filtered = filtered.filter((c) => c.brand === selectedBrand);
+    }
+    if (selectedSeries) {
+      filtered = filtered.filter((c) => c.series === selectedSeries);
+    }
+    if (selectedCurrentA) {
+      filtered = filtered.filter((c) => c.currentA === selectedCurrentA);
+    }
+    return extractPoleValues(filtered);
+  }, [filteredCombinatorsLibrary, selectedBrand, selectedSeries, selectedCurrentA]);
 
   // Calculate available height (empty area)
   // Filter rules to match panel (by ID or width for panels copied from library)
@@ -277,12 +436,17 @@ export default function ProjectComponentProperties({
     if (!availableHeightInfo) return true; // No constraint, allow addition
     
     if (addMode === 'combinator') {
-      if (!selectedCombinatorId) return false;
-      const combinator = combinatorsLibrary.find((c) => c.id === selectedCombinatorId);
-      if (!combinator) return false;
+      // Find combinator matching all selected properties
+      const matchingCombinator = filteredCombinatorsByProperties.find((c) => 
+        c.brand === selectedBrand &&
+        c.series === selectedSeries &&
+        c.currentA === selectedCurrentA &&
+        c.pole === selectedPole
+      );
+      if (!matchingCombinator) return false;
       
       const spacing = panelComponents.filter((c) => c.componentId !== 'gap').length > 0 ? 10 : 0;
-      const requiredHeight = combinator.height + spacing;
+      const requiredHeight = matchingCombinator.height + spacing;
       return requiredHeight <= availableHeightInfo.available;
     } else {
       if (!selectedType) return false;
@@ -293,7 +457,7 @@ export default function ProjectComponentProperties({
       const requiredHeight = component.height + spacing;
       return requiredHeight <= availableHeightInfo.available;
     }
-  }, [addMode, selectedCombinatorId, selectedType, filteredComponentLibrary, combinatorsLibrary, panelComponents, availableHeightInfo]);
+  }, [addMode, selectedBrand, selectedSeries, selectedCurrentA, selectedPole, filteredCombinatorsByProperties, selectedType, filteredComponentLibrary, panelComponents, availableHeightInfo]);
 
   // Reset form when panel changes or closes
   useEffect(() => {
@@ -301,6 +465,10 @@ export default function ProjectComponentProperties({
       setAddMode('component');
       setSelectedType('');
       setSelectedCombinatorId('');
+      setSelectedBrand('');
+      setSelectedSeries('');
+      setSelectedCurrentA('');
+      setSelectedPole('');
       setSelectedAValue('');
       setSelectedVValue('');
       setSelectedPValue('');
@@ -318,14 +486,22 @@ export default function ProjectComponentProperties({
     if (!selectedPanelId || !selectedPanel) return;
 
     if (addMode === 'combinator') {
-      if (!selectedCombinatorId) {
-        alert('Please select a combinator');
+      // Validate all required properties are selected
+      if (!selectedBrand || !selectedSeries || !selectedCurrentA || !selectedPole) {
+        alert('Please select all combinator properties (Brand, Series, Current, Pole)');
         return;
       }
       
-      const combinator = combinatorsLibrary.find((c) => c.id === selectedCombinatorId);
+      // Find combinator matching all selected properties
+      const combinator = filteredCombinatorsByProperties.find((c) => 
+        c.brand === selectedBrand &&
+        c.series === selectedSeries &&
+        c.currentA === selectedCurrentA &&
+        c.pole === selectedPole
+      );
+      
       if (!combinator) {
-        alert('Combinator not found');
+        alert('No combinator found matching the selected properties');
         return;
       }
 
@@ -377,8 +553,12 @@ export default function ProjectComponentProperties({
       }
 
       if (onAddCombinator) {
-        onAddCombinator(selectedCombinatorId);
-        setSelectedCombinatorId('');
+        onAddCombinator(combinator.id);
+        // Reset property selections
+        setSelectedBrand('');
+        setSelectedSeries('');
+        setSelectedCurrentA('');
+        setSelectedPole('');
       }
       return;
     }
@@ -529,25 +709,48 @@ export default function ProjectComponentProperties({
                           )}
                         </div>
                       </div>
-                      <button
-                        onClick={() => onDeleteComponent(canvasComp.id)}
-                        className="px-2 py-1 text-red-600 hover:bg-red-50 rounded text-xs transition-colors"
-                        title="Delete"
-                      >
-                        <svg
-                          className="w-4 h-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
+                      <div className="flex items-center gap-1">
+                        {onDuplicateComponent && (
+                          <button
+                            onClick={() => onDuplicateComponent(canvasComp.id)}
+                            className="px-2 py-1 text-blue-600 hover:bg-blue-50 rounded text-xs transition-colors"
+                            title="Duplicate"
+                          >
+                            <svg
+                              className="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                              />
+                            </svg>
+                          </button>
+                        )}
+                        <button
+                          onClick={() => onDeleteComponent(canvasComp.id)}
+                          className="px-2 py-1 text-red-600 hover:bg-red-50 rounded text-xs transition-colors"
+                          title="Delete"
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                          />
-                        </svg>
-                      </button>
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                            />
+                          </svg>
+                        </button>
+                      </div>
                     </div>
                   );
                 })
@@ -586,9 +789,9 @@ export default function ProjectComponentProperties({
                       {availableHeightInfo.available.toFixed(1)}mm
                     </span>
                   </div>
-                  {addMode === 'combinator' && selectedCombinatorId && (
+                  {addMode === 'combinator' && selectedBrand && selectedSeries && selectedCurrentA && selectedPole && filteredCombinatorsByProperties.length === 1 && (
                     (() => {
-                      const combinator = combinatorsLibrary.find((c) => c.id === selectedCombinatorId);
+                      const combinator = filteredCombinatorsByProperties[0];
                       if (!combinator) return null;
                       const spacing = panelComponents.filter((c) => c.componentId !== 'gap').length > 0 ? 10 : 0;
                       const required = combinator.height + spacing;
@@ -637,6 +840,10 @@ export default function ProjectComponentProperties({
                   setAddMode(e.target.value as 'component' | 'combinator');
                   setSelectedType('');
                   setSelectedCombinatorId('');
+                  setSelectedBrand('');
+                  setSelectedSeries('');
+                  setSelectedCurrentA('');
+                  setSelectedPole('');
                   setSelectedAValue('');
                   setSelectedVValue('');
                   setSelectedPValue('');
@@ -649,24 +856,108 @@ export default function ProjectComponentProperties({
             </div>
 
             {addMode === 'combinator' ? (
-              /* Combinator Selection */
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Combinator <span className="text-red-500">*</span>
-                </label>
-                <select
-                  value={selectedCombinatorId}
-                  onChange={(e) => setSelectedCombinatorId(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Select combinator</option>
-                  {combinatorsLibrary.map((combinator) => (
-                    <option key={combinator.id} value={combinator.id}>
-                      {combinator.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              /* Combinator Property Selection */
+              <>
+                {filteredCombinatorsLibrary.length === 0 ? (
+                  <div className="w-full px-3 py-2 border border-yellow-300 rounded-md bg-yellow-50 text-sm text-yellow-800">
+                    {applicableCombinatorRules.length === 0 
+                      ? 'No rules defined for this panel. Please define combinator panel size mapping rules in Rule Book first.'
+                      : 'No combinators match the panel size rules for this panel.'}
+                  </div>
+                ) : (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Brand <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        value={selectedBrand}
+                        onChange={(e) => {
+                          setSelectedBrand(e.target.value);
+                          setSelectedSeries('');
+                          setSelectedCurrentA('');
+                          setSelectedPole('');
+                        }}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="">Select brand</option>
+                        {brandValues.map((brand) => (
+                          <option key={brand} value={brand}>
+                            {brand}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {selectedBrand && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Series <span className="text-red-500">*</span>
+                        </label>
+                        <select
+                          value={selectedSeries}
+                          onChange={(e) => {
+                            setSelectedSeries(e.target.value);
+                            setSelectedCurrentA('');
+                            setSelectedPole('');
+                          }}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          <option value="">Select series</option>
+                          {seriesValues.map((series) => (
+                            <option key={series} value={series}>
+                              {series}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+
+                    {selectedSeries && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Current (A) <span className="text-red-500">*</span>
+                        </label>
+                        <select
+                          value={selectedCurrentA}
+                          onChange={(e) => {
+                            setSelectedCurrentA(e.target.value);
+                            setSelectedPole('');
+                          }}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          <option value="">Select current</option>
+                          {currentAValues.map((current) => (
+                            <option key={current} value={current}>
+                              {current} A
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+
+                    {selectedCurrentA && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Pole <span className="text-red-500">*</span>
+                        </label>
+                        <select
+                          value={selectedPole}
+                          onChange={(e) => setSelectedPole(e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          <option value="">Select pole</option>
+                          {poleValues.map((pole) => (
+                            <option key={pole} value={pole}>
+                              {pole}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+                  </>
+                )}
+              </>
             ) : (
               /* Component Type Selection */
               <div>
@@ -768,12 +1059,12 @@ export default function ProjectComponentProperties({
             disabled={
               !canAddSelected ||
               (addMode === 'combinator'
-                ? !selectedCombinatorId
+                ? !(selectedBrand && selectedSeries && selectedCurrentA && selectedPole)
                 : !selectedType || (dropdowns.showA && !selectedAValue) || (dropdowns.showV && !selectedVValue) || (dropdowns.showP && !selectedPValue))
             }
             className={`w-full px-4 py-2 rounded-md font-medium transition-colors ${
               canAddSelected &&
-              ((addMode === 'combinator' && selectedCombinatorId) ||
+              ((addMode === 'combinator' && selectedBrand && selectedSeries && selectedCurrentA && selectedPole) ||
               (addMode === 'component' && selectedType && (!dropdowns.showA || selectedAValue) && (!dropdowns.showV || selectedVValue) && (!dropdowns.showP || selectedPValue)))
                 ? 'bg-blue-500 text-white hover:bg-blue-600'
                 : 'bg-gray-200 text-gray-400 cursor-not-allowed'

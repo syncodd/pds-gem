@@ -211,29 +211,29 @@ export default function CombinatorPreviewCanvas({
 
         // Component label (only if showLabels is true)
         if (showLabels) {
-          const compLabel = new Konva.Text({
-            x: 5,
-            y: 5,
-            text: component.name,
-            fontSize: 10,
+        const compLabel = new Konva.Text({
+          x: 5,
+          y: 5,
+          text: component.name,
+          fontSize: 10,
             fill: '#000',
-            fontStyle: 'bold',
-            width: compWidth - 10,
+          fontStyle: 'bold',
+          width: compWidth - 10,
             name: 'component-label',
-          });
-          compGroup.add(compLabel);
+        });
+        compGroup.add(compLabel);
 
-          // Component dimensions label
-          const dimLabel = new Konva.Text({
-            x: 5,
-            y: compHeight - 20,
-            text: `${component.width} × ${component.height}mm`,
-            fontSize: 8,
+        // Component dimensions label
+        const dimLabel = new Konva.Text({
+          x: 5,
+          y: compHeight - 20,
+          text: `${component.width} × ${component.height}mm`,
+          fontSize: 8,
             fill: '#000',
-            width: compWidth - 10,
+          width: compWidth - 10,
             name: 'dim-label',
-          });
-          compGroup.add(dimLabel);
+        });
+        compGroup.add(dimLabel);
         }
 
         // Remove button (if onRemove is provided)

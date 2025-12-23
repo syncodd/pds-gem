@@ -49,6 +49,7 @@ export default function CombinatorCreationFlow({
     series: '',
     currentA: '',
     pole: '',
+    panelSize: undefined,
   });
 
   const isEdit = !!combinator;
@@ -120,6 +121,7 @@ export default function CombinatorCreationFlow({
           series: '',
           currentA: '',
           pole: '',
+          panelSize: undefined,
         });
         setCurrentStep('name');
       }

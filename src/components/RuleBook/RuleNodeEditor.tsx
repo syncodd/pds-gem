@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { Node } from '@xyflow/react';
-import { Rule, Constraint, RuleCondition, Panel, Component } from '@/types';
+import { Rule, Constraint, RuleCondition, Panel, Component, Combinator } from '@/types';
 import { getComponentTypes } from '@/lib/componentUtils';
+import { usePanelStore } from '@/lib/store';
 
 interface RuleNodeEditorProps {
   node: Node;
@@ -26,6 +27,8 @@ export default function RuleNodeEditor({
   onClose,
   onUpdateNode,
 }: RuleNodeEditorProps) {
+  const { combinatorsLibrary } = usePanelStore();
+  
   // Determine node type
   const isPanelNode = !!node.data.panelId || !!node.data.panel;
   const isConstraintNode = !!node.data.constraint;
@@ -145,6 +148,7 @@ export default function RuleNodeEditor({
           panelIds: undefined,
           componentType: undefined,
           componentTypes: undefined,
+          combinatorTypes: undefined,
           panelSize: undefined,
           property: undefined,
           min: undefined,
@@ -193,6 +197,7 @@ export default function RuleNodeEditor({
               className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
             >
               <option value="panelSizeMapping">Panel Size Mapping</option>
+              <option value="combinatorPanelSizeMapping">Combinator Panel Size Mapping</option>
               <option value="gap">Gap</option>
               <option value="maxComponentHeight">Max Component Height</option>
             </select>
@@ -262,6 +267,102 @@ export default function RuleNodeEditor({
                     components.forEach((comp) => {
                       if (comp.specs?.panelSize && typeof comp.specs.panelSize === 'number') {
                         panelSizes.add(comp.specs.panelSize);
+                      }
+                    });
+                    return Array.from(panelSizes).sort((a, b) => a - b).map((size) => (
+                      <option key={size} value={size}>
+                        {size} cm
+                      </option>
+                    ));
+                  })()}
+                </select>
+                <p className="text-xs text-gray-500 mt-1">
+                  Select the panel size for this constraint
+                </p>
+              </div>
+            </>
+          )}
+
+          {constraint.type === 'combinatorPanelSizeMapping' && (
+            <>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Combinator Types (select one or more, or leave empty for all combinators)
+                </label>
+                <select
+                  multiple
+                  value={constraint.combinatorTypes || []}
+                  onChange={(e) => {
+                    const selected = Array.from(e.target.selectedOptions, (option) => option.value);
+                    updateConstraint({
+                      combinatorTypes: selected.length > 0 ? selected : undefined,
+                    });
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                  style={{ minHeight: '120px' }}
+                  size={Math.min(8, (() => {
+                    // Get unique combinator types (could be based on name prefix or a type field)
+                    // For now, we'll use a simple approach - extract unique prefixes or use names
+                    const types = new Set<string>();
+                    combinatorsLibrary.forEach((comb) => {
+                      // Extract type from name (e.g., "Combinator Type A" -> "Combinator Type A")
+                      // Or use a type field if it exists in the future
+                      types.add(comb.name);
+                    });
+                    return Array.from(types).length;
+                  })() + 1)}
+                >
+                  {(() => {
+                    // Get unique combinator types
+                    const types = new Set<string>();
+                    combinatorsLibrary.forEach((comb) => {
+                      types.add(comb.name);
+                    });
+                    return Array.from(types).sort().map((type) => (
+                      <option key={type} value={type}>
+                        {type}
+                      </option>
+                    ));
+                  })()}
+                </select>
+                <p className="text-xs text-gray-500 mt-1">
+                  Hold Ctrl/Cmd to select multiple. Leave empty to apply to all combinators.
+                  {constraint.combinatorTypes && constraint.combinatorTypes.length > 0 && (
+                    <span className="block mt-1">
+                      Selected: {constraint.combinatorTypes.join(', ')}
+                    </span>
+                  )}
+                </p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Panel Size (cm) <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={constraint.panelSize || (() => {
+                    // Extract unique panel sizes from combinators
+                    const panelSizes = new Set<number>();
+                    combinatorsLibrary.forEach((comb) => {
+                      if (comb.panelSize !== undefined) {
+                        panelSizes.add(comb.panelSize);
+                      }
+                    });
+                    return Array.from(panelSizes).sort((a, b) => a - b)[0] || '';
+                  })()}
+                  onChange={(e) =>
+                    updateConstraint({
+                      panelSize: Number(e.target.value),
+                    })
+                  }
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                >
+                  {(() => {
+                    // Extract unique panel sizes from combinators
+                    const panelSizes = new Set<number>();
+                    combinatorsLibrary.forEach((comb) => {
+                      if (comb.panelSize !== undefined) {
+                        panelSizes.add(comb.panelSize);
                       }
                     });
                     return Array.from(panelSizes).sort((a, b) => a - b).map((size) => (

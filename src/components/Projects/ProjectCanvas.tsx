@@ -257,6 +257,10 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
       const compIndex = panelComps.findIndex((c) => c.id === comp.id);
       if (compIndex === -1) return comp;
 
+      // Check if current component is a combinator
+      const currentCombinatorDef = combinatorsLibrary.find((c) => c.id === comp.componentId);
+      const isCurrentCombinator = !!currentCombinatorDef;
+
       // Calculate Y position
       for (let i = 0; i < compIndex; i++) {
         const prevComp = panelComps[i];
@@ -265,10 +269,32 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
         } else {
           const compDef = componentLibrary.find((c) => c.id === prevComp.componentId);
           const combinatorDef = combinatorsLibrary.find((c) => c.id === prevComp.componentId);
+          const isPrevCombinator = !!combinatorDef;
           const def = compDef || combinatorDef;
           if (def) {
-            currentY += def.height + spacing;
+            currentY += def.height;
+            // Only add spacing if not between two combinators
+            if (!(isCurrentCombinator && isPrevCombinator)) {
+              currentY += spacing;
+            }
           }
+        }
+      }
+      
+      // Add spacing before current component if there are previous components and not between combinators
+      if (compIndex > 0) {
+        const prevComp = panelComps[compIndex - 1];
+        if (prevComp.componentId !== 'gap') {
+          const prevCompDef = componentLibrary.find((c) => c.id === prevComp.componentId);
+          const prevCombinatorDef = combinatorsLibrary.find((c) => c.id === prevComp.componentId);
+          const isPrevCombinator = !!prevCombinatorDef;
+          // Only add spacing if not between two combinators
+          if (!(isCurrentCombinator && isPrevCombinator)) {
+            currentY += spacing;
+          }
+        } else {
+          // Previous was a gap, add spacing
+          currentY += spacing;
         }
       }
 
@@ -400,7 +426,7 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
   };
 
   // Calculate next component position (top-to-bottom, centralized, with spacing)
-  const calculateNextComponentPosition = (panelId: string, componentWidth: number, componentHeight: number) => {
+  const calculateNextComponentPosition = (panelId: string, componentWidth: number, componentHeight: number, isCombinator: boolean = false) => {
     const panel = localPanels.find((p) => p.id === panelId);
     if (!panel) return { x: 0, y: 0, order: 0 };
 
@@ -433,6 +459,7 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
 
     // Calculate Y position based on last component
     // Spacing is between components, not after each one
+    // No spacing between combinators
     let totalHeight = startY;
     for (let i = 0; i < panelComponents.length; i++) {
       const comp = panelComponents[i];
@@ -449,7 +476,38 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
         }
       }
       // Add spacing after this component (before the next one)
+      // But skip spacing if both current and next are combinators
       if (i < panelComponents.length - 1) {
+        const nextComp = panelComponents[i + 1];
+        if (nextComp.componentId !== 'gap') {
+          const currentCombinatorDef = combinatorsLibrary.find((c) => c.id === comp.componentId);
+          const nextCombinatorDef = combinatorsLibrary.find((c) => c.id === nextComp.componentId);
+          const isCurrentCombinator = !!currentCombinatorDef;
+          const isNextCombinator = !!nextCombinatorDef;
+          // Only add spacing if not between two combinators
+          if (!(isCurrentCombinator && isNextCombinator)) {
+            totalHeight += spacing;
+          }
+        } else {
+          // Next is a gap, add spacing
+          totalHeight += spacing;
+        }
+      }
+    }
+
+    // Check if the last component in the panel is a combinator
+    // If both the last component and the new component are combinators, don't add spacing
+    if (panelComponents.length > 0) {
+      const lastComp = panelComponents[panelComponents.length - 1];
+      if (lastComp.componentId !== 'gap') {
+        const lastCombinatorDef = combinatorsLibrary.find((c) => c.id === lastComp.componentId);
+        const isLastCombinator = !!lastCombinatorDef;
+        // Only add spacing if not between two combinators
+        if (!(isLastCombinator && isCombinator)) {
+          totalHeight += spacing;
+        }
+      } else {
+        // Last was a gap, add spacing
         totalHeight += spacing;
       }
     }
@@ -503,7 +561,7 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
       return;
     }
 
-    const position = calculateNextComponentPosition(selectedPanelId, component.width, component.height);
+    const position = calculateNextComponentPosition(selectedPanelId, component.width, component.height, false);
 
     const newComponent: CanvasComponent = {
       id: `canvas-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -568,7 +626,7 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
       return;
     }
 
-    const position = calculateNextComponentPosition(selectedPanelId, combinator.width, combinator.height);
+    const position = calculateNextComponentPosition(selectedPanelId, combinator.width, combinator.height, true);
 
     const newComponent: CanvasComponent = {
       id: `canvas-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -587,6 +645,74 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
     setLocalComponents([...localComponents, newComponent]);
   };
 
+
+  // Handle duplicating component
+  const handleDuplicateComponent = (componentId: string) => {
+    const componentToDuplicate = localComponents.find((c) => c.id === componentId);
+    if (!componentToDuplicate) return;
+
+    const panel = localPanels.find((p) => p.id === componentToDuplicate.panelId);
+    if (!panel) return;
+
+    // Find the component or combinator definition
+    const compDef = componentLibrary.find((c) => c.id === componentToDuplicate.componentId);
+    const combinatorDef = combinatorsLibrary.find((c) => c.id === componentToDuplicate.componentId);
+    const def = compDef || combinatorDef;
+    if (!def) return;
+
+    // Filter rules to match panel (by ID or width for panels copied from library)
+    const matchingRules = rules.filter((rule) => {
+      if (rule.enabled === false) return false;
+      if (rule.type !== 'panel') return false;
+      
+      // Exact ID match
+      if (rule.panelId === panel.id) return true;
+      
+      // Width-based matching (for panels copied from library)
+      if (rule.panelId && panelsLibrary) {
+        const libraryPanel = panelsLibrary.find((p) => p.id === rule.panelId);
+        if (libraryPanel && libraryPanel.width === panel.width) return true;
+      }
+      
+      return false;
+    });
+
+    // Validate against maxComponentHeight constraint
+    const validationError = validateComponentHeight(
+      panel,
+      localComponents,
+      componentLibrary,
+      combinatorsLibrary,
+      matchingRules,
+      def.height,
+      !!combinatorDef
+    );
+
+    if (validationError) {
+      alert(validationError);
+      return;
+    }
+
+    // Calculate position for the duplicate (after the original)
+    const position = calculateNextComponentPosition(componentToDuplicate.panelId, def.width, def.height, !!combinatorDef);
+
+    // Create duplicate with same properties but new ID and position
+    const duplicatedComponent: CanvasComponent = {
+      id: `canvas-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      componentId: componentToDuplicate.componentId,
+      panelId: componentToDuplicate.panelId,
+      x: position.x,
+      y: position.y,
+      rotation: componentToDuplicate.rotation || 0,
+      scale: componentToDuplicate.scale || 1,
+      properties: {
+        ...componentToDuplicate.properties,
+        order: position.order,
+      },
+    };
+
+    setLocalComponents([...localComponents, duplicatedComponent]);
+  };
 
   // Handle deleting component or gap
   const handleDeleteComponent = (componentId: string) => {
@@ -664,8 +790,22 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
         
         currentY += height;
         // Add spacing after this component (before the next one)
+        // But skip spacing if both current and next are combinators
         if (index < panelComponents.length - 1) {
-          currentY += spacing;
+          const nextComp = panelComponents[index + 1];
+          if (nextComp.componentId !== 'gap') {
+            const currentCombinatorDef = combinatorsLibrary.find((c) => c.id === comp.componentId);
+            const nextCombinatorDef = combinatorsLibrary.find((c) => c.id === nextComp.componentId);
+            const isCurrentCombinator = !!currentCombinatorDef;
+            const isNextCombinator = !!nextCombinatorDef;
+            // Only add spacing if not between two combinators
+            if (!(isCurrentCombinator && isNextCombinator)) {
+              currentY += spacing;
+            }
+          } else {
+            // Next is a gap, add spacing
+            currentY += spacing;
+          }
         }
         return result;
       });
@@ -746,11 +886,11 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
           // Update existing gap
           updatedComponents.push({
             ...existingTopGap,
-            properties: {
+          properties: {
               ...existingTopGap.properties,
               gapHeight: topGap.size || 0,
               order: -1, // Top gap has lowest order
-            },
+          },
             y: 0,
             x: 0,
           });
@@ -826,9 +966,9 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
 
       const panelComps = finalComponents
         .filter((c) => c.panelId === comp.panelId)
-        .sort((a, b) => (a.properties?.order ?? 0) - (b.properties?.order ?? 0));
-
-      const spacing = 10;
+          .sort((a, b) => (a.properties?.order ?? 0) - (b.properties?.order ?? 0));
+        
+        const spacing = 10;
       let currentY = 0;
 
       // Find position in sorted order
@@ -840,7 +980,7 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
         const prevComp = panelComps[i];
         if (prevComp.componentId === 'gap') {
           currentY += (prevComp.properties?.gapHeight || 0) + spacing;
-        } else {
+          } else {
           const compDef = componentLibrary.find((c) => c.id === prevComp.componentId);
           const combinatorDef = combinatorsLibrary.find((c) => c.id === prevComp.componentId);
           const def = compDef || combinatorDef;
@@ -851,8 +991,8 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
       }
 
       return {
-        ...comp,
-        y: currentY,
+            ...comp,
+            y: currentY,
         x: (() => {
           if (comp.componentId === 'gap') return 0;
           const compDef = componentLibrary.find((c) => c.id === comp.componentId);
@@ -861,8 +1001,8 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
           return (panel.width - width) / 2;
         })(),
       };
-    });
-
+        });
+        
     setLocalComponents(repositionedComponents);
   }, [rules, localPanels, componentLibrary, combinatorsLibrary]);
 
@@ -913,7 +1053,7 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
     const otherComponents = currentComponents
       .filter((c) => c.panelId === panelId && c.id !== draggedComponentId && c.componentId !== 'gap')
       .map((c) => {
-        const compDef = componentLibrary.find((lib) => lib.id === c.componentId);
+          const compDef = componentLibrary.find((lib) => lib.id === c.componentId);
         const combinatorDef = combinatorsLibrary.find((lib) => lib.id === c.componentId);
         const height = compDef?.height || combinatorDef?.height || 0;
         return { comp: c, height, centerY: c.y + height / 2 };
@@ -932,7 +1072,7 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
     // Rebuild component list with new order (gaps will be added back in fixed positions)
     const reorderedComponents = [...otherComponents];
     if (draggedComp) {
-      const draggedDef = componentLibrary.find((c) => c.id === draggedComp.componentId);
+        const draggedDef = componentLibrary.find((c) => c.id === draggedComp.componentId);
       const draggedCombinatorDef = combinatorsLibrary.find((c) => c.id === draggedComp.componentId);
       const draggedHeight = draggedDef?.height || draggedCombinatorDef?.height || 0;
       reorderedComponents.splice(insertIndex, 0, {
@@ -951,13 +1091,13 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
       const topGapIndex = updatedComponents.findIndex((c) => c.id === topGapId);
       updatedComponents[topGapIndex] = {
         ...topGap,
-        x: 0,
+            x: 0,
         y: 0, // Top gap always at y=0
-        properties: {
+            properties: {
           ...topGap.properties,
           order: -1, // Top gap always has lowest order
-        },
-      };
+            },
+          };
     }
     
     // Start positioning regular components after top gap
@@ -967,21 +1107,21 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
     reorderedComponents.forEach((item, index) => {
       const compIndex = updatedComponents.findIndex((c) => c.id === item.comp.id);
       if (compIndex !== -1) {
-        const compDef = componentLibrary.find((c) => c.id === item.comp.componentId);
-        const combinatorDef = combinatorsLibrary.find((c) => c.id === item.comp.componentId);
-        const def = compDef || combinatorDef;
-        if (def) {
-          const centeredX = (panel.width - def.width) / 2;
-          updatedComponents[compIndex] = {
-            ...updatedComponents[compIndex],
-            x: centeredX,
-            y: currentY,
-            properties: {
-              ...updatedComponents[compIndex].properties,
+          const compDef = componentLibrary.find((c) => c.id === item.comp.componentId);
+          const combinatorDef = combinatorsLibrary.find((c) => c.id === item.comp.componentId);
+          const def = compDef || combinatorDef;
+          if (def) {
+            const centeredX = (panel.width - def.width) / 2;
+            updatedComponents[compIndex] = {
+              ...updatedComponents[compIndex],
+              x: centeredX,
+              y: currentY,
+              properties: {
+                ...updatedComponents[compIndex].properties,
               order: index + (topGapSize > 0 ? 1 : 0), // Account for top gap in order
-            },
-          };
-          currentY += def.height + spacing;
+              },
+            };
+            currentY += def.height + spacing;
         }
       }
     });
@@ -1531,21 +1671,16 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
             },
           });
 
-          // Draw combinator boundary box (border only, no fill)
-          const boundaryBox = new Konva.Rect({
-            x: 0,
-            y: 0,
-            width: combWidth,
-            height: combHeight,
+          // Draw combinator bottom line only (no full border)
+          const bottomLine = new Konva.Line({
+            points: [0, combHeight, combWidth, combHeight],
             stroke: isCombinatorSelected ? '#dc2626' : '#000000',
             strokeWidth: isCombinatorSelected ? 2 : 1,
-            fill: 'transparent',
-            cornerRadius: 0,
             listening: true,
             perfectDrawEnabled: false,
             hitStrokeWidth: 10, // Make it easier to click/drag
           });
-          combinatorGroup.add(boundaryBox);
+          combinatorGroup.add(bottomLine);
 
           // Render components inside combinator using gaps
           const gaps = combinatorDef.gaps || new Array(combinatorDef.componentIds.length + 1).fill(0);
@@ -2354,12 +2489,12 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
       if (isCombinator) {
         // Handle combinator selection
         const isSelected = selectedComponentId === compId;
-        const boundaryBox = compGroup.findOne('Rect') as Konva.Rect | null;
+        const bottomLine = compGroup.findOne('Line') as Konva.Line | null;
         
-        if (boundaryBox) {
-          // Update boundary box stroke and width
-          boundaryBox.stroke(isSelected ? '#dc2626' : '#000000');
-          boundaryBox.strokeWidth(isSelected ? 2 : 1);
+        if (bottomLine) {
+          // Update bottom line stroke and width
+          bottomLine.stroke(isSelected ? '#dc2626' : '#000000');
+          bottomLine.strokeWidth(isSelected ? 2 : 1);
         }
         
         // Update inner component overlays
@@ -2602,6 +2737,7 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
         onAddComponent={handleAddComponent}
         onAddCombinator={handleAddCombinator}
         onDeleteComponent={handleDeleteComponent}
+        onDuplicateComponent={handleDuplicateComponent}
         onClose={() => {
           setShowComponentProperties(false);
           setSelectedPanelId(null);

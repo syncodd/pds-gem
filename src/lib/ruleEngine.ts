@@ -558,6 +558,54 @@ function checkConstraint(
       }
       break;
 
+    case 'combinatorPanelSizeMapping':
+      // Determine panel size: use constraint.panelSize if specified, otherwise calculate from panel width
+      const combinatorPanelSize = constraint.panelSize !== undefined 
+        ? constraint.panelSize 
+        : getPanelSizeFromWidth(panel.width);
+      
+      // Get combinator types to check
+      const combinatorTypesToCheck = constraint.combinatorTypes || [];
+      
+      // Filter combinators to check
+      const combinatorsToCheck = canvasComponents.filter((cc) => {
+        const combinator = combinatorsLibrary.find((c) => c.id === cc.componentId);
+        if (!combinator) return false;
+        
+        // If combinator types are specified, must match one of them
+        if (combinatorTypesToCheck.length > 0) {
+          // Match by combinator name (could be extended with a type field)
+          if (!combinatorTypesToCheck.includes(combinator.name)) {
+            return false; // Not in the list of types to check
+          }
+        }
+        
+        // Check if combinator has panelSize property
+        if (combinator.panelSize === undefined) {
+          return false; // Combinator doesn't have panelSize, skip
+        }
+        
+        // Check if panel size matches
+        return Number(combinator.panelSize) !== combinatorPanelSize;
+      });
+      
+      // Generate violations for mismatched combinators
+      for (const canvasComp of combinatorsToCheck) {
+        const combinator = combinatorsLibrary.find((c) => c.id === canvasComp.componentId);
+        violations.push({
+          id: `violation-${timestamp}-${canvasComp.id}-combinator-panel-size`,
+          ruleId: rule.id,
+          ruleName: rule.name,
+          message:
+            constraint.message ||
+            `${combinator?.name || canvasComp.componentId} size (${combinator?.panelSize}cm) does not match required panel size (${combinatorPanelSize}cm)`,
+          severity: 'error',
+          componentId: canvasComp.id,
+          timestamp,
+        });
+      }
+      break;
+
     case 'gap':
       // Gap constraint validation - ensure only one gap per placement per panel
       // This is mainly informational, actual gap usage is in height calculations
@@ -629,6 +677,7 @@ function checkConstraint(
 /**
  * Calculate total component height for a panel
  * Includes: components, combinators (with internal gaps), gap components, and spacing between components
+ * No spacing between combinators
  */
 export function calculateTotalComponentHeight(
   panel: Panel,
@@ -637,12 +686,14 @@ export function calculateTotalComponentHeight(
   combinatorsLibrary: Combinator[],
   includeSpacing: boolean = true
 ): number {
-  const panelComponents = canvasComponents.filter((cc) => cc.panelId === panel.id);
+  const panelComponents = canvasComponents
+    .filter((cc) => cc.panelId === panel.id)
+    .sort((a, b) => (a.properties?.order ?? 0) - (b.properties?.order ?? 0));
   const spacing = 10; // mm spacing between components
   let totalHeight = 0;
-  let componentCount = 0; // Count non-gap components for spacing calculation
 
-  for (const canvasComp of panelComponents) {
+  for (let i = 0; i < panelComponents.length; i++) {
+    const canvasComp = panelComponents[i];
     if (canvasComp.componentId === 'gap') {
       // Gap component - use gapHeight property
       const gapHeight = canvasComp.properties?.gapHeight || 0;
@@ -653,21 +704,33 @@ export function calculateTotalComponentHeight(
       if (combinator) {
         // Combinator height already includes internal gaps (from combinator.gaps)
         totalHeight += combinator.height;
-        componentCount++;
       } else {
         // Regular component
         const component = componentLibrary.find((c) => c.id === canvasComp.componentId);
         if (component) {
           totalHeight += component.height;
-          componentCount++;
         }
       }
     }
-  }
 
-  // Add spacing between components (spacing after each component except the last)
-  if (includeSpacing && componentCount > 0) {
-    totalHeight += spacing * (componentCount - 1);
+    // Add spacing after this component (before the next one)
+    // But skip spacing if both current and next are combinators
+    if (includeSpacing && i < panelComponents.length - 1) {
+      const nextComp = panelComponents[i + 1];
+      if (nextComp.componentId !== 'gap') {
+        const currentCombinator = combinatorsLibrary.find((c) => c.id === canvasComp.componentId);
+        const nextCombinator = combinatorsLibrary.find((c) => c.id === nextComp.componentId);
+        const isCurrentCombinator = !!currentCombinator;
+        const isNextCombinator = !!nextCombinator;
+        // Only add spacing if not between two combinators
+        if (!(isCurrentCombinator && isNextCombinator)) {
+          totalHeight += spacing;
+        }
+      } else {
+        // Next is a gap, add spacing
+        totalHeight += spacing;
+      }
+    }
   }
 
   return totalHeight;
@@ -784,9 +847,23 @@ export function validateComponentHeight(
   );
 
   // Calculate spacing that will be added for the new component
+  // No spacing if adding a combinator after another combinator
   const spacing = 10;
-  const panelComponents = canvasComponents.filter((cc) => cc.panelId === panel.id && cc.componentId !== 'gap');
-  const spacingToAdd = panelComponents.length > 0 ? spacing : 0; // Add spacing if there are existing components
+  const panelComponents = canvasComponents
+    .filter((cc) => cc.panelId === panel.id && cc.componentId !== 'gap')
+    .sort((a, b) => (a.properties?.order ?? 0) - (b.properties?.order ?? 0));
+  
+  let spacingToAdd = 0;
+  if (panelComponents.length > 0) {
+    // Check if the last component is a combinator
+    const lastComp = panelComponents[panelComponents.length - 1];
+    const lastCombinator = combinatorsLibrary.find((c) => c.id === lastComp.componentId);
+    const isLastCombinator = !!lastCombinator;
+    // Only add spacing if not between two combinators
+    if (!(isLastCombinator && isCombinator)) {
+      spacingToAdd = spacing;
+    }
+  }
 
   // Calculate new total height (current + new component + spacing if needed)
   const newTotalHeight = currentHeight + newComponentHeight + spacingToAdd;
