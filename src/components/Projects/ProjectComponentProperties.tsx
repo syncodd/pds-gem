@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { Component, Panel, CanvasComponent } from '@/types';
+import { Component, Panel, CanvasComponent, Combinator } from '@/types';
 import { usePanelStore } from '@/lib/store';
 import { validateComponentHeight, calculateAvailableHeight } from '@/lib/ruleEngine';
 import {
@@ -57,6 +57,7 @@ export default function ProjectComponentProperties({
   const [selectedAValue, setSelectedAValue] = useState<string>('');
   const [selectedVValue, setSelectedVValue] = useState<string>('');
   const [selectedPValue, setSelectedPValue] = useState<string>('');
+  const [isMappingConstraintsExpanded, setIsMappingConstraintsExpanded] = useState<boolean>(true);
 
   // Sort components by order
   const sortedComponents = useMemo(() => {
@@ -316,22 +317,107 @@ export default function ProjectComponentProperties({
     return filtered;
   }, [filteredCombinatorsLibrary, selectedBrand, selectedSeries, selectedCurrentA, selectedPole]);
 
-  // Get available brand values (from filtered library)
-  const brandValues = useMemo(() => {
-    return extractBrandValues(filteredCombinatorsLibrary);
-  }, [filteredCombinatorsLibrary]);
+  // Get applicable property mapping rules for this panel
+  const applicablePropertyMappingRules = useMemo(() => {
+    if (!selectedPanel || !rules || rules.length === 0) return [];
+    
+    return rules
+      .filter((rule) => {
+        // Rule must be enabled
+        if (rule.enabled === false) return false;
+        
+        // Rule must have property mapping constraints
+        const hasPropertyMapping = rule.constraints.some(
+          (constraint) => 
+            constraint.type === 'combinatorPanelBrandMapping' ||
+            constraint.type === 'combinatorPanelSeriesMapping' ||
+            constraint.type === 'combinatorPanelCurrentMapping' ||
+            constraint.type === 'combinatorPanelPoleMapping'
+        );
+        if (!hasPropertyMapping) return false;
+        
+        // Check if rule applies to this panel
+        if (rule.type === 'global') return true;
+        if (rule.type === 'panel') {
+          // First try exact ID match
+          if (rule.panelId === selectedPanel.id) return true;
+          
+          // Then try width-based matching
+          if (rule.panelId && panelsLibrary) {
+            const libraryPanel = panelsLibrary.find((p) => p.id === rule.panelId);
+            if (libraryPanel && libraryPanel.width === selectedPanel.width) return true;
+          }
+          
+          return false;
+        }
+        
+        return false;
+      })
+      .flatMap((rule) => 
+        rule.constraints
+          .filter((c) => 
+            c.type === 'combinatorPanelBrandMapping' ||
+            c.type === 'combinatorPanelSeriesMapping' ||
+            c.type === 'combinatorPanelCurrentMapping' ||
+            c.type === 'combinatorPanelPoleMapping'
+          )
+          .map((constraint) => ({ rule, constraint }))
+      );
+  }, [rules, selectedPanel, panelsLibrary]);
 
-  // Get available series values (from filtered library, further filtered by brand if selected)
+  // Get allowed brand values from rules
+  const allowedBrandValues = useMemo(() => {
+    const brandConstraint = applicablePropertyMappingRules.find(
+      (r) => r.constraint.type === 'combinatorPanelBrandMapping'
+    );
+    return brandConstraint?.constraint.propertyValues || [];
+  }, [applicablePropertyMappingRules]);
+
+  // Get allowed series values from rules
+  const allowedSeriesValues = useMemo(() => {
+    const seriesConstraint = applicablePropertyMappingRules.find(
+      (r) => r.constraint.type === 'combinatorPanelSeriesMapping'
+    );
+    return seriesConstraint?.constraint.propertyValues || [];
+  }, [applicablePropertyMappingRules]);
+
+  // Get allowed current (A) values from rules
+  const allowedCurrentAValues = useMemo(() => {
+    const currentConstraint = applicablePropertyMappingRules.find(
+      (r) => r.constraint.type === 'combinatorPanelCurrentMapping'
+    );
+    return currentConstraint?.constraint.propertyValues || [];
+  }, [applicablePropertyMappingRules]);
+
+  // Get allowed pole values from rules
+  const allowedPoleValues = useMemo(() => {
+    const poleConstraint = applicablePropertyMappingRules.find(
+      (r) => r.constraint.type === 'combinatorPanelPoleMapping'
+    );
+    return poleConstraint?.constraint.propertyValues || [];
+  }, [applicablePropertyMappingRules]);
+
+  // Get available brand values (from filtered library, filtered by rules)
+  const brandValues = useMemo(() => {
+    if (allowedBrandValues.length === 0) return []; // No rule = show nothing
+    const allBrands = extractBrandValues(filteredCombinatorsLibrary);
+    return allBrands.filter((brand) => allowedBrandValues.includes(brand));
+  }, [filteredCombinatorsLibrary, allowedBrandValues]);
+
+  // Get available series values (from filtered library, further filtered by brand if selected, and by rules)
   const seriesValues = useMemo(() => {
+    if (allowedSeriesValues.length === 0) return []; // No rule = show nothing
     let filtered = filteredCombinatorsLibrary;
     if (selectedBrand) {
       filtered = filtered.filter((c) => c.brand === selectedBrand);
     }
-    return extractSeriesValues(filtered);
-  }, [filteredCombinatorsLibrary, selectedBrand]);
+    const allSeries = extractSeriesValues(filtered);
+    return allSeries.filter((series) => allowedSeriesValues.includes(series));
+  }, [filteredCombinatorsLibrary, selectedBrand, allowedSeriesValues]);
 
-  // Get available current (A) values (from filtered library, further filtered by brand and series if selected)
+  // Get available current (A) values (from filtered library, further filtered by brand and series if selected, and by rules)
   const currentAValues = useMemo(() => {
+    if (allowedCurrentAValues.length === 0) return []; // No rule = show nothing
     let filtered = filteredCombinatorsLibrary;
     if (selectedBrand) {
       filtered = filtered.filter((c) => c.brand === selectedBrand);
@@ -339,11 +425,13 @@ export default function ProjectComponentProperties({
     if (selectedSeries) {
       filtered = filtered.filter((c) => c.series === selectedSeries);
     }
-    return extractCurrentAValues(filtered);
-  }, [filteredCombinatorsLibrary, selectedBrand, selectedSeries]);
+    const allCurrentA = extractCurrentAValues(filtered);
+    return allCurrentA.filter((currentA) => allowedCurrentAValues.includes(currentA));
+  }, [filteredCombinatorsLibrary, selectedBrand, selectedSeries, allowedCurrentAValues]);
 
-  // Get available pole values (from filtered library, further filtered by brand, series, and current if selected)
+  // Get available pole values (from filtered library, further filtered by brand, series, and current if selected, and by rules)
   const poleValues = useMemo(() => {
+    if (allowedPoleValues.length === 0) return []; // No rule = show nothing
     let filtered = filteredCombinatorsLibrary;
     if (selectedBrand) {
       filtered = filtered.filter((c) => c.brand === selectedBrand);
@@ -354,8 +442,180 @@ export default function ProjectComponentProperties({
     if (selectedCurrentA) {
       filtered = filtered.filter((c) => c.currentA === selectedCurrentA);
     }
-    return extractPoleValues(filtered);
-  }, [filteredCombinatorsLibrary, selectedBrand, selectedSeries, selectedCurrentA]);
+    const allPoles = extractPoleValues(filtered);
+    return allPoles.filter((pole) => allowedPoleValues.includes(pole));
+  }, [filteredCombinatorsLibrary, selectedBrand, selectedSeries, selectedCurrentA, allowedPoleValues]);
+
+  // Determine which fields are required (have rules defined)
+  const requiredFields = useMemo(() => {
+    const fields: Array<'brand' | 'series' | 'currentA' | 'pole'> = [];
+    if (allowedBrandValues.length > 0) fields.push('brand');
+    if (allowedSeriesValues.length > 0) fields.push('series');
+    if (allowedCurrentAValues.length > 0) fields.push('currentA');
+    if (allowedPoleValues.length > 0) fields.push('pole');
+    return fields;
+  }, [allowedBrandValues.length, allowedSeriesValues.length, allowedCurrentAValues.length, allowedPoleValues.length]);
+
+  // Check if all required fields have valid options
+  const canShowCombinatorFields = useMemo(() => {
+    // Must have panel size mapping rule
+    if (applicableCombinatorRules.length === 0) return false;
+    if (filteredCombinatorsLibrary.length === 0) return false;
+    
+    // Check each required field has valid options
+    if (allowedBrandValues.length > 0 && brandValues.length === 0) return false;
+    if (allowedSeriesValues.length > 0 && seriesValues.length === 0) return false;
+    if (allowedCurrentAValues.length > 0 && currentAValues.length === 0) return false;
+    if (allowedPoleValues.length > 0 && poleValues.length === 0) return false;
+    
+    return true;
+  }, [
+    applicableCombinatorRules.length,
+    filteredCombinatorsLibrary.length,
+    allowedBrandValues.length,
+    brandValues.length,
+    allowedSeriesValues.length,
+    seriesValues.length,
+    allowedCurrentAValues.length,
+    currentAValues.length,
+    allowedPoleValues.length,
+    poleValues.length,
+  ]);
+
+  // Auto-select and validate selections when dependencies change
+  useEffect(() => {
+    if (!canShowCombinatorFields || addMode !== 'combinator') {
+      // Clear selections when fields are not available
+      if (addMode !== 'combinator' || !canShowCombinatorFields) {
+        setSelectedBrand('');
+        setSelectedSeries('');
+        setSelectedCurrentA('');
+        setSelectedPole('');
+      }
+      return;
+    }
+
+    let needsUpdate = false;
+    let newBrand = selectedBrand;
+    let newSeries = selectedSeries;
+    let newCurrentA = selectedCurrentA;
+    let newPole = selectedPole;
+
+    // Auto-select or validate brand
+    if (allowedBrandValues.length > 0) {
+      if (!selectedBrand || !brandValues.includes(selectedBrand)) {
+        if (brandValues.length > 0) {
+          newBrand = brandValues[0];
+          newSeries = '';
+          newCurrentA = '';
+          newPole = '';
+          needsUpdate = true;
+        } else {
+          newBrand = '';
+          newSeries = '';
+          newCurrentA = '';
+          newPole = '';
+          needsUpdate = true;
+        }
+      }
+    }
+
+    // Auto-select or validate series (only if brand is valid)
+    if (allowedSeriesValues.length > 0 && newBrand) {
+      const validSeriesForBrand = seriesValues.filter((s) => {
+        return filteredCombinatorsLibrary.some((c) => 
+          c.brand === newBrand && 
+          c.series === s && 
+          allowedSeriesValues.includes(s)
+        );
+      });
+      
+      if (!newSeries || !validSeriesForBrand.includes(newSeries)) {
+        if (validSeriesForBrand.length > 0) {
+          newSeries = validSeriesForBrand[0];
+          newCurrentA = '';
+          newPole = '';
+          needsUpdate = true;
+        } else {
+          newSeries = '';
+          newCurrentA = '';
+          newPole = '';
+          needsUpdate = true;
+        }
+      }
+    }
+
+    // Auto-select or validate current (only if brand and series are valid)
+    if (allowedCurrentAValues.length > 0 && newBrand && newSeries) {
+      const validCurrentForBrandSeries = currentAValues.filter((c) => {
+        return filteredCombinatorsLibrary.some((comb) => 
+          comb.brand === newBrand && 
+          comb.series === newSeries &&
+          comb.currentA === c && 
+          allowedCurrentAValues.includes(c)
+        );
+      });
+      
+      if (!newCurrentA || !validCurrentForBrandSeries.includes(newCurrentA)) {
+        if (validCurrentForBrandSeries.length > 0) {
+          newCurrentA = validCurrentForBrandSeries[0];
+          newPole = '';
+          needsUpdate = true;
+        } else {
+          newCurrentA = '';
+          newPole = '';
+          needsUpdate = true;
+        }
+      }
+    }
+
+    // Auto-select or validate pole (only if brand, series, and current are valid)
+    if (allowedPoleValues.length > 0 && newBrand && newSeries && newCurrentA) {
+      const validPoleForSelections = poleValues.filter((p) => {
+        return filteredCombinatorsLibrary.some((comb) => 
+          comb.brand === newBrand && 
+          comb.series === newSeries &&
+          comb.currentA === newCurrentA &&
+          comb.pole === p && 
+          allowedPoleValues.includes(p)
+        );
+      });
+      
+      if (!newPole || !validPoleForSelections.includes(newPole)) {
+        if (validPoleForSelections.length > 0) {
+          newPole = validPoleForSelections[0];
+          needsUpdate = true;
+        } else {
+          newPole = '';
+          needsUpdate = true;
+        }
+      }
+    }
+
+    // Apply updates if needed
+    if (needsUpdate) {
+      if (newBrand !== selectedBrand) setSelectedBrand(newBrand);
+      if (newSeries !== selectedSeries) setSelectedSeries(newSeries);
+      if (newCurrentA !== selectedCurrentA) setSelectedCurrentA(newCurrentA);
+      if (newPole !== selectedPole) setSelectedPole(newPole);
+    }
+  }, [
+    canShowCombinatorFields,
+    addMode,
+    selectedBrand,
+    selectedSeries,
+    selectedCurrentA,
+    selectedPole,
+    brandValues,
+    seriesValues,
+    currentAValues,
+    poleValues,
+    allowedBrandValues.length,
+    allowedSeriesValues.length,
+    allowedCurrentAValues.length,
+    allowedPoleValues.length,
+    filteredCombinatorsLibrary,
+  ]);
 
   // Calculate available height (empty area)
   // Filter rules to match panel (by ID or width for panels copied from library)
@@ -827,6 +1087,165 @@ export default function ProjectComponentProperties({
                 </div>
               </div>
             )}
+
+            {/* Debug: Combinator Mapping Constraints */}
+            {selectedPanel && (() => {
+              // Get applicable combinator mapping constraints (same logic as applicablePropertyMappingRules)
+              const mappingConstraints = rules
+                .filter((rule) => {
+                  // Rule must be enabled
+                  if (rule.enabled === false) return false;
+                  
+                  // Rule must have property mapping constraints
+                  const hasPropertyMapping = rule.constraints.some(
+                    (constraint) => 
+                      constraint.type === 'combinatorPanelBrandMapping' ||
+                      constraint.type === 'combinatorPanelSeriesMapping' ||
+                      constraint.type === 'combinatorPanelCurrentMapping' ||
+                      constraint.type === 'combinatorPanelPoleMapping' ||
+                      constraint.type === 'combinatorSpecMapping'
+                  );
+                  if (!hasPropertyMapping) return false;
+                  
+                  // Check if rule applies to this panel
+                  if (rule.type === 'global') return true;
+                  if (rule.type === 'panel') {
+                    // First try exact ID match
+                    if (rule.panelId === selectedPanel.id) return true;
+                    
+                    // Then try width-based matching
+                    if (rule.panelId && panelsLibrary) {
+                      const libraryPanel = panelsLibrary.find((p) => p.id === rule.panelId);
+                      if (libraryPanel && libraryPanel.width === selectedPanel.width) return true;
+                    }
+                    
+                    return false;
+                  }
+                  
+                  return false;
+                })
+                .flatMap((rule) => 
+                  rule.constraints
+                    .filter((c) => 
+                      c.type === 'combinatorPanelBrandMapping' ||
+                      c.type === 'combinatorPanelSeriesMapping' ||
+                      c.type === 'combinatorPanelCurrentMapping' ||
+                      c.type === 'combinatorPanelPoleMapping' ||
+                      c.type === 'combinatorSpecMapping'
+                    )
+                    .map((constraint) => ({ rule, constraint }))
+                );
+
+              if (mappingConstraints.length === 0) return null;
+
+              const panelSize = getPanelSizeFromWidth(selectedPanel.width);
+
+              return (
+                <div className="mb-4 p-3 rounded-lg border bg-purple-50 border-purple-200">
+                  <div 
+                    className="flex items-center justify-between cursor-pointer mb-2"
+                    onClick={() => setIsMappingConstraintsExpanded(!isMappingConstraintsExpanded)}
+                  >
+                    <div className="text-xs font-medium text-purple-800">Combinator Mapping Constraints (Debug)</div>
+                    <svg
+                      className={`w-4 h-4 text-purple-600 transition-transform ${isMappingConstraintsExpanded ? 'rotate-180' : ''}`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
+                  </div>
+                  {isMappingConstraintsExpanded && (
+                  <div className="space-y-3">
+                    {mappingConstraints.map(({ rule, constraint }, idx) => {
+                      const constraintType = constraint.type;
+                      const propertyName = constraintType === 'combinatorPanelBrandMapping' ? 'brand' :
+                                         constraintType === 'combinatorPanelSeriesMapping' ? 'series' :
+                                         constraintType === 'combinatorPanelCurrentMapping' ? 'currentA' :
+                                         constraintType === 'combinatorPanelPoleMapping' ? 'pole' :
+                                         constraint.specKey || 'spec';
+                      
+                      const allowedValues = constraintType === 'combinatorSpecMapping' 
+                        ? (constraint.specValues || [])
+                        : (constraint.propertyValues || []);
+                      
+                      // Get combinators on this panel
+                      const panelCombinators = panelComponents
+                        .filter((cc) => combinatorsLibrary.find((c) => c.id === cc.componentId))
+                        .map((cc) => {
+                          const combinator = combinatorsLibrary.find((c) => c.id === cc.componentId);
+                          return combinator ? { canvasComp: cc, combinator } : null;
+                        })
+                        .filter((item): item is { canvasComp: CanvasComponent; combinator: Combinator } => item !== null);
+
+                      return (
+                        <div key={idx} className="text-xs space-y-1 border-b border-purple-200 pb-2 last:border-0 last:pb-0">
+                          <div className="font-semibold text-purple-700">
+                            {constraintType === 'combinatorPanelBrandMapping' ? 'Brand Mapping' :
+                             constraintType === 'combinatorPanelSeriesMapping' ? 'Series Mapping' :
+                             constraintType === 'combinatorPanelCurrentMapping' ? 'Current(A) Mapping' :
+                             constraintType === 'combinatorPanelPoleMapping' ? 'Pole Mapping' :
+                             `Spec Mapping (${constraint.specKey})`}
+                          </div>
+                          <div className="text-purple-600">
+                            <div className="font-medium mb-1">Allowed Values for Panel {panelSize}cm:</div>
+                            {allowedValues.length > 0 ? (
+                              <div className="pl-2">
+                                <span className="text-purple-700">{allowedValues.join(', ')}</span>
+                              </div>
+                            ) : (
+                              <div className="pl-2 text-gray-500 italic">No values selected</div>
+                            )}
+                          </div>
+                          {panelCombinators.length > 0 && (
+                            <div className="text-purple-600 mt-2">
+                              <div className="font-medium mb-1">Current Combinators:</div>
+                              <div className="pl-2 space-y-0.5">
+                                {panelCombinators.map(({ canvasComp, combinator }) => {
+                                  let value: string | undefined;
+                                  if (constraintType === 'combinatorSpecMapping') {
+                                    value = constraint.specKey ? String(combinator.specs?.[constraint.specKey] || 'N/A') : undefined;
+                                  } else {
+                                    value = String(combinator[propertyName as keyof Combinator] || 'N/A');
+                                  }
+                                  
+                                  const isAllowed = value && allowedValues.includes(value);
+                                  const combinatorPanelSize = combinator.panelSize;
+                                  const isValid = isAllowed && combinatorPanelSize !== undefined && Number(combinatorPanelSize) === panelSize;
+                                  
+                                  return (
+                                    <div key={canvasComp.id} className="flex gap-2 items-center">
+                                      <span className="text-purple-700">{combinator.name}</span>
+                                      <span className="text-gray-400">({propertyName}: {value})</span>
+                                      {isAllowed ? (
+                                        <>
+                                          <span className={isValid ? 'text-green-600 font-semibold' : 'text-red-600'}>
+                                            {isValid ? '✓ Valid' : `✗ Size mismatch (${combinatorPanelSize}cm vs ${panelSize}cm)`}
+                                          </span>
+                                        </>
+                                      ) : (
+                                        <span className="text-yellow-600 text-xs">(not in allowed list)</span>
+                                      )}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                  )}
+                </div>
+              );
+            })()}
             
             <div className="space-y-4">
             {/* Add Mode Selection */}
@@ -858,7 +1277,7 @@ export default function ProjectComponentProperties({
             {addMode === 'combinator' ? (
               /* Combinator Property Selection */
               <>
-                {filteredCombinatorsLibrary.length === 0 ? (
+                {!canShowCombinatorFields ? (
                   <div className="w-full px-3 py-2 border border-yellow-300 rounded-md bg-yellow-50 text-sm text-yellow-800">
                     {applicableCombinatorRules.length === 0 
                       ? 'No rules defined for this panel. Please define combinator panel size mapping rules in Rule Book first.'
@@ -866,30 +1285,31 @@ export default function ProjectComponentProperties({
                   </div>
                 ) : (
                   <>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Brand <span className="text-red-500">*</span>
-                      </label>
-                      <select
-                        value={selectedBrand}
-                        onChange={(e) => {
-                          setSelectedBrand(e.target.value);
-                          setSelectedSeries('');
-                          setSelectedCurrentA('');
-                          setSelectedPole('');
-                        }}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      >
-                        <option value="">Select brand</option>
-                        {brandValues.map((brand) => (
-                          <option key={brand} value={brand}>
-                            {brand}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+                    {allowedBrandValues.length > 0 && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Brand <span className="text-red-500">*</span>
+                        </label>
+                        <select
+                          value={selectedBrand}
+                          onChange={(e) => {
+                            setSelectedBrand(e.target.value);
+                            setSelectedSeries('');
+                            setSelectedCurrentA('');
+                            setSelectedPole('');
+                          }}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          {brandValues.map((brand) => (
+                            <option key={brand} value={brand}>
+                              {brand}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
 
-                    {selectedBrand && (
+                    {allowedSeriesValues.length > 0 && (
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           Series <span className="text-red-500">*</span>
@@ -903,7 +1323,6 @@ export default function ProjectComponentProperties({
                           }}
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
-                          <option value="">Select series</option>
                           {seriesValues.map((series) => (
                             <option key={series} value={series}>
                               {series}
@@ -913,7 +1332,7 @@ export default function ProjectComponentProperties({
                       </div>
                     )}
 
-                    {selectedSeries && (
+                    {allowedCurrentAValues.length > 0 && (
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           Current (A) <span className="text-red-500">*</span>
@@ -926,7 +1345,6 @@ export default function ProjectComponentProperties({
                           }}
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
-                          <option value="">Select current</option>
                           {currentAValues.map((current) => (
                             <option key={current} value={current}>
                               {current} A
@@ -936,7 +1354,7 @@ export default function ProjectComponentProperties({
                       </div>
                     )}
 
-                    {selectedCurrentA && (
+                    {allowedPoleValues.length > 0 && (
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           Pole <span className="text-red-500">*</span>
@@ -946,7 +1364,6 @@ export default function ProjectComponentProperties({
                           onChange={(e) => setSelectedPole(e.target.value)}
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
-                          <option value="">Select pole</option>
                           {poleValues.map((pole) => (
                             <option key={pole} value={pole}>
                               {pole}

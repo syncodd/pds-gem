@@ -5,6 +5,7 @@ import { Node } from '@xyflow/react';
 import { Rule, Constraint, RuleCondition, Panel, Component, Combinator } from '@/types';
 import { getComponentTypes } from '@/lib/componentUtils';
 import { usePanelStore } from '@/lib/store';
+import { getPanelSizeFromWidth } from '@/lib/componentUtils';
 
 interface RuleNodeEditorProps {
   node: Node;
@@ -160,6 +161,10 @@ export default function RuleNodeEditor({
           size: undefined,
           automatic: undefined,
           height: undefined,
+          combinatorProperty: undefined,
+          specKey: undefined,
+          propertyValues: undefined,
+          specValues: undefined,
         };
       } else {
         updatedConstraint = { ...constraint, ...updates };
@@ -198,6 +203,11 @@ export default function RuleNodeEditor({
             >
               <option value="panelSizeMapping">Panel Size Mapping</option>
               <option value="combinatorPanelSizeMapping">Combinator Panel Size Mapping</option>
+              <option value="combinatorPanelBrandMapping">Combinator Panel Brand Mapping</option>
+              <option value="combinatorPanelSeriesMapping">Combinator Panel Series Mapping</option>
+              <option value="combinatorPanelCurrentMapping">Combinator Panel Current(A) Mapping</option>
+              <option value="combinatorPanelPoleMapping">Combinator Panel Pole Mapping</option>
+              <option value="combinatorSpecMapping">Combinator Specification Mapping</option>
               <option value="gap">Gap</option>
               <option value="maxComponentHeight">Max Component Height</option>
             </select>
@@ -287,55 +297,6 @@ export default function RuleNodeEditor({
             <>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Combinator Types (select one or more, or leave empty for all combinators)
-                </label>
-                <select
-                  multiple
-                  value={constraint.combinatorTypes || []}
-                  onChange={(e) => {
-                    const selected = Array.from(e.target.selectedOptions, (option) => option.value);
-                    updateConstraint({
-                      combinatorTypes: selected.length > 0 ? selected : undefined,
-                    });
-                  }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-                  style={{ minHeight: '120px' }}
-                  size={Math.min(8, (() => {
-                    // Get unique combinator types (could be based on name prefix or a type field)
-                    // For now, we'll use a simple approach - extract unique prefixes or use names
-                    const types = new Set<string>();
-                    combinatorsLibrary.forEach((comb) => {
-                      // Extract type from name (e.g., "Combinator Type A" -> "Combinator Type A")
-                      // Or use a type field if it exists in the future
-                      types.add(comb.name);
-                    });
-                    return Array.from(types).length;
-                  })() + 1)}
-                >
-                  {(() => {
-                    // Get unique combinator types
-                    const types = new Set<string>();
-                    combinatorsLibrary.forEach((comb) => {
-                      types.add(comb.name);
-                    });
-                    return Array.from(types).sort().map((type) => (
-                      <option key={type} value={type}>
-                        {type}
-                      </option>
-                    ));
-                  })()}
-                </select>
-                <p className="text-xs text-gray-500 mt-1">
-                  Hold Ctrl/Cmd to select multiple. Leave empty to apply to all combinators.
-                  {constraint.combinatorTypes && constraint.combinatorTypes.length > 0 && (
-                    <span className="block mt-1">
-                      Selected: {constraint.combinatorTypes.join(', ')}
-                    </span>
-                  )}
-                </p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
                   Panel Size (cm) <span className="text-red-500">*</span>
                 </label>
                 <select
@@ -373,9 +334,178 @@ export default function RuleNodeEditor({
                   })()}
                 </select>
                 <p className="text-xs text-gray-500 mt-1">
-                  Select the panel size for this constraint
+                  Select the panel size for this constraint. Applies to all combinators.
                 </p>
               </div>
+            </>
+          )}
+
+          {/* Combinator Property Mapping Constraints */}
+          {(constraint.type === 'combinatorPanelBrandMapping' ||
+            constraint.type === 'combinatorPanelSeriesMapping' ||
+            constraint.type === 'combinatorPanelCurrentMapping' ||
+            constraint.type === 'combinatorPanelPoleMapping') && (
+            <>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Select {constraint.type === 'combinatorPanelBrandMapping' ? 'Brands' :
+                           constraint.type === 'combinatorPanelSeriesMapping' ? 'Series' :
+                           constraint.type === 'combinatorPanelCurrentMapping' ? 'Current (A) values' :
+                           'Pole values'} <span className="text-red-500">*</span>
+                </label>
+                <p className="text-xs text-gray-500 mb-2">
+                  Select which {constraint.type === 'combinatorPanelBrandMapping' ? 'brands' :
+                               constraint.type === 'combinatorPanelSeriesMapping' ? 'series' :
+                               constraint.type === 'combinatorPanelCurrentMapping' ? 'current values' :
+                               'pole values'} are allowed for this panel. The panel size is determined by the panel this constraint is connected to.
+                </p>
+                {(() => {
+                  const propertyName = constraint.type === 'combinatorPanelBrandMapping' ? 'brand' :
+                                     constraint.type === 'combinatorPanelSeriesMapping' ? 'series' :
+                                     constraint.type === 'combinatorPanelCurrentMapping' ? 'currentA' :
+                                     'pole';
+                  
+                  // Get unique values from combinators
+                  const uniqueValues = new Set<string>();
+                  combinatorsLibrary.forEach((comb) => {
+                    const value = comb[propertyName as keyof Combinator];
+                    if (value && typeof value === 'string') {
+                      uniqueValues.add(value);
+                    }
+                  });
+                  
+                  const sortedValues = Array.from(uniqueValues).sort();
+                  const selectedValues = constraint.propertyValues || [];
+                  
+                  return (
+                    <select
+                      multiple
+                      value={selectedValues}
+                      onChange={(e) => {
+                        const selected = Array.from(e.target.selectedOptions, (option) => option.value);
+                        updateConstraint({
+                          propertyValues: selected.length > 0 ? selected : undefined,
+                          combinatorProperty: propertyName as 'brand' | 'series' | 'currentA' | 'pole',
+                        });
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                      style={{ minHeight: '120px' }}
+                      size={Math.min(8, sortedValues.length + 1)}
+                    >
+                      {sortedValues.map((value) => (
+                        <option key={value} value={value}>
+                          {value}
+                        </option>
+                      ))}
+                    </select>
+                  );
+                })()}
+                <p className="text-xs text-gray-500 mt-1">
+                  Hold Ctrl/Cmd to select multiple values. Selected values will be allowed for the panel this constraint is connected to.
+                  {constraint.propertyValues && constraint.propertyValues.length > 0 && (
+                    <span className="block mt-1">
+                      Selected: {constraint.propertyValues.join(', ')}
+                    </span>
+                  )}
+                </p>
+              </div>
+            </>
+          )}
+
+          {/* Combinator Spec Mapping Constraint */}
+          {constraint.type === 'combinatorSpecMapping' && (
+            <>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Specification Key <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={constraint.specKey || ''}
+                  onChange={(e) => {
+                    updateConstraint({
+                      specKey: e.target.value || undefined,
+                      specValues: undefined, // Clear selected values when key changes
+                    });
+                  }}
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                >
+                  <option value="">Select a spec key</option>
+                  {(() => {
+                    // Get all unique spec keys from combinators
+                    const specKeys = new Set<string>();
+                    combinatorsLibrary.forEach((comb) => {
+                      if (comb.specs) {
+                        Object.keys(comb.specs).forEach((key) => specKeys.add(key));
+                      }
+                    });
+                    return Array.from(specKeys).sort().map((key) => (
+                      <option key={key} value={key}>
+                        {key}
+                      </option>
+                    ));
+                  })()}
+                </select>
+                <p className="text-xs text-gray-500 mt-1">
+                  Select the specification key. The panel size is determined by the panel this constraint is connected to.
+                </p>
+              </div>
+              
+              {constraint.specKey && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Select Specification Values <span className="text-red-500">*</span>
+                  </label>
+                  <p className="text-xs text-gray-500 mb-2">
+                    Select which spec values are allowed for this panel.
+                  </p>
+                  {(() => {
+                    const specKey = constraint.specKey!;
+                    
+                    // Get unique values from combinators for this spec key
+                    const uniqueValues = new Set<string>();
+                    combinatorsLibrary.forEach((comb) => {
+                      if (comb.specs && comb.specs[specKey] !== undefined) {
+                        const value = String(comb.specs[specKey]);
+                        uniqueValues.add(value);
+                      }
+                    });
+                    
+                    const sortedValues = Array.from(uniqueValues).sort();
+                    const selectedValues = constraint.specValues || [];
+                    
+                    return (
+                      <select
+                        multiple
+                        value={selectedValues}
+                        onChange={(e) => {
+                          const selected = Array.from(e.target.selectedOptions, (option) => option.value);
+                          updateConstraint({
+                            specValues: selected.length > 0 ? selected : undefined,
+                          });
+                        }}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                        style={{ minHeight: '120px' }}
+                        size={Math.min(8, sortedValues.length + 1)}
+                      >
+                        {sortedValues.map((value) => (
+                          <option key={value} value={value}>
+                            {value}
+                          </option>
+                        ))}
+                      </select>
+                    );
+                  })()}
+                  <p className="text-xs text-gray-500 mt-1">
+                    Hold Ctrl/Cmd to select multiple values. Selected values will be allowed for the panel this constraint is connected to.
+                    {constraint.specValues && constraint.specValues.length > 0 && (
+                      <span className="block mt-1">
+                        Selected: {constraint.specValues.join(', ')}
+                      </span>
+                    )}
+                  </p>
+                </div>
+              )}
             </>
           )}
 

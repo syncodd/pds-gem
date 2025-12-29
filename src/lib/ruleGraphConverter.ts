@@ -3,6 +3,7 @@ import { Rule, Constraint, RuleCondition, Panel } from '@/types';
 
 /**
  * Convert Rule[] to node graph format (Panel → Constraint → Condition)
+ * Layout: All panel nodes at top (same y level), constraints evenly spaced below
  */
 export function rulesToNodeGraph(
   rules: Rule[],
@@ -10,9 +11,12 @@ export function rulesToNodeGraph(
 ): { nodes: Node[]; edges: Edge[] } {
   const nodes: Node[] = [];
   const edges: Edge[] = [];
-  let nodeX = 0;
-  let nodeY = 0;
-  const nodeSpacing = { x: 300, y: 200 };
+  
+  const nodeSpacing = { x: 350, y: 150 };
+  const topRowY = 0; // All panels at top
+  const constraintRowY = 200; // Constraints below panels
+  const conditionRowY = 400; // Conditions below constraints
+  const logicRowY = 600; // Logical operators below conditions
 
   // Group rules by panel (for panel-specific rules) or global
   const rulesByPanel = new Map<string, Rule[]>();
@@ -29,137 +33,316 @@ export function rulesToNodeGraph(
     }
   });
 
-  // Create panel nodes and their connected rules
+  // Node dimensions (from CustomRuleNode: min-w-[200px] max-w-[280px])
+  const constraintNodeWidth = 280; // Use max width to ensure no overlap
+  const constraintNodePadding = 50; // Padding between nodes
+  const constraintSpacing = constraintNodeWidth + constraintNodePadding; // 330px total spacing
+
+  // Step 1: Calculate panel positions based on constraint requirements
+  // First, count constraints per panel to determine required spacing
+  const constraintsPerPanel = new Map<string, number>();
+  rulesByPanel.forEach((panelRules, panelId) => {
+    let constraintCount = 0;
+    panelRules.forEach((rule) => {
+      constraintCount += rule.constraints.length;
+    });
+    constraintsPerPanel.set(panelId, constraintCount);
+  });
+
+  if (globalRules.length > 0) {
+    let globalConstraintCount = 0;
+    globalRules.forEach((rule) => {
+      globalConstraintCount += rule.constraints.length;
+    });
+    constraintsPerPanel.set('global', globalConstraintCount);
+  }
+
+  // Calculate required width for each panel's constraints
+  const panelRequiredWidths = new Map<string, number>();
+  constraintsPerPanel.forEach((count, panelId) => {
+    if (count === 0) {
+      panelRequiredWidths.set(panelId, constraintSpacing); // Minimum width for panel itself
+    } else if (count === 1) {
+      panelRequiredWidths.set(panelId, constraintSpacing); // Single constraint needs one spacing
+    } else {
+      // Multiple constraints: need (count - 1) * spacing + node width
+      panelRequiredWidths.set(panelId, (count - 1) * constraintSpacing + constraintNodeWidth);
+    }
+  });
+
+  // Step 2: Create all panel nodes at the top row with proper spacing
+  const panelNodes: Node[] = [];
+  const panelNodeMap = new Map<string, Node>();
+  const panelPositions = new Map<string, number>();
+  let panelX = 0;
+  const minPanelSpacing = 400; // Minimum spacing between panel columns
+
   rulesByPanel.forEach((panelRules, panelId) => {
     const panel = panels.find((p) => p.id === panelId);
     if (!panel) return;
 
-    // Create panel node
     const panelNodeId = `panel-${panelId}`;
     const panelNode: Node = {
       id: panelNodeId,
       type: 'ruleNode',
-      position: { x: nodeX, y: nodeY },
+      position: { x: panelX, y: topRowY },
       data: {
         label: panel.name,
         panelId: panel.id,
         panel: panel,
       },
     };
-    nodes.push(panelNode);
-    nodeY += nodeSpacing.y;
+    panelNodes.push(panelNode);
+    panelNodeMap.set(panelId, panelNode);
+    panelPositions.set(panelId, panelX);
+    
+    // Move to next panel position: use max of required width and minimum spacing
+    const requiredWidth = panelRequiredWidths.get(panelId) || constraintSpacing;
+    panelX += Math.max(requiredWidth, minPanelSpacing);
+  });
 
-    // For each rule, create constraint and condition nodes
+  // Add global panel node if needed
+  if (globalRules.length > 0) {
+    const globalPanelNodeId = 'panel-global';
+    const globalPanelNode: Node = {
+      id: globalPanelNodeId,
+      type: 'ruleNode',
+      position: { x: panelX, y: topRowY },
+      data: {
+        label: 'Global Rules',
+        panelId: 'global',
+      },
+    };
+    panelNodes.push(globalPanelNode);
+    panelNodeMap.set('global', globalPanelNode);
+    panelPositions.set('global', panelX);
+  }
+
+  nodes.push(...panelNodes);
+
+  // Step 3: Create constraint nodes below panels, evenly spaced
+  const constraintNodes: Node[] = [];
+  const constraintNodeMap = new Map<string, { node: Node; panelId: string }>();
+
+  // Create constraint nodes for each panel
+  rulesByPanel.forEach((panelRules, panelId) => {
+    const panelX = panelPositions.get(panelId) || 0;
+    const constraintCount = constraintsPerPanel.get(panelId) || 0;
+    
+    if (constraintCount === 0) return;
+
+    // Calculate constraint positions: center them around the panel's X position
+    // Ensure they stay within the panel's allocated space
+    let constraintX: number;
+    if (constraintCount === 1) {
+      // Single constraint: place directly below panel
+      constraintX = panelX;
+    } else {
+      // Multiple constraints: center them around panel X position
+      const totalWidth = (constraintCount - 1) * constraintSpacing;
+      constraintX = panelX - totalWidth / 2;
+    }
+
     panelRules.forEach((rule) => {
       rule.constraints.forEach((constraint, constraintIndex) => {
         const constraintNodeId = `constraint-${rule.id}-${constraintIndex}`;
         const constraintNode: Node = {
           id: constraintNodeId,
           type: 'ruleNode',
-          position: { x: nodeX + nodeSpacing.x, y: nodeY },
+          position: { x: constraintX, y: constraintRowY },
           data: {
             label: `Constraint ${constraintIndex + 1}`,
             constraint: constraint,
           },
         };
-        nodes.push(constraintNode);
+        constraintNodes.push(constraintNode);
+        constraintNodeMap.set(constraintNodeId, { node: constraintNode, panelId });
 
         // Connect constraint to panel
-        edges.push({
-          id: `edge-${panelNodeId}-${constraintNodeId}`,
-          source: panelNodeId,
-          target: constraintNodeId,
-        });
-
-        // Add condition nodes connected to constraint
-        rule.conditions.forEach((condition, conditionIndex) => {
-          const conditionNodeId = `condition-${rule.id}-${constraintIndex}-${conditionIndex}`;
-          const conditionNode: Node = {
-            id: conditionNodeId,
-            type: 'ruleNode',
-            position: { x: nodeX + nodeSpacing.x * 2, y: nodeY + conditionIndex * 80 },
-            data: {
-              label: `Condition ${conditionIndex + 1}`,
-              condition: condition,
-            },
-          };
-          nodes.push(conditionNode);
-
-          // Connect condition to constraint
+        const panelNode = panelNodeMap.get(panelId);
+        if (panelNode) {
           edges.push({
-            id: `edge-${constraintNodeId}-${conditionNodeId}`,
-            source: constraintNodeId,
-            target: conditionNodeId,
+            id: `edge-${panelNode.id}-${constraintNodeId}`,
+            source: panelNode.id,
+            target: constraintNodeId,
           });
-        });
+        }
 
-        nodeY += Math.max(rule.conditions.length * 80, 100);
+        // Move to next constraint position
+        constraintX += constraintSpacing;
       });
     });
-
-    nodeX += nodeSpacing.x * 3;
-    nodeY = 0;
   });
 
-  // Handle global rules (create a special "Global" panel node)
+  // Handle global rules constraints
   if (globalRules.length > 0) {
-    const globalPanelNodeId = 'panel-global';
-    const globalPanelNode: Node = {
-      id: globalPanelNodeId,
-      type: 'ruleNode',
-      position: { x: nodeX, y: nodeY },
-      data: {
-        label: 'Global Rules',
-        panelId: 'global',
-      },
-    };
-    nodes.push(globalPanelNode);
-    nodeY += nodeSpacing.y;
+    const globalPanelX = panelPositions.get('global') || 0;
+    const globalConstraintCount = constraintsPerPanel.get('global') || 0;
+    
+    if (globalConstraintCount > 0) {
+      let constraintX: number;
+      if (globalConstraintCount === 1) {
+        constraintX = globalPanelX;
+      } else {
+        const totalWidth = (globalConstraintCount - 1) * constraintSpacing;
+        constraintX = globalPanelX - totalWidth / 2;
+      }
 
-    globalRules.forEach((rule) => {
-      rule.constraints.forEach((constraint, constraintIndex) => {
-        const constraintNodeId = `constraint-${rule.id}-${constraintIndex}`;
-        const constraintNode: Node = {
-          id: constraintNodeId,
-          type: 'ruleNode',
-          position: { x: nodeX + nodeSpacing.x, y: nodeY },
-          data: {
-            label: `Constraint ${constraintIndex + 1}`,
-            constraint: constraint,
-          },
-        };
-        nodes.push(constraintNode);
-
-        edges.push({
-          id: `edge-${globalPanelNodeId}-${constraintNodeId}`,
-          source: globalPanelNodeId,
-          target: constraintNodeId,
-        });
-
-        rule.conditions.forEach((condition, conditionIndex) => {
-          const conditionNodeId = `condition-${rule.id}-${constraintIndex}-${conditionIndex}`;
-          const conditionNode: Node = {
-            id: conditionNodeId,
+      globalRules.forEach((rule) => {
+        rule.constraints.forEach((constraint, constraintIndex) => {
+          const constraintNodeId = `constraint-${rule.id}-${constraintIndex}`;
+          const constraintNode: Node = {
+            id: constraintNodeId,
             type: 'ruleNode',
-            position: { x: nodeX + nodeSpacing.x * 2, y: nodeY + conditionIndex * 80 },
+            position: { x: constraintX, y: constraintRowY },
             data: {
-              label: `Condition ${conditionIndex + 1}`,
-              condition: condition,
+              label: `Constraint ${constraintIndex + 1}`,
+              constraint: constraint,
             },
           };
-          nodes.push(conditionNode);
+          constraintNodes.push(constraintNode);
+          constraintNodeMap.set(constraintNodeId, { node: constraintNode, panelId: 'global' });
 
-          edges.push({
-            id: `edge-${constraintNodeId}-${conditionNodeId}`,
-            source: constraintNodeId,
-            target: conditionNodeId,
-          });
+          const globalPanelNode = panelNodeMap.get('global');
+          if (globalPanelNode) {
+            edges.push({
+              id: `edge-${globalPanelNode.id}-${constraintNodeId}`,
+              source: globalPanelNode.id,
+              target: constraintNodeId,
+            });
+          }
+
+          constraintX += constraintSpacing;
         });
+      });
+    }
+  }
 
-        nodeY += Math.max(rule.conditions.length * 80, 100);
+  nodes.push(...constraintNodes);
+
+  // Step 3: Create condition and logical operator nodes below constraints
+  // We need to track which constraints have conditions and how they're connected
+  const constraintToRuleMap = new Map<string, { rule: Rule; constraintIndex: number; panelId: string }>();
+  
+  // Build map of constraints to their rules
+  rulesByPanel.forEach((panelRules, panelId) => {
+    panelRules.forEach((rule) => {
+      rule.constraints.forEach((constraint, constraintIndex) => {
+        const constraintNodeId = `constraint-${rule.id}-${constraintIndex}`;
+        constraintToRuleMap.set(constraintNodeId, { rule, constraintIndex, panelId });
       });
     });
-  }
+  });
+
+  globalRules.forEach((rule) => {
+    rule.constraints.forEach((constraint, constraintIndex) => {
+      const constraintNodeId = `constraint-${rule.id}-${constraintIndex}`;
+      constraintToRuleMap.set(constraintNodeId, { rule, constraintIndex, panelId: 'global' });
+    });
+  });
+
+  const conditionNodes: Node[] = [];
+  const logicNodes: Node[] = [];
+  const logicNodeMap = new Map<string, Node>();
+  
+  constraintNodes.forEach((constraintNode) => {
+    const constraintInfo = constraintToRuleMap.get(constraintNode.id);
+    if (!constraintInfo) return;
+
+    const { rule, constraintIndex } = constraintInfo;
+    const conditions = rule.conditions;
+    if (conditions.length === 0) return;
+
+    const conditionSpacing = 180;
+    const constraintX = constraintNode.position.x;
+
+    if (conditions.length === 1) {
+      // Single condition - place directly below constraint
+      const condition = conditions[0];
+      const conditionNodeId = `condition-${rule.id}-${constraintIndex}-0`;
+      const conditionNode: Node = {
+        id: conditionNodeId,
+        type: 'ruleNode',
+        position: { x: constraintX, y: conditionRowY },
+        data: {
+          label: `Condition`,
+          condition: condition,
+        },
+      };
+      conditionNodes.push(conditionNode);
+
+      edges.push({
+        id: `edge-${constraintNode.id}-${conditionNodeId}`,
+        source: constraintNode.id,
+        target: conditionNodeId,
+      });
+    } else {
+      // Multiple conditions - need logic node
+      const logicNodeId = `logical-${rule.id}-${constraintIndex}`;
+      
+      // Check if logic node already exists (multiple constraints might share conditions)
+      let logicNode = logicNodeMap.get(logicNodeId);
+      if (!logicNode) {
+        logicNode = {
+          id: logicNodeId,
+          type: 'ruleNode',
+          position: { x: constraintX, y: conditionRowY },
+          data: {
+            label: 'AND',
+            logicalOperator: 'and',
+          },
+        };
+        logicNodes.push(logicNode);
+        logicNodeMap.set(logicNodeId, logicNode);
+      }
+
+      // Connect constraint to logic node (if not already connected)
+      const existingEdge = edges.find(e => e.source === constraintNode.id && e.target === logicNodeId);
+      if (!existingEdge) {
+        edges.push({
+          id: `edge-${constraintNode.id}-${logicNodeId}`,
+          source: constraintNode.id,
+          target: logicNodeId,
+        });
+      }
+
+      // Place conditions below logic node, evenly spaced
+      conditions.forEach((condition, conditionIndex) => {
+        const conditionNodeId = `condition-${rule.id}-${constraintIndex}-${conditionIndex}`;
+        
+        // Check if condition node already exists
+        const existingCondition = conditionNodes.find(n => n.id === conditionNodeId);
+        if (existingCondition) return;
+
+        const conditionNode: Node = {
+          id: conditionNodeId,
+          type: 'ruleNode',
+          position: { 
+            x: constraintX + (conditionIndex - (conditions.length - 1) / 2) * conditionSpacing, 
+            y: logicRowY 
+          },
+          data: {
+            label: `Condition ${conditionIndex + 1}`,
+            condition: condition,
+          },
+        };
+        conditionNodes.push(conditionNode);
+
+        // Connect condition to logic node (if not already connected)
+        const existingConditionEdge = edges.find(e => e.source === logicNodeId && e.target === conditionNodeId);
+        if (!existingConditionEdge) {
+          edges.push({
+            id: `edge-${logicNodeId}-${conditionNodeId}`,
+            source: logicNodeId,
+            target: conditionNodeId,
+          });
+        }
+      });
+    }
+  });
+
+  nodes.push(...logicNodes);
+  nodes.push(...conditionNodes);
 
   return { nodes, edges };
 }

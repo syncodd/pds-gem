@@ -8,6 +8,7 @@ import NameStep from './CombinatorFlowSteps/NameStep';
 import ComponentSelectionStep from './CombinatorFlowSteps/ComponentSelectionStep';
 import DimensionsStep from './CombinatorFlowSteps/DimensionsStep';
 import PropertiesStep from './CombinatorFlowSteps/PropertiesStep';
+import SpecsStep from './CombinatorFlowSteps/SpecsStep';
 import ConfirmationStep from './CombinatorFlowSteps/ConfirmationStep';
 import SummaryStep from './CombinatorFlowSteps/SummaryStep';
 
@@ -18,13 +19,14 @@ interface CombinatorCreationFlowProps {
   onClose: () => void;
 }
 
-type Step = 'name' | 'components' | 'dimensions' | 'properties' | 'confirmation' | 'summary';
+type Step = 'name' | 'components' | 'dimensions' | 'properties' | 'specs' | 'confirmation' | 'summary';
 
 const STEPS: { id: Step; label: string }[] = [
   { id: 'name', label: 'Name & ID' },
   { id: 'components', label: 'Select Components' },
   { id: 'dimensions', label: 'Dimensions' },
   { id: 'properties', label: 'Properties' },
+  { id: 'specs', label: 'Specifications' },
   { id: 'confirmation', label: 'Review' },
   { id: 'summary', label: 'Summary' },
 ];
@@ -50,6 +52,7 @@ export default function CombinatorCreationFlow({
     currentA: '',
     pole: '',
     panelSize: undefined,
+    specs: {},
   });
 
   const isEdit = !!combinator;
@@ -106,7 +109,7 @@ export default function CombinatorCreationFlow({
           ? gaps 
           : new Array(requiredGapsCount).fill(0);
         
-        setFormData({ ...combinator, gaps: normalizedGaps });
+        setFormData({ ...combinator, gaps: normalizedGaps, specs: combinator.specs || {} });
         setCurrentStep('name');
       } else {
         setFormData({
@@ -122,6 +125,7 @@ export default function CombinatorCreationFlow({
           currentA: '',
           pole: '',
           panelSize: undefined,
+          specs: {},
         });
         setCurrentStep('name');
       }
@@ -145,6 +149,8 @@ export default function CombinatorCreationFlow({
       case 'dimensions':
         return formData.width > 0 && formData.height > 0;
       case 'properties':
+        return true; // All optional
+      case 'specs':
         return true; // All optional
       case 'confirmation':
         return true;
@@ -290,6 +296,9 @@ export default function CombinatorCreationFlow({
             )}
             {currentStep === 'properties' && (
               <PropertiesStep combinator={formData} onChange={handleChange} />
+            )}
+            {currentStep === 'specs' && (
+              <SpecsStep combinator={formData} onChange={handleChange} />
             )}
             {currentStep === 'confirmation' && (
               <ConfirmationStep combinator={formData} />

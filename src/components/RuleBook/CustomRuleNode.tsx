@@ -79,6 +79,11 @@ export default function CustomRuleNode({ data, selected }: NodeProps<CustomRuleN
       switch (constraint.type) {
         case 'panelSizeMapping': return 'Panel Size Mapping';
         case 'combinatorPanelSizeMapping': return 'Combinator Panel Size Mapping';
+        case 'combinatorPanelBrandMapping': return 'Combinator Panel Brand Mapping';
+        case 'combinatorPanelSeriesMapping': return 'Combinator Panel Series Mapping';
+        case 'combinatorPanelCurrentMapping': return 'Combinator Panel Current(A) Mapping';
+        case 'combinatorPanelPoleMapping': return 'Combinator Panel Pole Mapping';
+        case 'combinatorSpecMapping': return 'Combinator Specification Mapping';
         case 'overlap': return 'No Overlaps';
         case 'bounds': return 'Within Bounds';
         case 'spacing': return 'Minimum Spacing';
@@ -112,14 +117,51 @@ export default function CustomRuleNode({ data, selected }: NodeProps<CustomRuleN
       if (constraint.type === 'combinatorPanelSizeMapping') {
         const details: string[] = [];
         
-        if (constraint.combinatorTypes && constraint.combinatorTypes.length > 0) {
-          details.push(`Types: ${constraint.combinatorTypes.join(', ')}`);
-        } else {
-          details.push('All combinator types');
-        }
-        
         if (constraint.panelSize) {
           details.push(`Panel: ${constraint.panelSize}cm`);
+        } else {
+          details.push('All combinators');
+        }
+        
+        return details;
+      }
+      
+      if (constraint.type === 'combinatorPanelBrandMapping' ||
+          constraint.type === 'combinatorPanelSeriesMapping' ||
+          constraint.type === 'combinatorPanelCurrentMapping' ||
+          constraint.type === 'combinatorPanelPoleMapping') {
+        const details: string[] = [];
+        const propertyName = constraint.type === 'combinatorPanelBrandMapping' ? 'Brand' :
+                           constraint.type === 'combinatorPanelSeriesMapping' ? 'Series' :
+                           constraint.type === 'combinatorPanelCurrentMapping' ? 'Current(A)' :
+                           'Pole';
+        
+        if (constraint.propertyValues && constraint.propertyValues.length > 0) {
+          const values = constraint.propertyValues.length > 3 
+            ? `${constraint.propertyValues.slice(0, 3).join(', ')}, +${constraint.propertyValues.length - 3} more`
+            : constraint.propertyValues.join(', ');
+          details.push(`${propertyName}: ${values}`);
+        } else {
+          details.push(`${propertyName}: None selected`);
+        }
+        
+        return details;
+      }
+      
+      if (constraint.type === 'combinatorSpecMapping') {
+        const details: string[] = [];
+        
+        if (constraint.specKey) {
+          details.push(`Spec: ${constraint.specKey}`);
+        }
+        
+        if (constraint.specValues && constraint.specValues.length > 0) {
+          const values = constraint.specValues.length > 3 
+            ? `${constraint.specValues.slice(0, 3).join(', ')}, +${constraint.specValues.length - 3} more`
+            : constraint.specValues.join(', ');
+          details.push(`Values: ${values}`);
+        } else {
+          details.push('Values: None selected');
         }
         
         return details;

@@ -606,6 +606,154 @@ function checkConstraint(
       }
       break;
 
+    case 'combinatorPanelBrandMapping':
+    case 'combinatorPanelSeriesMapping':
+    case 'combinatorPanelCurrentMapping':
+    case 'combinatorPanelPoleMapping':
+      // Determine panel size: calculate from panel width
+      const mappedPanelSize = getPanelSizeFromWidth(panel.width);
+      
+      // Get the property name based on constraint type
+      const propertyName = constraint.type === 'combinatorPanelBrandMapping' ? 'brand' :
+                          constraint.type === 'combinatorPanelSeriesMapping' ? 'series' :
+                          constraint.type === 'combinatorPanelCurrentMapping' ? 'currentA' :
+                          'pole';
+      
+      // Get allowed property values from constraint
+      const allowedPropertyValues = constraint.propertyValues || [];
+      
+      // If no values selected, constraint doesn't apply
+      if (allowedPropertyValues.length === 0) {
+        break;
+      }
+      
+      // Filter combinators to check
+      const propertyCombinatorsToCheck = canvasComponents.filter((cc) => {
+        const combinator = combinatorsLibrary.find((c) => c.id === cc.componentId);
+        if (!combinator) return false;
+        
+        // Get property value from combinator
+        const propertyValue = combinator[propertyName as keyof Combinator];
+        if (!propertyValue || typeof propertyValue !== 'string') {
+          return false; // No property value, skip
+        }
+        
+        // Check if property value is in the allowed list
+        if (!allowedPropertyValues.includes(propertyValue)) {
+          return false; // Not in allowed list, skip
+        }
+        
+        // If it's in the allowed list, it should match the panel size
+        // This constraint applies to this panel, so the combinator should be valid
+        // We only generate violations if the combinator doesn't match the panel size
+        // But wait - the constraint is about allowing certain values for this panel
+        // So if the value is in the list, it's allowed. The panel size is determined by the panel connection.
+        // Actually, we should check if the combinator's panelSize matches the panel's size
+        // But the constraint is about property values, not panel sizes directly
+        // Let me re-read the requirement...
+        // The user said: "connection of constraint and panel determine the mapping"
+        // So if a constraint is connected to a panel, that means those property values are allowed for that panel size
+        // So we should check: if combinator has one of the allowed property values, it should match the panel size
+        return true; // Will check panel size match below
+      });
+      
+      // Generate violations for combinators with allowed property values but wrong panel size
+      for (const canvasComp of propertyCombinatorsToCheck) {
+        const combinator = combinatorsLibrary.find((c) => c.id === canvasComp.componentId);
+        if (!combinator) continue;
+        
+        const propertyValue = combinator[propertyName as keyof Combinator] as string;
+        
+        // Check if combinator's panelSize matches the panel size
+        // If combinator doesn't have panelSize, we can't validate
+        if (combinator.panelSize !== undefined && Number(combinator.panelSize) !== mappedPanelSize) {
+          violations.push({
+            id: `violation-${timestamp}-${canvasComp.id}-combinator-${propertyName}-mapping`,
+            ruleId: rule.id,
+            ruleName: rule.name,
+            message:
+              constraint.message ||
+              `${combinator.name || canvasComp.componentId} ${propertyName} "${propertyValue}" is allowed for panel size ${mappedPanelSize}cm, but combinator size is ${combinator.panelSize}cm`,
+            severity: 'error',
+            componentId: canvasComp.id,
+            timestamp,
+          });
+        }
+      }
+      break;
+
+    case 'combinatorSpecMapping':
+      // Determine panel size: calculate from panel width
+      const specMappedPanelSize = getPanelSizeFromWidth(panel.width);
+      
+      // Get spec key from constraint
+      const specKey = constraint.specKey;
+      if (!specKey) {
+        // Invalid constraint - specKey required
+        violations.push({
+          id: `violation-${timestamp}-combinator-spec-mapping-invalid`,
+          ruleId: rule.id,
+          ruleName: rule.name,
+          message: constraint.message || 'Combinator specification mapping constraint requires a spec key',
+          severity: 'error',
+          timestamp,
+        });
+        break;
+      }
+      
+      // Get allowed spec values from constraint
+      const allowedSpecValues = constraint.specValues || [];
+      
+      // If no values selected, constraint doesn't apply
+      if (allowedSpecValues.length === 0) {
+        break;
+      }
+      
+      // Filter combinators to check
+      const specCombinatorsToCheck = canvasComponents.filter((cc) => {
+        const combinator = combinatorsLibrary.find((c) => c.id === cc.componentId);
+        if (!combinator) return false;
+        
+        // Get spec value from combinator
+        if (!combinator.specs || combinator.specs[specKey] === undefined) {
+          return false; // No spec value, skip
+        }
+        
+        const specValue = String(combinator.specs[specKey]);
+        
+        // Check if spec value is in the allowed list
+        if (!allowedSpecValues.includes(specValue)) {
+          return false; // Not in allowed list, skip
+        }
+        
+        return true; // Will check panel size match below
+      });
+      
+      // Generate violations for combinators with allowed spec values but wrong panel size
+      for (const canvasComp of specCombinatorsToCheck) {
+        const combinator = combinatorsLibrary.find((c) => c.id === canvasComp.componentId);
+        if (!combinator) continue;
+        
+        const specValue = String(combinator.specs?.[specKey] || '');
+        
+        // Check if combinator's panelSize matches the panel size
+        // If combinator doesn't have panelSize, we can't validate
+        if (combinator.panelSize !== undefined && Number(combinator.panelSize) !== specMappedPanelSize) {
+          violations.push({
+            id: `violation-${timestamp}-${canvasComp.id}-combinator-spec-mapping`,
+            ruleId: rule.id,
+            ruleName: rule.name,
+            message:
+              constraint.message ||
+              `${combinator.name || canvasComp.componentId} spec "${specKey}" = "${specValue}" is allowed for panel size ${specMappedPanelSize}cm, but combinator size is ${combinator.panelSize}cm`,
+            severity: 'error',
+            componentId: canvasComp.id,
+            timestamp,
+          });
+        }
+      }
+      break;
+
     case 'gap':
       // Gap constraint validation - ensure only one gap per placement per panel
       // This is mainly informational, actual gap usage is in height calculations
@@ -895,4 +1043,5 @@ export function validateComponentHeight(
 
   return null; // Valid
 }
+
 

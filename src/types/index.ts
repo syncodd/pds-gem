@@ -41,6 +41,7 @@ export interface Combinator {
   currentA: string; // Current in Amperes
   pole: string;
   panelSize?: number; // Panel size in cm (e.g., 60 for 600mm panel)
+  specs?: Record<string, string | number>; // Specifications (key:value pairs with types String or Number)
 }
 
 export interface CanvasComponent {
@@ -68,7 +69,7 @@ export interface MultiPanelDesign {
 
 // Rule System Types
 export interface Constraint {
-  type: 'dimension' | 'count' | 'spacing' | 'co-usage' | 'overlap' | 'bounds' | 'noIntersectWithPanelBounds' | 'panelSizeMapping' | 'combinatorPanelSizeMapping' | 'gap' | 'maxComponentHeight';
+  type: 'dimension' | 'count' | 'spacing' | 'co-usage' | 'overlap' | 'bounds' | 'noIntersectWithPanelBounds' | 'panelSizeMapping' | 'combinatorPanelSizeMapping' | 'gap' | 'maxComponentHeight' | 'combinatorPanelBrandMapping' | 'combinatorPanelSeriesMapping' | 'combinatorPanelCurrentMapping' | 'combinatorPanelPoleMapping' | 'combinatorSpecMapping';
   property?: string;
   min?: number;
   max?: number;
@@ -86,6 +87,10 @@ export interface Constraint {
   size?: number; // For gap constraint: gap size in mm
   automatic?: boolean; // For maxComponentHeight constraint: whether to auto-calculate height
   height?: number; // For maxComponentHeight constraint: max height in mm (required if automatic is false)
+  combinatorProperty?: 'brand' | 'series' | 'currentA' | 'pole'; // For specific combinator property mappings
+  specKey?: string; // For combinatorSpecMapping: the spec key to map
+  propertyValues?: string[]; // For property mappings: selected property values (multi-select)
+  specValues?: string[]; // For spec mappings: selected spec values (multi-select)
 }
 
 export interface Rule {
