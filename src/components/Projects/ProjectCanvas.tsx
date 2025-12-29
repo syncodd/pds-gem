@@ -6,6 +6,7 @@ import { Project, Panel, CanvasComponent, Constraint } from '@/types';
 import { usePanelStore } from '@/lib/store';
 import { evaluateRules, validateComponentHeight, calculateTotalComponentHeight } from '@/lib/ruleEngine';
 import ProjectComponentProperties from './ProjectComponentProperties';
+import CombinatorPropertiesPanel from './CombinatorPropertiesPanel';
 
 interface ProjectCanvasProps {
   project: Project;
@@ -23,6 +24,7 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
   const [showAddPanel, setShowAddPanel] = useState(false);
   const [selectedWidth, setSelectedWidth] = useState('');
   const [showComponentProperties, setShowComponentProperties] = useState(false);
+  const [showCombinatorProperties, setShowCombinatorProperties] = useState(false);
   const [localPanels, setLocalPanels] = useState<Panel[]>(project.panels || []);
   const [localComponents, setLocalComponents] = useState<CanvasComponent[]>(project.components || []);
   const [originalPanels, setOriginalPanels] = useState<Panel[]>(project.panels || []);
@@ -1870,12 +1872,12 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
             const compId = canvasComp.id;
             setSelectedComponentId((prevSelected) => {
               if (prevSelected === compId) {
-                setSelectedPanelId(null);
-                setShowComponentProperties(false);
+                // Deselect if clicking same combinator
+                setShowCombinatorProperties(false);
                 return null;
               } else {
-                setSelectedPanelId(null);
-                setShowComponentProperties(false);
+                // Select combinator and open combinator properties panel
+                setShowCombinatorProperties(true);
                 return compId;
               }
             });
@@ -2384,6 +2386,7 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
           setSelectedPanelId(null);
           setSelectedComponentId(null);
           setShowComponentProperties(false);
+          setShowCombinatorProperties(false);
         }
       };
 
@@ -2734,15 +2737,67 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
         selectedPanelId={selectedPanelId}
         selectedPanel={localPanels.find((p) => p.id === selectedPanelId) || null}
         panelComponents={localComponents.filter((c) => c.panelId === selectedPanelId)}
+        selectedComponentId={selectedComponentId}
         onAddComponent={handleAddComponent}
         onAddCombinator={handleAddCombinator}
         onDeleteComponent={handleDeleteComponent}
         onDuplicateComponent={handleDuplicateComponent}
+        onUpdateCombinator={(componentId, newCombinatorId) => {
+          // Replace the combinator
+          const updatedComponents = localComponents.map((c) => {
+            if (c.id === componentId) {
+              return {
+                ...c,
+                componentId: newCombinatorId,
+              };
+            }
+            return c;
+          });
+          setLocalComponents(updatedComponents);
+        }}
         onClose={() => {
           setShowComponentProperties(false);
           setSelectedPanelId(null);
         }}
       />
+
+      {/* Combinator Properties Panel */}
+      {(() => {
+        const selectedCombinator = selectedComponentId
+          ? (() => {
+              const canvasComp = localComponents.find((c) => c.id === selectedComponentId);
+              if (!canvasComp) return null;
+              const combinatorDef = combinatorsLibrary.find((c) => c.id === canvasComp.componentId);
+              if (!combinatorDef) return null;
+              return { canvasComp, combinatorDef };
+            })()
+          : null;
+
+        return (
+          <CombinatorPropertiesPanel
+            isOpen={showCombinatorProperties && !!selectedCombinator}
+            selectedCombinator={selectedCombinator}
+            selectedPanel={selectedCombinator ? localPanels.find((p) => p.id === selectedCombinator.canvasComp.panelId) || null : null}
+            onUpdateCombinator={(componentId, newCombinatorId) => {
+              // Replace the combinator
+              const updatedComponents = localComponents.map((c) => {
+                if (c.id === componentId) {
+                  return {
+                    ...c,
+                    componentId: newCombinatorId,
+                  };
+                }
+                return c;
+              });
+              setLocalComponents(updatedComponents);
+            }}
+            onClose={() => {
+              setShowCombinatorProperties(false);
+              setSelectedComponentId(null);
+            }}
+          />
+        );
+      })()}
 
       {/* Add Panel Modal - Width Selection */}
       {showAddPanel && (

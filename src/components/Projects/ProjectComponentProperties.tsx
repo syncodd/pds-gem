@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Component, Panel, CanvasComponent, Combinator } from '@/types';
 import { usePanelStore } from '@/lib/store';
 import { validateComponentHeight, calculateAvailableHeight } from '@/lib/ruleEngine';
@@ -27,10 +27,12 @@ interface ProjectComponentPropertiesProps {
   selectedPanelId: string | null;
   selectedPanel: Panel | null;
   panelComponents: CanvasComponent[];
+  selectedComponentId?: string | null;
   onAddComponent: (componentId: string, aValue?: string, vValue?: string, pValue?: string) => void;
   onAddCombinator?: (combinatorId: string) => void;
   onDeleteComponent: (componentId: string) => void;
   onDuplicateComponent?: (componentId: string) => void;
+  onUpdateCombinator?: (componentId: string, newCombinatorId: string) => void;
   onClose: () => void;
 }
 
@@ -57,7 +59,8 @@ export default function ProjectComponentProperties({
   const [selectedAValue, setSelectedAValue] = useState<string>('');
   const [selectedVValue, setSelectedVValue] = useState<string>('');
   const [selectedPValue, setSelectedPValue] = useState<string>('');
-  const [isMappingConstraintsExpanded, setIsMappingConstraintsExpanded] = useState<boolean>(true);
+  const [isMappingConstraintsExpanded, setIsMappingConstraintsExpanded] = useState<boolean>(false);
+  
 
   // Sort components by order
   const sortedComponents = useMemo(() => {
@@ -616,6 +619,7 @@ export default function ProjectComponentProperties({
     allowedPoleValues.length,
     filteredCombinatorsLibrary,
   ]);
+
 
   // Calculate available height (empty area)
   // Filter rules to match panel (by ID or width for panels copied from library)
