@@ -5,6 +5,7 @@ import Konva from 'konva';
 import { Project, Panel, CanvasComponent, Constraint } from '@/types';
 import { usePanelStore } from '@/lib/store';
 import { evaluateRules, validateComponentHeight, calculateTotalComponentHeight } from '@/lib/ruleEngine';
+import { exportToExcel } from '@/lib/excelExport';
 import ProjectComponentProperties from './ProjectComponentProperties';
 import CombinatorPropertiesPanel from './CombinatorPropertiesPanel';
 
@@ -374,6 +375,16 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
     setOriginalComponents([...localComponents]);
     setHasChanges(false);
     loadProjects();
+  };
+
+  // Handle exporting to Excel
+  const handleExport = () => {
+    const currentProject = {
+      ...project,
+      panels: localPanels,
+      components: localComponents,
+    };
+    exportToExcel(currentProject, null, null, componentLibrary, combinatorsLibrary);
   };
 
   // Handle adding panel to project
@@ -2727,6 +2738,15 @@ export default function ProjectCanvas({ project }: ProjectCanvasProps) {
                 Saved
               </button>
             )}
+            
+            {/* Export to Excel button */}
+            <button
+              onClick={handleExport}
+              className="px-4 py-2 text-sm bg-green-50 text-green-600 rounded-md hover:bg-green-100 border border-green-200 font-medium transition-colors"
+              title="Export to Excel"
+            >
+              Export Excel
+            </button>
           </div>
         </div>
       </div>
