@@ -4,97 +4,141 @@ import Link from 'next/link';
 import { usePanelStore } from '@/lib/store';
 import { Project } from '@/types';
 import { useEffect, useState } from 'react';
+import { exportToExcel } from '@/lib/excelExport';
 
-interface ProjectListProps {
-  onProjectSelect: () => void;
-}
+// --- GARANTİ ÇALIŞAN SVG İKONLAR ---
+const ExcelIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+    <polyline points="14 2 14 8 20 8" />
+    <line x1="16" y1="13" x2="8" y2="13" />
+    <line x1="16" y1="17" x2="8" y2="17" />
+    <polyline points="10 9 9 9 8 9" />
+  </svg>
+);
 
-export default function ProjectList({ onProjectSelect }: ProjectListProps) {
-  const { projects, deleteProject, loadProjects } = usePanelStore();
+const TrashIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="3 6 5 6 21 6" />
+    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+  </svg>
+);
+// ------------------------------------
+
+export default function ProjectList() {
+  const { projects, deleteProject, loadProjects, componentLibrary } = usePanelStore();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    loadProjects();
+  }, [loadProjects]);
 
-  const handleDelete = (e: React.MouseEvent, projectId: string) => {
+  // EXPORT İŞLEMİ
+  const handleExport = (e: React.MouseEvent, project: Project) => {
+    e.preventDefault(); // Link'e tıklamayı engelle
     e.stopPropagation();
-    if (confirm('Are you sure you want to delete this project?')) {
+    
+    // Güvenli Export Çağrısı
+    try {
+      exportToExcel(project, null, null, componentLibrary);
+    } catch (error) {
+      console.error("Export hatası:", error);
+      alert("Dosya oluşturulamadı. Konsolu kontrol edin.");
+    }
+  };
+
+  // SİLME İŞLEMİ
+  const handleDelete = (e: React.MouseEvent, projectId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (confirm('Bu projeyi silmek istediğinize emin misiniz?')) {
       deleteProject(projectId);
       loadProjects();
     }
   };
 
   const formatDate = (timestamp: number) => {
-    return new Date(timestamp).toLocaleDateString('en-US', {
+    return new Date(timestamp).toLocaleDateString('tr-TR', {
       year: 'numeric',
-      month: 'short',
+      month: 'long',
       day: 'numeric',
     });
   };
 
-  // Prevent hydration mismatch by only rendering empty state after mount
-  if (!mounted || projects.length === 0) {
+  if (!mounted) return null;
+
+  if (projects.length === 0) {
     return (
       <div className="h-full flex items-center justify-center">
         <div className="text-center text-gray-400">
-          <p className="text-lg mb-2">No projects yet</p>
-          <p className="text-sm">Create a new project to get started</p>
+          <p className="text-lg mb-2">Henüz proje yok</p>
+          <p className="text-sm">Başlamak için "+ New Project" butonuna basın.</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="h-full overflow-y-auto p-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className="h-full overflow-y-auto p-6 bg-gray-50">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {projects.map((project) => (
           <Link
             key={project.id}
             href={`/projects/${project.id}`}
-            className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-lg transition-shadow cursor-pointer block"
+            className="bg-white border border-gray-200 rounded-xl p-0 hover:shadow-lg transition-all cursor-pointer block group overflow-hidden"
           >
-            <div className="flex items-start justify-between mb-3">
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold text-gray-800 mb-1">{project.name}</h3>
-                <p className="text-sm text-gray-500">{project.panelName}</p>
+            {/* --- KART BAŞLIĞI VE BUTONLAR --- */}
+            <div className="p-5 border-b border-gray-100 bg-gray-50 flex justify-between items-start">
+              <div className="flex-1 min-w-0 pr-3">
+                <h3 className="font-semibold text-gray-900 text-lg group-hover:text-blue-600 transition-colors truncate">
+                  {project.name}
+                </h3>
+                <p className="text-sm text-gray-500 mt-1 truncate">
+                  {project.panelName || 'İsimsiz Pano'}
+                </p>
               </div>
-              <button
-                onClick={(e) => handleDelete(e, project.id)}
-                className="ml-2 p-1 text-gray-400 hover:text-red-600 transition-colors"
-                title="Delete project"
-              >
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+
+              <div className="flex items-center gap-1 shrink-0">
+                {/* YEŞİL EXCEL BUTONU */}
+                <button
+                  onClick={(e) => handleExport(e, project)}
+                  className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-100 rounded-lg transition-colors border border-transparent hover:border-green-200"
+                  title="Excel Malzeme Listesi İndir"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                  />
-                </svg>
-              </button>
+                  <ExcelIcon />
+                </button>
+
+                {/* SİLME BUTONU */}
+                <button
+                  onClick={(e) => handleDelete(e, project.id)}
+                  className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-100 rounded-lg transition-colors border border-transparent hover:border-red-200"
+                  title="Projeyi Sil"
+                >
+                  <TrashIcon />
+                </button>
+              </div>
             </div>
-            <div className="space-y-2 text-sm text-gray-600">
-              <div className="flex items-center gap-2">
-                <span className="font-medium">Customer:</span>
-                <span>{project.customer || 'N/A'}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="font-medium">Editor:</span>
-                <span>{project.editor || 'N/A'}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="font-medium">Panels:</span>
-                <span>{project.panels.length}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="font-medium">Created:</span>
-                <span>{formatDate(project.createdAt)}</span>
+
+            {/* --- KART DETAYLARI --- */}
+            <div className="p-5">
+              <div className="grid grid-cols-2 gap-y-2 text-sm text-gray-600">
+                <div>
+                    <span className="text-gray-400 text-xs uppercase block">Müşteri</span>
+                    {project.customer || '-'}
+                </div>
+                <div>
+                    <span className="text-gray-400 text-xs uppercase block">Tarih</span>
+                    {formatDate(project.createdAt)}
+                </div>
+                <div className="mt-2">
+                    <span className="text-gray-400 text-xs uppercase block">Pano</span>
+                    {project.panels ? project.panels.length : 0} Adet
+                </div>
+                <div className="mt-2">
+                    <span className="text-gray-400 text-xs uppercase block">Parça</span>
+                    {project.components ? project.components.length : 0} Adet
+                </div>
               </div>
             </div>
           </Link>

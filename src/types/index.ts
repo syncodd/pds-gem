@@ -1,3 +1,5 @@
+// Mevcut dosyanın üzerine bu değişikliği yap veya Component interface'ini güncelle:
+
 export interface Panel {
   id: string;
   name: string;
@@ -6,39 +8,47 @@ export interface Panel {
   depth?: number; // in mm
   type?: string;
   category?: string;
-  model2D?: string; // URL or file path for 2D model
-  model3D?: string; // URL or file path for 3D model (optional)
+  model2D?: string;
+  model3D?: string;
   constraints?: Constraint[];
 }
 
 export interface Component {
   id: string;
   name: string;
-  type: string; // Base component type (e.g., 'Pirinç Baralar', 'Bakır Baralar')
+  type: string;
   category: string;
-  width: number; // in mm
-  height: number; // in mm
-  depth?: number; // in mm
-  color: string; // hex color
-  specs: Record<string, string | number>; // Should include panelSize (50, 60, 70, 80, 90) for size variants
+  width: number;
+  height: number;
+  depth?: number;
+  color: string;
+  specs: Record<string, string | number>;
   icon?: string;
-  model2D?: string; // URL or file path for 2D model
-  model3D?: string; // URL or file path for 3D model (optional)
+  model2D?: string;
+  model3D?: string;
   tags?: string[];
-  requiredComponents?: string[]; // Component IDs that must be used together
+  requiredComponents?: string[];
+  // --- YENİ EKLENEN TİCARİ ALANLAR ---
+  sku?: string;          // Stok Kodu (Örn: TK-100-20)
+  price?: number;        // Birim Fiyat
+  currency?: 'TRY' | 'USD' | 'EUR'; // Para Birimi
+  weight?: number;       // Ağırlık
 }
 
+// ... Dosyanın geri kalanı (Combinator, CanvasComponent, PanelDesign vb.) aynı kalacak ...
+// Buradaki diğer interface'leri silmene gerek yok, sadece Component'i güncellemen yeterli.
+// Diğer tüm interface'ler (Project, Rule, vs.) olduğu gibi kalmalı.
 export interface Combinator {
   id: string;
   name: string;
-  width: number; // in mm
-  height: number; // in mm
-  depth?: number; // in mm
-  componentIds: string[]; // Array of component IDs contained in this combinator
-  gaps?: number[]; // Array of gaps: gaps[0] = top gap, gaps[1..n-1] = gaps between components, gaps[n] = bottom gap
+  width: number;
+  height: number;
+  depth?: number;
+  componentIds: string[];
+  gaps?: number[];
   brand: string;
   series: string;
-  currentA: string; // Current in Amperes
+  currentA: string;
   pole: string;
   panelSize?: number; // Panel size in cm (e.g., 60 for 600mm panel)
   specs?: Record<string, string | number>; // Specifications (key:value pairs with types String or Number)
@@ -46,13 +56,13 @@ export interface Combinator {
 
 export interface CanvasComponent {
   id: string;
-  componentId: string; // reference to Component.id
-  panelId: string; // reference to Panel.id - which panel this component belongs to
-  x: number; // position on canvas (relative to panel)
-  y: number; // position on canvas (relative to panel)
-  rotation?: number; // rotation in degrees
-  scale?: number; // scale factor
-  properties?: Record<string, any>; // additional properties
+  componentId: string;
+  panelId: string;
+  x: number;
+  y: number;
+  rotation?: number;
+  scale?: number;
+  properties?: Record<string, any>;
 }
 
 export interface PanelDesign {
@@ -64,7 +74,7 @@ export interface MultiPanelDesign {
   panels: Panel[];
   components: CanvasComponent[];
   activePanelId: string | null;
-  panelSpacing: number; // spacing between panels in mm
+  panelSpacing: number;
 }
 
 // Rule System Types
@@ -97,13 +107,13 @@ export interface Rule {
   id: string;
   name: string;
   type: 'global' | 'panel' | 'component' | 'combinator';
-  panelId?: string; // For panel-based rules
-  componentId?: string; // For component-based rules
-  combinatorId?: string; // For combinator-based rules
+  panelId?: string;
+  componentId?: string;
+  combinatorId?: string;
   conditions: RuleCondition[];
   constraints: Constraint[];
-  dependencies?: string[]; // Rule IDs this rule depends on
-  enabled?: boolean; // Whether rule is active
+  dependencies?: string[];
+  enabled?: boolean;
 }
 
 export interface RuleCondition {
@@ -120,8 +130,8 @@ export interface RuleNode {
     rule?: Rule;
     constraint?: Constraint;
     condition?: RuleCondition;
-    panelId?: string; // For panelNode
-    combinatorId?: string; // For combinatorNode
+    panelId?: string;
+    combinatorId?: string;
   };
   position: { x: number; y: number };
 }
@@ -133,16 +143,16 @@ export interface RuleViolation {
   message: string;
   severity: 'error' | 'warning';
   componentId?: string;
-  componentIds?: string[]; // For violations involving multiple components
+  componentIds?: string[];
   timestamp: number;
-  missingComponentId?: string; // For co-usage violations: the missing required component ID
-  requiredComponentId?: string; // For co-usage violations: the component that requires the missing one
+  missingComponentId?: string;
+  requiredComponentId?: string;
 }
 
 export interface Project {
   id: string;
   name: string;
-  panelName: string; // Complete panel name
+  panelName: string;
   customer: string;
   editor: string;
   comment: string;
@@ -151,9 +161,8 @@ export interface Project {
   nominalCurrent: string;
   shortCircuitCurrent: string;
   forming: string;
-  panels: Panel[]; // Panels in the project
-  components: CanvasComponent[]; // Components in the project
-  createdAt: number; // Timestamp
-  updatedAt: number; // Timestamp
+  panels: Panel[];
+  components: CanvasComponent[];
+  createdAt: number;
+  updatedAt: number;
 }
-

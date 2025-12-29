@@ -12,91 +12,93 @@ import {
 } from '@/types';
 import { defaultComponents } from '@/data/components';
 import { defaultPanels } from '@/data/panels';
-import { storage } from './storage';
+import { storage } from '@/lib/storage';
 
 interface PanelStore {
-  // Panel design state (multi-panel support)
+  // --- STATE (DURUM) DEĞİŞKENLERİ ---
+  
+  // Çoklu Pano Desteği
   panels: Panel[];
   components: CanvasComponent[];
   activePanelId: string | null;
-  panelSpacing: number; // spacing between panels in mm
+  panelSpacing: number; // Panolar arası boşluk (mm)
   
-  // Legacy single panel support (for backward compatibility)
+  // Legacy (Eski kod uyumluluğu için tekil panel)
   panel: Panel;
   
-  // Component library
+  // Kütüphaneler (Veritabanı gibi davranır)
   componentLibrary: Component[];
-  
-  // Panels library
   panelsLibrary: Panel[];
+  combinatorsLibrary: Combinator[]; // EKLENDİ: Eksik olan parça buydu
   
-  // Combinators library
-  combinatorsLibrary: Combinator[];
-  
-  // Rules
+  // Kurallar ve İhlaller
   rules: Rule[];
-  
-  // Rule violations
   violations: RuleViolation[];
   
-  // Selection state
-  selectedComponentType: string | null; // Component ID from library
-  selectedCanvasComponent: string | null; // CanvasComponent ID
+  // Arayüz Durumları
+  selectedComponentType: string | null; 
+  selectedCanvasComponent: string | null; 
   
-  // Drag state
-  draggingComponent: string | null; // Component ID being dragged
-  dragPosition: { x: number; y: number } | null; // Current drag position in mm
-  dragPanelId: string | null; // Panel ID where component is being dragged
+  // Sürükle-Bırak Durumları
+  draggingComponent: string | null; 
+  dragPosition: { x: number; y: number } | null; 
+  dragPanelId: string | null; 
   
-  // Actions - Panel Design
-  setPanel: (panel: Partial<Panel>) => void; // Legacy - updates first panel or creates one
-  addPanel: (panel: Panel) => void; // Add a panel to the design
-  removePanel: (panelId: string) => void; // Remove a panel from the design
-  setActivePanel: (panelId: string | null) => void; // Set the active panel
+  // Projeler
+  projects: Project[];
+  currentProject: Project | null;
+  
+  // --- AKSİYONLAR (FONKSİYONLAR) ---
+
+  // Pano Yönetimi
+  setPanel: (panel: Partial<Panel>) => void;
+  addPanel: (panel: Panel) => void;
+  removePanel: (panelId: string) => void;
+  setActivePanel: (panelId: string | null) => void;
+  
+  // Bileşen Yönetimi
   addComponent: (panelId: string, componentId: string, x: number, y: number) => void;
   updateComponent: (id: string, updates: Partial<CanvasComponent>) => void;
   deleteComponent: (id: string) => void;
+  
+  // Seçim İşlemleri
   selectComponentType: (componentId: string | null) => void;
   selectCanvasComponent: (id: string | null) => void;
-  setDesign: (design: PanelDesign | MultiPanelDesign) => void; // Support both formats
+  
+  // Tasarım Yönetimi (Load/Save/Clear)
+  setDesign: (design: PanelDesign | MultiPanelDesign) => void;
   clearDesign: () => void;
   
-  // Drag actions
+  // Sürükle-Bırak Aksiyonları
   setDraggingComponent: (componentId: string | null) => void;
   setDragPosition: (position: { x: number; y: number } | null, panelId?: string | null) => void;
   
-  // Actions - Components Library
+  // Kütüphane Yönetimi
   addComponentToLibrary: (component: Component) => void;
   updateComponentInLibrary: (id: string, updates: Partial<Component>) => void;
   deleteComponentFromLibrary: (id: string) => void;
   
-  // Actions - Panels Library
   addPanelToLibrary: (panel: Panel) => void;
   updatePanelInLibrary: (id: string, updates: Partial<Panel>) => void;
   deletePanelFromLibrary: (id: string) => void;
   loadPanelFromLibrary: (id: string) => void;
   
-  // Actions - Combinators Library
   addCombinatorToLibrary: (combinator: Combinator) => void;
   updateCombinatorInLibrary: (id: string, updates: Partial<Combinator>) => void;
   deleteCombinatorFromLibrary: (id: string) => void;
   
-  // Actions - Rules
+  // Kural Yönetimi
   setRules: (rules: Rule[]) => void;
   addRule: (rule: Rule) => void;
   updateRule: (id: string, updates: Partial<Rule>) => void;
   deleteRule: (id: string) => void;
   toggleRule: (id: string) => void;
   
-  // Actions - Violations
+  // İhlal Yönetimi
   setViolations: (violations: RuleViolation[]) => void;
   clearViolations: () => void;
   
-  // Projects state
-  projects: Project[];
-  currentProject: Project | null;
-  
-  // Actions - Projects
+  // Proje Yönetimi
   addProject: (project: Project) => void;
   updateProject: (id: string, updates: Partial<Project>) => void;
   deleteProject: (id: string) => void;
@@ -104,10 +106,10 @@ interface PanelStore {
   loadProjects: () => void;
 }
 
-// Legacy default panel for backward compatibility
+// Varsayılan Pano (Fallback)
 const defaultPanel: Panel = defaultPanels[0] || {
   id: 'panel-1',
-  name: 'New Panel',
+  name: 'Standart Pano',
   width: 600,
   height: 800,
   depth: 200,
@@ -115,20 +117,20 @@ const defaultPanel: Panel = defaultPanels[0] || {
   model3D: '/models/panel-sample-3d.glb',
 };
 
-// Load initial state from localStorage (safe for SSR)
+// Başlangıç Durumunu Yükle (SSR Güvenli)
 const loadInitialState = () => {
-  // Check if we're in browser environment
   if (typeof window === 'undefined') {
     return {
       rules: [],
-      panelsLibrary: defaultPanels,
-      componentLibrary: defaultComponents,
+      panelsLibrary: defaultPanels || [],
+      componentLibrary: defaultComponents || [],
       combinatorsLibrary: [],
       projects: [],
     };
   }
   
-  const savedRules = storage.loadRules();
+  // LocalStorage'dan verileri çek, yoksa varsayılanları kullan
+  const savedRules = storage.loadRules() || [];
   const savedPanels = storage.loadPanelsLibrary();
   const savedComponents = storage.loadComponentsLibrary();
   const savedCombinators = storage.loadCombinatorsLibrary();
@@ -136,46 +138,54 @@ const loadInitialState = () => {
   
   return {
     rules: savedRules,
-    panelsLibrary: savedPanels.length > 0 ? savedPanels : defaultPanels,
-    componentLibrary: savedComponents || defaultComponents,
-    combinatorsLibrary: savedCombinators || [],
-    projects: Object.values(savedProjects),
+    panelsLibrary: savedPanels.length > 0 ? savedPanels : (defaultPanels || []),
+    componentLibrary: savedComponents || (defaultComponents || []),
+    combinatorsLibrary: savedCombinators || [], // Burası kritikti, artık boş array dönüyor
+    projects: savedProjects ? Object.values(savedProjects) : [],
   };
 };
 
 const initialState = loadInitialState();
 
 export const usePanelStore = create<PanelStore>((set, get) => ({
-  // Multi-panel state
+  // --- STATE INITIALIZATION (BAŞLANGIÇ DEĞERLERİ) ---
   panels: [],
   components: [],
   activePanelId: null,
-  panelSpacing: 0, // No spacing between panels (panels are adjacent)
+  panelSpacing: 0,
   
-  // Legacy single panel (for backward compatibility)
+  // Legacy
   panel: defaultPanel,
   
+  // Libraries
   componentLibrary: initialState.componentLibrary,
   panelsLibrary: initialState.panelsLibrary,
-  combinatorsLibrary: initialState.combinatorsLibrary,
+  combinatorsLibrary: initialState.combinatorsLibrary, // ARTIK EKSİK DEĞİL
+  
+  // Rules & Projects
   rules: initialState.rules,
   violations: [],
-  selectedComponentType: null,
-  selectedCanvasComponent: null,
-  dragPanelId: null,
   projects: initialState.projects,
   currentProject: null,
 
-  // Panel Design Actions
+  // UI States
+  selectedComponentType: null,
+  selectedCanvasComponent: null,
+  dragPanelId: null,
+  draggingComponent: null,
+  dragPosition: null,
+
+  // --- ACTIONS ---
+
+  // Pano İşlemleri
   setPanel: (updates) =>
     set((state) => {
-      // Legacy support: update first panel or create one
       if (state.panels.length === 0) {
         const newPanel = { ...defaultPanel, ...updates };
         return {
           panel: newPanel,
           panels: [newPanel],
-          activePanelId: state.activePanelId, // Don't auto-select
+          activePanelId: state.activePanelId,
         };
       } else {
         const updatedPanel = { ...state.panels[0], ...updates };
@@ -193,7 +203,6 @@ export const usePanelStore = create<PanelStore>((set, get) => ({
       return {
         panels: newPanels,
         activePanelId: state.activePanelId || newPanel.id,
-        // Update legacy panel to first panel
         panel: newPanels[0] || defaultPanel,
       };
     }),
@@ -217,6 +226,7 @@ export const usePanelStore = create<PanelStore>((set, get) => ({
 
   setActivePanel: (panelId) => set({ activePanelId: panelId }),
 
+  // Bileşen İşlemleri
   addComponent: (panelId, componentId, x, y) =>
     set((state) => {
       const component = state.componentLibrary.find((c) => c.id === componentId);
@@ -234,7 +244,7 @@ export const usePanelStore = create<PanelStore>((set, get) => ({
 
       return {
         components: [...state.components, newComponent],
-        selectedComponentType: null, // Clear selection after adding
+        selectedComponentType: null,
       };
     }),
 
@@ -258,21 +268,20 @@ export const usePanelStore = create<PanelStore>((set, get) => ({
   selectCanvasComponent: (id) =>
     set({ selectedCanvasComponent: id }),
 
+  // Tasarım (Design) İşlemleri
   setDesign: (design) =>
     set((state) => {
-      // Support both old PanelDesign and new MultiPanelDesign formats
+      // Hem eski hem yeni formatı destekle
       if ('panels' in design) {
-        // MultiPanelDesign format
         const multiDesign = design as MultiPanelDesign;
         return {
-          panels: multiDesign.panels,
-          components: multiDesign.components,
-          activePanelId: multiDesign.activePanelId,
+          panels: multiDesign.panels || [],
+          components: multiDesign.components || [],
+          activePanelId: multiDesign.activePanelId || null,
           panelSpacing: multiDesign.panelSpacing || 0,
           panel: multiDesign.panels[0] || defaultPanel,
         };
       } else {
-        // Legacy PanelDesign format
         const legacyDesign = design as PanelDesign;
         return {
           panels: [legacyDesign.panel],
@@ -296,7 +305,7 @@ export const usePanelStore = create<PanelStore>((set, get) => ({
       selectedCanvasComponent: null,
     }),
 
-  // Components Library Actions
+  // Kütüphane Yönetimi (Library Actions)
   addComponentToLibrary: (component) =>
     set((state) => {
       const updated = [...state.componentLibrary, component];
@@ -320,7 +329,7 @@ export const usePanelStore = create<PanelStore>((set, get) => ({
       return { componentLibrary: updated };
     }),
 
-  // Panels Library Actions
+  // Pano Kütüphanesi
   addPanelToLibrary: (panel) =>
     set((state) => {
       const updated = [...state.panelsLibrary, panel];
@@ -348,13 +357,14 @@ export const usePanelStore = create<PanelStore>((set, get) => ({
     set((state) => {
       const panel = state.panelsLibrary.find((p) => p.id === id);
       if (!panel) return state;
+      // Yeni pano yüklenince mevcut bileşenleri temizle (veya isteğe bağlı sorulabilir)
       return {
         panel: { ...panel },
-        components: [], // Clear components when loading new panel
+        components: [], 
       };
     }),
 
-  // Combinators Library Actions
+  // Combinator Kütüphanesi
   addCombinatorToLibrary: (combinator) =>
     set((state) => {
       const updated = [...state.combinatorsLibrary, combinator];
@@ -378,7 +388,7 @@ export const usePanelStore = create<PanelStore>((set, get) => ({
       return { combinatorsLibrary: updated };
     }),
 
-  // Rules Actions
+  // Kural (Rule) Yönetimi
   setRules: (rules) =>
     set(() => {
       storage.saveRules(rules);
@@ -416,20 +426,17 @@ export const usePanelStore = create<PanelStore>((set, get) => ({
       return { rules: updated };
     }),
 
-  // Violations Actions
-  setViolations: (violations) =>
-    set({ violations }),
+  // İhlal (Violation) Yönetimi
+  setViolations: (violations) => set({ violations }),
+  clearViolations: () => set({ violations: [] }),
 
-  clearViolations: () =>
-    set({ violations: [] }),
-
-  // Drag actions
+  // Drag & Drop
   setDraggingComponent: (componentId) =>
     set({ draggingComponent: componentId, dragPosition: null, dragPanelId: null }),
   setDragPosition: (position, panelId) =>
     set({ dragPosition: position, dragPanelId: panelId || null }),
 
-  // Projects Actions
+  // Proje Yönetimi
   addProject: (project) =>
     set((state) => {
       const updated = [...state.projects, project];
@@ -467,4 +474,3 @@ export const usePanelStore = create<PanelStore>((set, get) => ({
       return { projects: Object.values(savedProjects) };
     }),
 }));
-

@@ -34,7 +34,6 @@ export default function ProjectsPage() {
   };
 
   const handleProjectCreated = (project: Project) => {
-    // Project is already saved in DesignSetupStep, redirect to project page
     loadProjects();
     router.push(`/projects/${project.id}`);
   };
@@ -42,10 +41,6 @@ export default function ProjectsPage() {
   const handleSetupCancel = () => {
     setSetupFormData(null);
     setViewMode('list');
-  };
-
-  const handleProjectSelect = () => {
-    // Navigation is now handled by Link in ProjectList
   };
 
   return (
@@ -60,56 +55,18 @@ export default function ProjectsPage() {
             {viewMode === 'list' && (
               <button
                 onClick={handleNewProject}
-                className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
               >
                 + New Project
               </button>
             )}
           </div>
-          <nav className="flex items-center gap-4">
-            <a
-              href="/"
-              className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600"
-            >
-              Designer
-            </a>
-            <a
-              href="/rule-book"
-              className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600"
-            >
-              Rule Book
-            </a>
-            <a
-              href="/panel-editor"
-              className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600"
-            >
-              Panel Editor
-            </a>
-            <a
-              href="/component-editor"
-              className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600"
-            >
-              Component Editor
-            </a>
-            <a
-              href="/combinator-editor"
-              className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600"
-            >
-              Combinator Editor
-            </a>
-            <a
-              href="/projects"
-              className="px-3 py-2 text-sm font-medium text-blue-600 border-b-2 border-blue-500"
-            >
-              Projects
-            </a>
-          </nav>
         </div>
       </header>
 
       <div className="flex-1 overflow-hidden">
         {viewMode === 'list' ? (
-          <ProjectList onProjectSelect={handleProjectSelect} />
+          <ProjectList />
         ) : viewMode === 'setup' && setupFormData ? (
           <DesignSetupStep
             formData={setupFormData}
@@ -119,7 +76,6 @@ export default function ProjectsPage() {
         ) : null}
       </div>
 
-      {/* Project Creation Flow Modal - Only for steps 0 and 1 */}
       <ProjectCreationFlow isOpen={showFlow} onClose={handleCloseFlow} onStep2Ready={handleStep2Ready} />
     </div>
   );
